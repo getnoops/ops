@@ -1,6 +1,6 @@
 package main
 
-import "cli/cmd"
+import "github.com/getnoops/ops/cmd"
 
 func main() {
 	cmd.Execute()

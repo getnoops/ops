@@ -14,8 +14,8 @@ var (
 	userLicense string
 
 	rootCmd = &cobra.Command{
-		Use:   "noops",
-		Short: "The NoOps cli used to manage deployments",
+		Use:   "ops",
+		Short: "The No_Ops cli used to manage deployments",
 	}
 )
 
@@ -26,9 +26,9 @@ func Execute() error {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noops.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ops.yaml)")
 	rootCmd.AddCommand(applyCmd)
-	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 func initConfig() {
@@ -36,10 +36,10 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Search config in home directory with name ".noops" (without extension).
+		// Search config in home directory with name ".ops" (without extension).
 		viper.AddConfigPath(".")
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".noops")
+		viper.SetConfigName(".ops")
 	}
 
 	viper.AutomaticEnv()

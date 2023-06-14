@@ -1,0 +1,86 @@
+name: "go: build dev binaries"
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+
+  cleanup:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete old release assets
+        uses: mknejp/delete-release-assets@v1
+        with:
+          token: ${{ github.token }}
+          tag: dev
+          fail-if-no-assets: false
+          assets: |
+            ops-*
+
+  build_dev_linux_windows:
+    permissions:
+      contents: write
+    needs: cleanup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows]
+        goarch: [amd64]
+
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+
+      - name: Set BUILD_TIME env
+        run: echo BUILD_TIME=$(date -u +%Y%m%d-%H%M) >> ${GITHUB_ENV}
+
+      - name: Go Release Binaries Normal Volume Size
+        uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          release_tag: dev
+          overwrite: true
+          pre_command: export CGO_ENABLED=0
+          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
+          binary_name: ops
+          asset_name: "ops-${{ env.BUILD_TIME }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+
+  build_dev_darwin:
+    permissions:
+      contents: write
+    needs: build_dev_linux_windows
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [darwin]
+        goarch: [amd64, arm64]
+
+    steps:
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+
+      - name: Set BUILD_TIME env
+        run: echo BUILD_TIME=$(date -u +%Y%m%d-%H%M) >> ${GITHUB_ENV}
+
+      - name: Go Release Binaries Normal Volume Size
+        uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          release_tag: dev
+          overwrite: true
+          pre_command: export CGO_ENABLED=0
+          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
+          binary_name: ops
+          asset_name: "ops-${{ env.BUILD_TIME }}-${{ matrix.goos }}-${{ matrix.goarch }}"

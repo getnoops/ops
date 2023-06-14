@@ -1,1 +1,8 @@
+## golang
+vendor
+
+## vscode
+.vscode
+
+## Binary output
 /bin/
