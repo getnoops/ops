@@ -2,9 +2,9 @@ name: "go: build binary"
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 concurrency:
   group: ${{ github.head_ref }}/go
