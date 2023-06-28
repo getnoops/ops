@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	VERSION_NUMBER = fmt.Sprintf("%.02f", 0.01)
+	VERSION_NUMBER = fmt.Sprintf("%.02f", 0.01) // the version
 	COMMIT         = ""
 )
 
