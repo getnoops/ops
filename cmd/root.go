@@ -30,6 +30,10 @@ func init() {
 	rootCmd.AddCommand(applyCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(upgradeCmd)
+
+	// Flags
+	upgradeCmd.PersistentFlags().BoolP("prerelease", "", false, "Use prerelease versions")
+	upgradeCmd.PersistentFlags().BoolP("draft", "", false, "Use draft versions")
 }
 
 func initConfig() {

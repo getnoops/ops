@@ -3,7 +3,8 @@ package selfupdate
 import (
 	"context"
 	"fmt"
-	"log"
+	"io"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -83,13 +84,57 @@ func (u *updater) UpdateTo(ctx context.Context, asset *ReleaseAsset, exePath str
 	}
 	defer reader.Close()
 
-	_, name := filepath.Split(exePath)
-	out, err := DecompressCommand(reader, asset.Filename, name, u.os, u.arch)
+	out, err := DecompressCommand(reader, asset.Filename, "ops", u.os, u.arch)
 	if err != nil {
 		return err
 	}
 
-	log.Println(out)
+	// get the directory the executable exists in
+	updateDir := filepath.Dir(exePath)
+	filename := filepath.Base(exePath)
+
+	// Copy the contents of newbinary to a new executable file
+	newPath := filepath.Join(updateDir, fmt.Sprintf(".%s.new", filename))
+	fp, err := os.OpenFile(newPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	_, err = io.Copy(fp, out)
+	if err != nil {
+		return err
+	}
+
+	// if we don't call fp.Close(), windows won't let us move the new executable
+	// because the file will still be "in use"
+	fp.Close()
+
+	// this is where we'll move the executable to so that we can swap in the updated replacement
+	oldPath := filepath.Join(updateDir, fmt.Sprintf(".%s.old", filename))
+
+	// delete any existing old exec file - this is necessary on Windows for two reasons:
+	// 1. after a successful update, Windows can't remove the .old file because the process is still running
+	// 2. windows rename operations fail if the destination file already exists
+	_ = os.Remove(oldPath)
+
+	// move the existing executable to a new file in the same directory
+	if err := os.Rename(exePath, oldPath); err != nil {
+		return err
+	}
+	// move the new executable in to become the new program
+	if err := os.Rename(newPath, exePath); err != nil {
+		return err
+	}
+
+	// move successful, remove the old binary if needed
+	if err := os.Remove(oldPath); err != nil {
+		return err
+	}
+
 	return nil
 }
 

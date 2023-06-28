@@ -8,71 +8,12 @@ permissions:
   contents: read
 
 jobs:
-  cleanup:
+  tag:
     permissions:
       contents: write
     runs-on: ubuntu-latest
-
     steps:
-      - name: Delete old release assets
-        uses: mknejp/delete-release-assets@v1
+      - name: Tag it
+        uses: sersoft-gmbh/running-release-tags-action@v2
         with:
-          token: ${{ github.token }}
           tag: dev
-          fail-if-no-assets: false
-          assets: |
-            ops-*
-
-  build_dev_linux_windows:
-    permissions:
-      contents: write
-    needs: cleanup
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, windows]
-        goarch: [amd64]
-    steps:
-      - name: Check out
-        uses: actions/checkout@v3
-      - name: Add SHORT_SHA env
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-      - name: Go Release
-        uses: wangyoucao577/go-release-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          release_tag: dev
-          overwrite: true
-          pre_command: export CGO_ENABLED=0
-          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
-          binary_name: ops
-          asset_name: "ops-${{ env.SHORT_SHA }}-${{ matrix.goos }}-${{ matrix.goarch }}"
-
-  build_dev_darwin:
-    permissions:
-      contents: write
-    needs: build_dev_linux_windows
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [darwin]
-        goarch: [amd64, arm64]
-    steps:
-      - name: Check out
-        uses: actions/checkout@v3
-      - name: Add SHORT_SHA env
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-      - name: Go Release
-        uses: wangyoucao577/go-release-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          release_tag: dev
-          overwrite: true
-          pre_command: export CGO_ENABLED=0
-          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
-          binary_name: ops
-          asset_name: "ops-${{ env.SHORT_SHA }}-${{ matrix.goos }}-${{ matrix.goarch }}"

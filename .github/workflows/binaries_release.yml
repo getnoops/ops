@@ -13,6 +13,21 @@ permissions:
   contents: read
 
 jobs:
+  cleanup:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete old release assets
+        uses: mknejp/delete-release-assets@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.ref}}
+          fail-if-no-assets: false
+          assets: |
+            ops-*
+
   build_release_linux_windows:
     permissions:
       contents: write
@@ -34,8 +49,8 @@ jobs:
           goarch: ${{ matrix.goarch }}
           overwrite: true
           pre_command: export CGO_ENABLED=0
-          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
-          binary_name: ops
+          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}} -X github.com/getnoops/ops/pkg/util.VERSION_NUMBER=${{github.ref_name}}
+          binary_name: ops 
           asset_name: "ops-${{ env.SHORT_SHA }}-${{ matrix.goos }}-${{ matrix.goarch }}"
 
   build_release_darwin:
@@ -60,6 +75,6 @@ jobs:
           goarch: ${{ matrix.goarch }}
           overwrite: true
           pre_command: export CGO_ENABLED=0
-          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
+          ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}} -X github.com/getnoops/ops/pkg/util.VERSION_NUMBER=${{github.ref_name}}
           binary_name: ops
           asset_name: "ops-${{ env.SHORT_SHA }}-${{ matrix.goos }}-${{ matrix.goarch }}"

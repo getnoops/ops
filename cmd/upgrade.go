@@ -25,7 +25,12 @@ func update(ctx context.Context, prerelease bool, draft bool) error {
 	}
 
 	commit := util.Commit()
-	if !selfupdate.IsDifferent(commit, latest.Filename) {
+	diff, err := selfupdate.IsDifferent(commit, latest.Filename)
+	if err != nil {
+		return fmt.Errorf("error occurred while checking for latest version: %w", err)
+	}
+
+	if !diff {
 		log.Println("You already have the latest")
 		return nil
 	}
@@ -46,6 +51,9 @@ var upgradeCmd = &cobra.Command{
 	Short: "Upgrades ops tool to the latest version",
 	Long:  `Upgrade will check for the latest version and upgrade if necessary.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return update(context.Background(), true, false)
+		prerelease, _ := cmd.Flags().GetBool("prerelease")
+		draft, _ := cmd.Flags().GetBool("draft")
+
+		return update(context.Background(), prerelease, draft)
 	},
 }
