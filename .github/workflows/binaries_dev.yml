@@ -13,7 +13,9 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Tag it
-        uses: sersoft-gmbh/running-release-tags-action@v2
+      - name: Tag Repo
+        uses: richardsimko/update-tag@v1
         with:
-          tag: dev
+          tag_name: dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
