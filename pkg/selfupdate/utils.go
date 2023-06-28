@@ -1,5 +1,5 @@
 package selfupdate
 
-func VersionDiff(currentVersion string, latestVersion string) bool {
+func IsDifferent(commit string, filename string) bool {
 	return false
 }

@@ -3,12 +3,15 @@ package selfupdate
 import (
 	"context"
 	"fmt"
+	"log"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
 
 type Updater interface {
 	GetLatest(ctx context.Context) (*ReleaseAsset, error)
+	UpdateTo(ctx context.Context, asset *ReleaseAsset, exePath string) error
 }
 
 type updater struct {
@@ -71,6 +74,23 @@ func (u *updater) GetLatest(ctx context.Context) (*ReleaseAsset, error) {
 	}
 
 	return nil, fmt.Errorf("no release found")
+}
+
+func (u *updater) UpdateTo(ctx context.Context, asset *ReleaseAsset, exePath string) error {
+	reader, err := u.gh.DownloadReleaseAsset(ctx, asset.AssetId)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	_, name := filepath.Split(exePath)
+	out, err := DecompressCommand(reader, asset.Filename, name, u.os, u.arch)
+	if err != nil {
+		return err
+	}
+
+	log.Println(out)
+	return nil
 }
 
 func NewUpdater(repositorySlug string, prerelease bool, draft bool) (Updater, error) {

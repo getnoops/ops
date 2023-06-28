@@ -18,3 +18,7 @@ func Version() string {
 
 	return strings.Join(parts, " ")
 }
+
+func Commit() string {
+	return COMMIT
+}
