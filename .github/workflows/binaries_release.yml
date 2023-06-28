@@ -33,7 +33,7 @@ jobs:
           pre_command: export CGO_ENABLED=0
           ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
           binary_name: ops
-          asset_name: "ops-${{github.sha}}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          asset_name: "ops-${{github.sha::7}}-${{ matrix.goos }}-${{ matrix.goarch }}"
 
   build_release_darwin:
     permissions:
@@ -57,4 +57,4 @@ jobs:
           pre_command: export CGO_ENABLED=0
           ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
           binary_name: ops
-          asset_name: "ops-${{github.sha}}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          asset_name: "ops-${{github.sha::7}}-${{ matrix.goos }}-${{ matrix.goarch }}"
