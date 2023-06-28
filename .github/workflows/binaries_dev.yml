@@ -8,6 +8,18 @@ permissions:
   contents: read
 
 jobs:
+  tag:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Tag Repo
+      uses: richardsimko/update-tag@v1
+      with:
+        tag_name: dev
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   cleanup:
     permissions:
       contents: write
@@ -32,8 +44,9 @@ jobs:
       matrix:
         goos: [linux, windows]
         goarch: [amd64]
+
     steps:
-      - name: Check out
+      - name: Check out code
         uses: actions/checkout@v3
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
@@ -59,8 +72,9 @@ jobs:
       matrix:
         goos: [darwin]
         goarch: [amd64, arm64]
+
     steps:
-      - name: Check out
+      - name: Check out code
         uses: actions/checkout@v3
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV

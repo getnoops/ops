@@ -1,13 +1,12 @@
 package util
 
 import (
-	"fmt"
 	"strings"
 )
 
 var (
-	VERSION_NUMBER = fmt.Sprintf("%.02f", 0.01) // the version
-	COMMIT         = ""
+	VERSION_NUMBER = "dev"
+	COMMIT         = "unknown"
 )
 
 func Version() string {
@@ -17,4 +16,8 @@ func Version() string {
 	}
 
 	return strings.Join(parts, " ")
+}
+
+func Commit() string {
+	return COMMIT
 }
