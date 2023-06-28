@@ -22,7 +22,10 @@ jobs:
         goos: [linux, windows]
         goarch: [amd64]
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Add SHORT_SHA env
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release Binaries
         uses: wangyoucao577/go-release-action@v1
         with:
@@ -33,7 +36,7 @@ jobs:
           pre_command: export CGO_ENABLED=0
           ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
           binary_name: ops
-          asset_name: "ops-${{github.sha::7}}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          asset_name: "ops-${{ env.SHORT_SHA }}-${{ matrix.goos }}-${{ matrix.goarch }}"
 
   build_release_darwin:
     permissions:
@@ -47,6 +50,8 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v3
+      - name: Add SHORT_SHA env
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release
         uses: wangyoucao577/go-release-action@v1
         with:
@@ -57,4 +62,4 @@ jobs:
           pre_command: export CGO_ENABLED=0
           ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/util.COMMIT=${{github.sha}}
           binary_name: ops
-          asset_name: "ops-${{github.sha::7}}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          asset_name: "ops-${{ env.SHORT_SHA }}-${{ matrix.goos }}-${{ matrix.goarch }}"
