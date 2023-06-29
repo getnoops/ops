@@ -9,9 +9,7 @@ import (
 
 var (
 	// Used for flags.
-	cfgFile     string
-	baseDir     string
-	userLicense string
+	cfgFile string
 
 	rootCmd = &cobra.Command{
 		Use:   "ops",
@@ -30,6 +28,7 @@ func init() {
 	rootCmd.AddCommand(applyCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(upgradeCmd)
+	rootCmd.AddCommand(loginCmd)
 
 	// Flags
 	upgradeCmd.PersistentFlags().BoolP("prerelease", "", false, "Use prerelease versions")
