@@ -8,7 +8,6 @@ import (
 func addFlags(cmd *cobra.Command) {
 	bindBoolFlag(cmd, "prerelease", "Check for pre-release versions")
 	bindBoolFlag(cmd, "draft", "Check for draft versions")
-
 }
 
 func bindBoolFlag(cmd *cobra.Command, name, description string) {
