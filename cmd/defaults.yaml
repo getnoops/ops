@@ -1,0 +1,16 @@
+Home:
+  Path: ~/.config/ops
+
+Log:
+  Level: info
+  Formatter:
+    Format: text
+
+Auth: 
+  Issuer: http://localhost:8080
+  ClientId: client_id
+  Scopes: 
+    - openid
+    - profile
+    - email
+    - offline_access

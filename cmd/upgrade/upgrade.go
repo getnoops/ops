@@ -1,4 +1,4 @@
-package cmd
+package upgrade
 
 import (
 	"context"
@@ -8,13 +8,31 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/getnoops/ops/pkg/selfupdate"
-	"github.com/getnoops/ops/pkg/util"
+	"github.com/getnoops/ops/pkg/version"
 )
 
-func update(ctx context.Context, prerelease bool, draft bool) error {
-	updater, err := selfupdate.NewUpdater("getnoops/ops", prerelease, draft)
+func New() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "upgrade",
+		Short: "Upgrades ops tool to the latest version",
+		Long:  `Upgrade will check for the latest version and upgrade if necessary.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			config := MustNewConfig(viper.GetViper())
+			return Update(config)
+		},
+	}
+
+	addFlags(cmd)
+	return cmd
+}
+
+func Update(config *Config) error {
+	ctx := context.Background()
+
+	updater, err := selfupdate.NewUpdater("getnoops/ops", config.Prerelease, config.Draft)
 	if err != nil {
 		return fmt.Errorf("error occurred while creating updater: %w", err)
 	}
@@ -24,7 +42,7 @@ func update(ctx context.Context, prerelease bool, draft bool) error {
 		return fmt.Errorf("error occurred while detecting version: %w", err)
 	}
 
-	commit := util.Commit()
+	commit := version.Commit()
 	diff, err := selfupdate.IsDifferent(commit, latest.Filename)
 	if err != nil {
 		return fmt.Errorf("error occurred while checking for latest version: %w", err)
@@ -44,16 +62,4 @@ func update(ctx context.Context, prerelease bool, draft bool) error {
 	}
 	log.Println("Successfully updated ops")
 	return nil
-}
-
-var upgradeCmd = &cobra.Command{
-	Use:   "upgrade",
-	Short: "Upgrades ops tool to the latest version",
-	Long:  `Upgrade will check for the latest version and upgrade if necessary.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		prerelease, _ := cmd.Flags().GetBool("prerelease")
-		draft, _ := cmd.Flags().GetBool("draft")
-
-		return update(context.Background(), prerelease, draft)
-	},
 }
