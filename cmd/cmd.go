@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/getnoops/ops/cmd/auth"
+	"github.com/getnoops/ops/cmd/deploy"
 	"github.com/getnoops/ops/cmd/upgrade"
 	"github.com/getnoops/ops/pkg/logging"
 	"github.com/getnoops/ops/pkg/version"
@@ -26,6 +27,9 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 		Version: version.Version(),
 	}
 
+	// This is just temporary. We should read this value from .env later when deploying CLI/Brain to other environments.
+	viper.SetDefault("BrainUrl", "http://localhost:8080")
+
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("NOOPS")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -39,6 +43,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cmd.AddCommand(
 		auth.New(),
 		upgrade.New(),
+		deploy.New(),
 	)
 
 	cmd.InitDefaultVersionFlag()
