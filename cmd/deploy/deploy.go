@@ -9,20 +9,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/getnoops/ops/pkg/brain"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-// TODO: Auto generate these values from Brain API
-type NewDeploymentRequest struct {
-	EnvironmentName string `json:"environmentName"`
-}
-
-type NewDeploymentResponse struct {
-	DeploymentId string `json:"deploymentId"`
-	SessionToken string `json:"sessionToken"`
-	UploadUrl    string `json:"uploadUrl"`
-}
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
@@ -63,28 +53,26 @@ func Deploy(config *Config) error {
 	return nil
 }
 
-func CreateBrainDeployment(env string) (*NewDeploymentResponse, error) {
-	deploymentReq := new(NewDeploymentRequest)
-	deploymentReq.EnvironmentName = env
-
-	body, err := json.Marshal(deploymentReq)
+func CreateBrainDeployment(env string) (*brain.CreateDeploymentResponse, error) {
+	url := viper.GetString("BrainUrl")
+	body := brain.CreateDeploymentRequest{EnvironmentName: env}
+	req, err := brain.NewCreateNewDeploymentRequest(url, body)
 	if err != nil {
 		return nil, err
 	}
 
-	url := viper.GetString("BrainUrl") + "/api/cli/deployment"
-	res, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	responseData, err := io.ReadAll(res.Body)
+	resData, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var newDeployment NewDeploymentResponse
-	json.Unmarshal(responseData, &newDeployment)
+	var newDeployment brain.CreateDeploymentResponse
+	json.Unmarshal(resData, &newDeployment)
 
 	return &newDeployment, nil
 }
