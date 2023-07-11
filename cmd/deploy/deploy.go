@@ -50,6 +50,13 @@ func Deploy(config *Config) error {
 
 	fmt.Println("Stack file uploaded!")
 
+	err = NotifyUploadComplete(newDeployment.DeploymentId)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Brain notified of stack file upload.")
+
 	return nil
 }
 
@@ -112,6 +119,20 @@ func UploadStackFile(stack, uploadUrl string) error {
 
 	if res.StatusCode != 200 {
 		return errors.New("Unable to upload stack file, status code: " + res.Status)
+	}
+
+	return nil
+}
+
+func NotifyUploadComplete(deploymentId string) error {
+	req, err := brain.NewNotifyUploadCompletedRequest(viper.GetString("BrainUrl"), deploymentId)
+	if err != nil {
+		return err
+	}
+
+	_, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return err
 	}
 
 	return nil
