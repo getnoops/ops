@@ -3,6 +3,7 @@ package poller
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -14,24 +15,23 @@ import (
 // Specifies parameters to poll The Brain with until completion.
 type WaitOptions struct {
 	// The deployment to poll for
-	deploymentId string
-
-	// The execution command
-	commandId string
+	DeploymentId string
 
 	// Also known as `sessionToken`
-	execToken string
+	ExecToken string
 
 	// The poller to use
 	newPoller pollerFactory
 }
 
 // Polls The Brain until the session times out or the deployment completes.
-func Wait(ctx context.Context, opts WaitOptions) (*[]brain.PollerQueueEntry, error) {
+func Wait(ctx context.Context, opts WaitOptions) (*brain.PollerQueueEntry, error) {
+	var commandId *string
+
 	seconds := 10
 	checkInterval := time.Duration(seconds) * time.Second
 
-	minutes := 30
+	minutes := 60
 	expiresIn := time.Duration(minutes) * time.Minute
 
 	makePoller := opts.newPoller
@@ -45,10 +45,10 @@ func Wait(ctx context.Context, opts WaitOptions) (*[]brain.PollerQueueEntry, err
 			return nil, err
 		}
 
-		body := brain.CliPollRequest{CommandId: &opts.commandId, ExecToken: &opts.execToken}
+		body := brain.CliPollRequest{CommandId: commandId, ExecToken: &opts.ExecToken}
 
 		url := viper.GetString("BrainUrl")
-		req, err := brain.NewPollForCommandsRequest(url, opts.deploymentId, body)
+		req, err := brain.NewPollForCommandsRequest(url, opts.DeploymentId, body)
 
 		if err != nil {
 			return nil, err
@@ -71,6 +71,29 @@ func Wait(ctx context.Context, opts WaitOptions) (*[]brain.PollerQueueEntry, err
 			return nil, err
 		}
 
-		return &pollResponse.Commands, nil
+		if len(pollResponse.Commands) > 0 {
+			fmt.Printf("\n-----------------------\n")
+			fmt.Println("\nNew commands received:")
+			fmt.Printf("\n-----------------------\n")
+
+			for _, c := range pollResponse.Commands {
+				fmt.Printf("\nCommand order: %d", c.SeqOrder)
+				fmt.Printf("\nCommand type: %s", c.CmdType)
+				fmt.Printf("\nCommand: %s", c.Command)
+				fmt.Printf("\n\n-----------------------\n")
+			}
+
+			lastCommand := pollResponse.Commands[len(pollResponse.Commands)-1]
+			commandId = lastCommand.Id
+
+			// TODO: Update this. We need to decide how to complete the polling request.
+			// There should be some sort of command type to end the polling.
+			// eg. brain.NOTIFY_COMPLETE
+			if lastCommand.CmdType == "NOTIFY_COMPLETE" {
+				return &lastCommand, nil
+			}
+		}
+
+		fmt.Println("\nWaiting for new commands...")
 	}
 }

@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"os"
 
 	"github.com/getnoops/ops/pkg/brain"
+	"github.com/getnoops/ops/pkg/poller"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -56,6 +58,11 @@ func Deploy(config *Config) error {
 	}
 
 	fmt.Println("Brain notified of stack file upload.")
+
+	poller.Wait(context.Background(), poller.WaitOptions{
+		DeploymentId: newDeployment.DeploymentId,
+		ExecToken:    newDeployment.SessionToken,
+	})
 
 	return nil
 }
