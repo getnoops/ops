@@ -10,6 +10,8 @@ import (
 	"github.com/getnoops/ops/cmd/deploy"
 	"github.com/getnoops/ops/cmd/list"
 	"github.com/getnoops/ops/cmd/upgrade"
+	"github.com/getnoops/ops/cmd/watch"
+	"github.com/getnoops/ops/pkg/brain"
 	"github.com/getnoops/ops/pkg/logging"
 	"github.com/getnoops/ops/pkg/version"
 	"github.com/spf13/cobra"
@@ -41,11 +43,16 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cobra.OnInitialize(initConfig)
 	cmd.PersistentFlags().StringArrayVar(&configFiles, "config", nil, "path to config file to overwrite system defaults")
 
+	url := viper.GetString("BrainUrl")
+	brainClient, err := brain.NewClientWithResponses(url)
+	logging.OnError(err).Fatal("Unable to initialise brain client")
+
 	cmd.AddCommand(
 		auth.New(),
 		upgrade.New(),
-		deploy.New(),
-		list.New(),
+		deploy.New(brainClient),
+		list.New(brainClient),
+		watch.New(brainClient),
 	)
 
 	cmd.InitDefaultVersionFlag()

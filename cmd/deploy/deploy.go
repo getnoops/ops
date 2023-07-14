@@ -12,11 +12,12 @@ import (
 
 	"github.com/getnoops/ops/pkg/brain"
 	"github.com/getnoops/ops/pkg/poller"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func New() *cobra.Command {
+func New(brainClient *brain.ClientWithResponses) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy a stack file",
@@ -24,7 +25,7 @@ func New() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := MustNewConfig(viper.GetViper())
 
-			return Deploy(config)
+			return Deploy(config, brainClient)
 		},
 	}
 
@@ -32,18 +33,28 @@ func New() *cobra.Command {
 	return cmd
 }
 
-func Deploy(config *Config) error {
+func Deploy(config *Config, brainClient *brain.ClientWithResponses) error {
 	// Make sure that stack file path from flag actually exists in user directory
 	if _, err := os.Stat(config.StackFile); err != nil {
 		return err
 	}
 
-	newDeployment, err := CreateBrainDeployment(config.Environment)
+	body := brain.CreateDeploymentRequest{EnvironmentName: config.Environment}
+	r, err := util.MakeBodyReaderFromType(body)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Deployment to brain created.")
+	res, err := brainClient.CreateNewDeploymentWithBodyWithResponse(context.Background(), "application/json", r)
+	if err != nil {
+		return err
+	}
+
+	var newDeployment brain.CreateDeploymentResponse
+	err = json.Unmarshal(res.Body, &newDeployment)
+	if err != nil {
+		return err
+	}
 
 	err = UploadStackFile(config.StackFile, newDeployment.UploadUrl)
 	if err != nil {
@@ -52,7 +63,7 @@ func Deploy(config *Config) error {
 
 	fmt.Println("Stack file uploaded.")
 
-	err = NotifyUploadComplete(newDeployment.DeploymentId)
+	_, err = brainClient.NotifyUploadCompleted(context.Background(), newDeployment.DeploymentId)
 	if err != nil {
 		return err
 	}
@@ -61,36 +72,13 @@ func Deploy(config *Config) error {
 
 	poller.Wait(context.Background(), poller.WaitOptions{
 		DeploymentId: newDeployment.DeploymentId,
-		ExecToken:    newDeployment.SessionToken,
+		ExecToken:    &newDeployment.SessionToken,
+		BrainClient:  brainClient,
 	})
 
 	fmt.Println("Deployment has finished!")
 
 	return nil
-}
-
-func CreateBrainDeployment(env string) (*brain.CreateDeploymentResponse, error) {
-	url := viper.GetString("BrainUrl")
-	body := brain.CreateDeploymentRequest{EnvironmentName: env}
-	req, err := brain.NewCreateNewDeploymentRequest(url, body)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	resData, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var newDeployment brain.CreateDeploymentResponse
-	json.Unmarshal(resData, &newDeployment)
-
-	return &newDeployment, nil
 }
 
 func UploadStackFile(stack, uploadUrl string) error {
@@ -128,20 +116,6 @@ func UploadStackFile(stack, uploadUrl string) error {
 
 	if res.StatusCode != 200 {
 		return errors.New("Unable to upload stack file, status code: " + res.Status)
-	}
-
-	return nil
-}
-
-func NotifyUploadComplete(deploymentId string) error {
-	req, err := brain.NewNotifyUploadCompletedRequest(viper.GetString("BrainUrl"), deploymentId)
-	if err != nil {
-		return err
-	}
-
-	_, err = http.DefaultClient.Do(req)
-	if err != nil {
-		return err
 	}
 
 	return nil

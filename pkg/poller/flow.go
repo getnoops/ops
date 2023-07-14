@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"time"
 
 	"github.com/getnoops/ops/pkg/brain"
-	"github.com/spf13/viper"
+	"github.com/getnoops/ops/pkg/util"
 )
 
 // Specifies parameters to poll The Brain with until completion.
@@ -18,14 +16,17 @@ type WaitOptions struct {
 	DeploymentId string
 
 	// Also known as `sessionToken`
-	ExecToken string
+	ExecToken *string
+
+	// Client to make requests to brain
+	BrainClient *brain.ClientWithResponses
 
 	// The poller to use
 	newPoller pollerFactory
 }
 
 // Polls The Brain until the session times out or the deployment completes.
-func Wait(ctx context.Context, opts WaitOptions) (*brain.PollerQueueEntry, error) {
+func Wait(ctx context.Context, opts WaitOptions) error {
 	var commandId *string
 
 	seconds := 10
@@ -42,38 +43,39 @@ func Wait(ctx context.Context, opts WaitOptions) (*brain.PollerQueueEntry, error
 
 	for {
 		if err := poll.Wait(); err != nil {
-			return nil, err
+			return err
 		}
 
-		body := brain.CliPollRequest{CommandId: commandId, ExecToken: &opts.ExecToken}
-
-		url := viper.GetString("BrainUrl")
-		req, err := brain.NewPollForCommandsRequest(url, opts.DeploymentId, body)
-
-		if err != nil {
-			return nil, err
+		body := brain.CliPollRequest{CommandId: commandId}
+		if opts.ExecToken != nil {
+			body.ExecToken = opts.ExecToken
 		}
 
-		res, err := http.DefaultClient.Do(req)
+		r, err := util.MakeBodyReaderFromType(body)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		resData, err := io.ReadAll(res.Body)
+		res, err := opts.BrainClient.PollForCommandsWithBodyWithResponse(ctx, opts.DeploymentId, "application/json", r)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		var pollResponse brain.CliPollResponse
-		json.Unmarshal(resData, &pollResponse)
+		json.Unmarshal(res.Body, &pollResponse)
 
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if len(pollResponse.Commands) > 0 {
+			commandType := "Previous"
+			if commandId != nil {
+				commandType = "New"
+			}
+
 			fmt.Printf("\n-----------------------\n")
-			fmt.Println("\nNew commands received:")
+			fmt.Printf("\n%s commands received: \n", commandType)
 			fmt.Printf("\n-----------------------\n")
 
 			for _, c := range pollResponse.Commands {
@@ -87,7 +89,7 @@ func Wait(ctx context.Context, opts WaitOptions) (*brain.PollerQueueEntry, error
 			commandId = lastCommand.Id
 
 			if lastCommand.CmdType == brain.DEPLOYMENTFINISHED {
-				return &lastCommand, nil
+				return nil
 			}
 		}
 
