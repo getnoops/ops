@@ -18,9 +18,10 @@ import (
 
 // Defines values for PollerQueueEntryCmdType.
 const (
-	INFORMUSER       PollerQueueEntryCmdType = "INFORM_USER"
-	PUSHDOCKERIMAGE  PollerQueueEntryCmdType = "PUSH_DOCKER_IMAGE"
-	UPLOADSTATICFILE PollerQueueEntryCmdType = "UPLOAD_STATIC_FILE"
+	DEPLOYMENTFINISHED PollerQueueEntryCmdType = "DEPLOYMENT_FINISHED"
+	INFORMUSER         PollerQueueEntryCmdType = "INFORM_USER"
+	PUSHDOCKERIMAGE    PollerQueueEntryCmdType = "PUSH_DOCKER_IMAGE"
+	UPLOADSTATICFILE   PollerQueueEntryCmdType = "UPLOAD_STATIC_FILE"
 )
 
 // CliPollRequest defines model for CliPollRequest.
@@ -65,22 +66,6 @@ type PollerQueueEntry struct {
 
 // PollerQueueEntryCmdType defines model for PollerQueueEntry.CmdType.
 type PollerQueueEntryCmdType string
-
-// UserAuthenticatedResponse defines model for UserAuthenticatedResponse.
-type UserAuthenticatedResponse struct {
-	Token string `json:"token"`
-}
-
-// UserAuthenticationRequest defines model for UserAuthenticationRequest.
-type UserAuthenticationRequest struct {
-	Secret   string `json:"secret"`
-	UserName string `json:"userName"`
-}
-
-// CliAuthenticateParams defines parameters for CliAuthenticate.
-type CliAuthenticateParams struct {
-	Request UserAuthenticationRequest `form:"request" json:"request"`
-}
 
 // CreateNewDeploymentJSONRequestBody defines body for CreateNewDeployment for application/json ContentType.
 type CreateNewDeploymentJSONRequestBody = CreateDeploymentRequest
@@ -161,13 +146,13 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// CliAuthenticate request
-	CliAuthenticate(ctx context.Context, params *CliAuthenticateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// CreateNewDeployment request with any body
 	CreateNewDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateNewDeployment(ctx context.Context, body CreateNewDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDockerLogin request
+	GetDockerLogin(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PollForCommands request with any body
 	PollForCommandsWithBody(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -176,21 +161,6 @@ type ClientInterface interface {
 
 	// NotifyUploadCompleted request
 	NotifyUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetDockerLogin request
-	GetDockerLogin(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *BrainClient) CliAuthenticate(ctx context.Context, params *CliAuthenticateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCliAuthenticateRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *BrainClient) CreateNewDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -207,6 +177,18 @@ func (c *BrainClient) CreateNewDeploymentWithBody(ctx context.Context, contentTy
 
 func (c *BrainClient) CreateNewDeployment(ctx context.Context, body CreateNewDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateNewDeploymentRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *BrainClient) GetDockerLogin(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDockerLoginRequest(c.Server, deploymentId)
 	if err != nil {
 		return nil, err
 	}
@@ -253,63 +235,6 @@ func (c *BrainClient) NotifyUploadCompleted(ctx context.Context, deploymentId st
 	return c.Client.Do(req)
 }
 
-func (c *BrainClient) GetDockerLogin(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDockerLoginRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// NewCliAuthenticateRequest generates requests for CliAuthenticate
-func NewCliAuthenticateRequest(server string, params *CliAuthenticateParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/cli/authenticate")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "request", runtime.ParamLocationQuery, params.Request); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewCreateNewDeploymentRequest calls the generic CreateNewDeployment builder with application/json body
 func NewCreateNewDeploymentRequest(server string, body CreateNewDeploymentJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -346,6 +271,40 @@ func NewCreateNewDeploymentRequestWithBody(server string, contentType string, bo
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetDockerLoginRequest generates requests for GetDockerLogin
+func NewGetDockerLoginRequest(server string, deploymentId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "deploymentId", runtime.ParamLocationPath, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/cli/deployment/%s/docker/login", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -431,33 +390,6 @@ func NewNotifyUploadCompletedRequest(server string, deploymentId string) (*http.
 	return req, nil
 }
 
-// NewGetDockerLoginRequest generates requests for GetDockerLogin
-func NewGetDockerLoginRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/cli/docker/login")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 func (c *BrainClient) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -501,13 +433,13 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// CliAuthenticate request
-	CliAuthenticateWithResponse(ctx context.Context, params *CliAuthenticateParams, reqEditors ...RequestEditorFn) (*CliAuthenticateResponse, error)
-
 	// CreateNewDeployment request with any body
 	CreateNewDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNewDeploymentResponse, error)
 
 	CreateNewDeploymentWithResponse(ctx context.Context, body CreateNewDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNewDeploymentResponse, error)
+
+	// GetDockerLogin request
+	GetDockerLoginWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error)
 
 	// PollForCommands request with any body
 	PollForCommandsWithBodyWithResponse(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PollForCommandsResponse, error)
@@ -516,30 +448,6 @@ type ClientWithResponsesInterface interface {
 
 	// NotifyUploadCompleted request
 	NotifyUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyUploadCompletedResponse, error)
-
-	// GetDockerLogin request
-	GetDockerLoginWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error)
-}
-
-type CliAuthenticateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r CliAuthenticateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CliAuthenticateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type CreateNewDeploymentResponse struct {
@@ -557,6 +465,27 @@ func (r CreateNewDeploymentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateNewDeploymentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDockerLoginResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDockerLoginResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDockerLoginResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -605,36 +534,6 @@ func (r NotifyUploadCompletedResponse) StatusCode() int {
 	return 0
 }
 
-type GetDockerLoginResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r GetDockerLoginResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetDockerLoginResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// CliAuthenticateWithResponse request returning *CliAuthenticateResponse
-func (c *ClientWithResponses) CliAuthenticateWithResponse(ctx context.Context, params *CliAuthenticateParams, reqEditors ...RequestEditorFn) (*CliAuthenticateResponse, error) {
-	rsp, err := c.CliAuthenticate(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCliAuthenticateResponse(rsp)
-}
-
 // CreateNewDeploymentWithBodyWithResponse request with arbitrary body returning *CreateNewDeploymentResponse
 func (c *ClientWithResponses) CreateNewDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNewDeploymentResponse, error) {
 	rsp, err := c.CreateNewDeploymentWithBody(ctx, contentType, body, reqEditors...)
@@ -650,6 +549,15 @@ func (c *ClientWithResponses) CreateNewDeploymentWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseCreateNewDeploymentResponse(rsp)
+}
+
+// GetDockerLoginWithResponse request returning *GetDockerLoginResponse
+func (c *ClientWithResponses) GetDockerLoginWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error) {
+	rsp, err := c.GetDockerLogin(ctx, deploymentId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDockerLoginResponse(rsp)
 }
 
 // PollForCommandsWithBodyWithResponse request with arbitrary body returning *PollForCommandsResponse
@@ -678,31 +586,6 @@ func (c *ClientWithResponses) NotifyUploadCompletedWithResponse(ctx context.Cont
 	return ParseNotifyUploadCompletedResponse(rsp)
 }
 
-// GetDockerLoginWithResponse request returning *GetDockerLoginResponse
-func (c *ClientWithResponses) GetDockerLoginWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error) {
-	rsp, err := c.GetDockerLogin(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetDockerLoginResponse(rsp)
-}
-
-// ParseCliAuthenticateResponse parses an HTTP response from a CliAuthenticateWithResponse call
-func ParseCliAuthenticateResponse(rsp *http.Response) (*CliAuthenticateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CliAuthenticateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
 // ParseCreateNewDeploymentResponse parses an HTTP response from a CreateNewDeploymentWithResponse call
 func ParseCreateNewDeploymentResponse(rsp *http.Response) (*CreateNewDeploymentResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -712,6 +595,22 @@ func ParseCreateNewDeploymentResponse(rsp *http.Response) (*CreateNewDeploymentR
 	}
 
 	response := &CreateNewDeploymentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetDockerLoginResponse parses an HTTP response from a GetDockerLoginWithResponse call
+func ParseGetDockerLoginResponse(rsp *http.Response) (*GetDockerLoginResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDockerLoginResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -744,22 +643,6 @@ func ParseNotifyUploadCompletedResponse(rsp *http.Response) (*NotifyUploadComple
 	}
 
 	response := &NotifyUploadCompletedResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseGetDockerLoginResponse parses an HTTP response from a GetDockerLoginWithResponse call
-func ParseGetDockerLoginResponse(rsp *http.Response) (*GetDockerLoginResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetDockerLoginResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
