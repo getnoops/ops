@@ -8,6 +8,7 @@ import (
 
 	"github.com/getnoops/ops/cmd/auth"
 	"github.com/getnoops/ops/cmd/deploy"
+	"github.com/getnoops/ops/cmd/list"
 	"github.com/getnoops/ops/cmd/upgrade"
 	"github.com/getnoops/ops/pkg/logging"
 	"github.com/getnoops/ops/pkg/version"
@@ -44,6 +45,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 		auth.New(),
 		upgrade.New(),
 		deploy.New(),
+		list.New(),
 	)
 
 	cmd.InitDefaultVersionFlag()

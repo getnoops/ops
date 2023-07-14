@@ -16,6 +16,14 @@ import (
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 )
 
+// Defines values for ActiveDeploymentsStatus.
+const (
+	FAILED  ActiveDeploymentsStatus = "FAILED"
+	PENDING ActiveDeploymentsStatus = "PENDING"
+	RUNNING ActiveDeploymentsStatus = "RUNNING"
+	SUCCESS ActiveDeploymentsStatus = "SUCCESS"
+)
+
 // Defines values for PollerQueueEntryCmdType.
 const (
 	DEPLOYMENTFINISHED PollerQueueEntryCmdType = "DEPLOYMENT_FINISHED"
@@ -23,6 +31,16 @@ const (
 	PUSHDOCKERIMAGE    PollerQueueEntryCmdType = "PUSH_DOCKER_IMAGE"
 	UPLOADSTATICFILE   PollerQueueEntryCmdType = "UPLOAD_STATIC_FILE"
 )
+
+// ActiveDeployments defines model for ActiveDeployments.
+type ActiveDeployments struct {
+	DeploymentId    string                  `json:"deploymentId"`
+	EnvironmentName string                  `json:"environmentName"`
+	Status          ActiveDeploymentsStatus `json:"status"`
+}
+
+// ActiveDeploymentsStatus defines model for ActiveDeployments.Status.
+type ActiveDeploymentsStatus string
 
 // CliPollRequest defines model for CliPollRequest.
 type CliPollRequest struct {
@@ -52,6 +70,11 @@ type DockerLoginResponse struct {
 	Password string `json:"password"`
 	Url      string `json:"url"`
 	UserName string `json:"userName"`
+}
+
+// ListDeploymentsResponse defines model for ListDeploymentsResponse.
+type ListDeploymentsResponse struct {
+	Deployments []ActiveDeployments `json:"deployments"`
 }
 
 // PollerQueueEntry defines model for PollerQueueEntry.
@@ -151,6 +174,9 @@ type ClientInterface interface {
 
 	CreateNewDeployment(ctx context.Context, body CreateNewDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListActiveDeployments request
+	ListActiveDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetDockerLogin request
 	GetDockerLogin(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -177,6 +203,18 @@ func (c *BrainClient) CreateNewDeploymentWithBody(ctx context.Context, contentTy
 
 func (c *BrainClient) CreateNewDeployment(ctx context.Context, body CreateNewDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateNewDeploymentRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *BrainClient) ListActiveDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListActiveDeploymentsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -271,6 +309,33 @@ func NewCreateNewDeploymentRequestWithBody(server string, contentType string, bo
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListActiveDeploymentsRequest generates requests for ListActiveDeployments
+func NewListActiveDeploymentsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/cli/deployment/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -438,6 +503,9 @@ type ClientWithResponsesInterface interface {
 
 	CreateNewDeploymentWithResponse(ctx context.Context, body CreateNewDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNewDeploymentResponse, error)
 
+	// ListActiveDeployments request
+	ListActiveDeploymentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListActiveDeploymentsResponse, error)
+
 	// GetDockerLogin request
 	GetDockerLoginWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error)
 
@@ -465,6 +533,27 @@ func (r CreateNewDeploymentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateNewDeploymentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListActiveDeploymentsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ListActiveDeploymentsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListActiveDeploymentsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -551,6 +640,15 @@ func (c *ClientWithResponses) CreateNewDeploymentWithResponse(ctx context.Contex
 	return ParseCreateNewDeploymentResponse(rsp)
 }
 
+// ListActiveDeploymentsWithResponse request returning *ListActiveDeploymentsResponse
+func (c *ClientWithResponses) ListActiveDeploymentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListActiveDeploymentsResponse, error) {
+	rsp, err := c.ListActiveDeployments(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListActiveDeploymentsResponse(rsp)
+}
+
 // GetDockerLoginWithResponse request returning *GetDockerLoginResponse
 func (c *ClientWithResponses) GetDockerLoginWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error) {
 	rsp, err := c.GetDockerLogin(ctx, deploymentId, reqEditors...)
@@ -595,6 +693,22 @@ func ParseCreateNewDeploymentResponse(rsp *http.Response) (*CreateNewDeploymentR
 	}
 
 	response := &CreateNewDeploymentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListActiveDeploymentsResponse parses an HTTP response from a ListActiveDeploymentsWithResponse call
+func ParseListActiveDeploymentsResponse(rsp *http.Response) (*ListActiveDeploymentsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListActiveDeploymentsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
