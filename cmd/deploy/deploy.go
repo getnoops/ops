@@ -50,7 +50,7 @@ func Deploy(config *Config) error {
 		return err
 	}
 
-	fmt.Println("Stack file uploaded!")
+	fmt.Println("Stack file uploaded.")
 
 	err = NotifyUploadComplete(newDeployment.DeploymentId)
 	if err != nil {
@@ -63,6 +63,8 @@ func Deploy(config *Config) error {
 		DeploymentId: newDeployment.DeploymentId,
 		ExecToken:    newDeployment.SessionToken,
 	})
+
+	fmt.Println("Deployment has finished!")
 
 	return nil
 }

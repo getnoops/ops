@@ -18,9 +18,10 @@ import (
 
 // Defines values for PollerQueueEntryCmdType.
 const (
-	INFORMUSER       PollerQueueEntryCmdType = "INFORM_USER"
-	PUSHDOCKERIMAGE  PollerQueueEntryCmdType = "PUSH_DOCKER_IMAGE"
-	UPLOADSTATICFILE PollerQueueEntryCmdType = "UPLOAD_STATIC_FILE"
+	DEPLOYMENTFINISHED PollerQueueEntryCmdType = "DEPLOYMENT_FINISHED"
+	INFORMUSER         PollerQueueEntryCmdType = "INFORM_USER"
+	PUSHDOCKERIMAGE    PollerQueueEntryCmdType = "PUSH_DOCKER_IMAGE"
+	UPLOADSTATICFILE   PollerQueueEntryCmdType = "UPLOAD_STATIC_FILE"
 )
 
 // CliPollRequest defines model for CliPollRequest.

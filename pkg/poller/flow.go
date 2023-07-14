@@ -86,10 +86,7 @@ func Wait(ctx context.Context, opts WaitOptions) (*brain.PollerQueueEntry, error
 			lastCommand := pollResponse.Commands[len(pollResponse.Commands)-1]
 			commandId = lastCommand.Id
 
-			// TODO: Update this. We need to decide how to complete the polling request.
-			// There should be some sort of command type to end the polling.
-			// eg. brain.NOTIFY_COMPLETE
-			if lastCommand.CmdType == "NOTIFY_COMPLETE" {
+			if lastCommand.CmdType == brain.DEPLOYMENTFINISHED {
 				return &lastCommand, nil
 			}
 		}
