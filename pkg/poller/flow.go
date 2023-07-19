@@ -30,7 +30,7 @@ type WaitOptions struct {
 // Polls The Brain until the session times out or the deployment completes.
 func Wait(ctx context.Context, opts WaitOptions) error {
 	var commandId *string
-	var firstPass = false
+	var firstPass = true
 
 	seconds := 10
 	checkInterval := time.Duration(seconds) * time.Second
@@ -103,7 +103,11 @@ func Wait(ctx context.Context, opts WaitOptions) error {
 			}
 		}
 
-		fmt.Println("\nWaiting for new commands...")
+		fmt.Println("\nWaiting for events...")
+
+		if firstPass {
+			firstPass = false
+		}
 	}
 }
 
@@ -123,8 +127,14 @@ func handleWorkCommand(command *brain.PollerQueueEntry, deploymentId string, cli
 	if command.CmdType == brain.PUSHDOCKERIMAGE {
 		fmt.Println("\nStarting process to push your docker image to ECR...")
 
+		var dockerCommandInfo PushDockerImageCommandInfo
+		err := json.Unmarshal([]byte(command.Command), &dockerCommandInfo)
+		if err != nil {
+			return err
+		}
+
 		fmt.Println("\nGetting docker login credentials")
-		res, err := client.GetDockerLoginWithResponse(ctx, deploymentId)
+		res, err := client.GetDockerLoginWithResponse(ctx, deploymentId, dockerCommandInfo.ArtifactId)
 		if err != nil {
 			return err
 		}
@@ -135,16 +145,12 @@ func handleWorkCommand(command *brain.PollerQueueEntry, deploymentId string, cli
 			return err
 		}
 
-		var dockerCommandInfo PushDockerImageCommandInfo
-		err = json.Unmarshal([]byte(command.Command), &dockerCommandInfo)
-		if err != nil {
-			return err
-		}
+		fmt.Println(dockerLogin.Url)
 
-		imageId := "c1b0ad266873"
-		registry := "578958694144.dkr.ecr.us-east-1.amazonaws.com/user-uploaded:diaryapp"
-		fmt.Printf("Tagging image %s with %s \n", imageId, registry)
-		cmd := exec.Command("docker", "tag", imageId, registry)
+		userProvidedImage := fmt.Sprintf("%s:%s", dockerCommandInfo.Img, dockerCommandInfo.Tag)
+
+		fmt.Printf("Tagging image [%s] with [%s] \n", userProvidedImage, dockerLogin.Url)
+		cmd := exec.Command("docker", "tag", userProvidedImage, dockerLogin.Url)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
@@ -155,7 +161,8 @@ func handleWorkCommand(command *brain.PollerQueueEntry, deploymentId string, cli
 		// TODO: Investigate if there's a better way to add the password here.
 		// ``WARNING! Using --password via the CLI is insecure. Use --password-stdin
 		fmt.Println("\nLogging in to docker")
-		cmd = exec.Command("docker", "login", "--username", dockerLogin.UserName, "--password", dockerLogin.Password, dockerLogin.Url)
+		registryUrl := fmt.Sprintf("https://%s", dockerLogin.Url)
+		cmd = exec.Command("docker", "login", "--username", dockerLogin.UserName, "--password", dockerLogin.Password, registryUrl)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
@@ -163,7 +170,7 @@ func handleWorkCommand(command *brain.PollerQueueEntry, deploymentId string, cli
 			return err
 		}
 
-		cmd = exec.Command("docker", "push", registry)
+		cmd = exec.Command("docker", "push", dockerLogin.Url)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
@@ -171,7 +178,8 @@ func handleWorkCommand(command *brain.PollerQueueEntry, deploymentId string, cli
 			return err
 		}
 
-		fmt.Print("\n Successfully pushed your image to ECR!")
+		fmt.Println("\nSuccessfully pushed your image to ECR!")
+		fmt.Printf("\n-----------------------\n")
 	} else if command.CmdType == brain.UPLOADSTATICFILE {
 		// Can be implemented later, we're not handling static files for MVP
 		context.TODO()

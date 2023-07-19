@@ -16,12 +16,12 @@ import (
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 )
 
-// Defines values for ActiveDeploymentsStatus.
+// Defines values for ActiveDeploymentStatus.
 const (
-	FAILED  ActiveDeploymentsStatus = "FAILED"
-	PENDING ActiveDeploymentsStatus = "PENDING"
-	RUNNING ActiveDeploymentsStatus = "RUNNING"
-	SUCCESS ActiveDeploymentsStatus = "SUCCESS"
+	FAILED  ActiveDeploymentStatus = "FAILED"
+	PENDING ActiveDeploymentStatus = "PENDING"
+	RUNNING ActiveDeploymentStatus = "RUNNING"
+	SUCCESS ActiveDeploymentStatus = "SUCCESS"
 )
 
 // Defines values for PollerQueueEntryCmdType.
@@ -32,15 +32,15 @@ const (
 	UPLOADSTATICFILE   PollerQueueEntryCmdType = "UPLOAD_STATIC_FILE"
 )
 
-// ActiveDeployments defines model for ActiveDeployments.
-type ActiveDeployments struct {
-	DeploymentId    string                  `json:"deploymentId"`
-	EnvironmentName string                  `json:"environmentName"`
-	Status          ActiveDeploymentsStatus `json:"status"`
+// ActiveDeployment defines model for ActiveDeployment.
+type ActiveDeployment struct {
+	DeploymentId    string                 `json:"deploymentId"`
+	EnvironmentName string                 `json:"environmentName"`
+	Status          ActiveDeploymentStatus `json:"status"`
 }
 
-// ActiveDeploymentsStatus defines model for ActiveDeployments.Status.
-type ActiveDeploymentsStatus string
+// ActiveDeploymentStatus defines model for ActiveDeployment.Status.
+type ActiveDeploymentStatus string
 
 // CliPollRequest defines model for CliPollRequest.
 type CliPollRequest struct {
@@ -70,11 +70,6 @@ type DockerLoginResponse struct {
 	Password string `json:"password"`
 	Url      string `json:"url"`
 	UserName string `json:"userName"`
-}
-
-// ListDeploymentsResponse defines model for ListDeploymentsResponse.
-type ListDeploymentsResponse struct {
-	Deployments []ActiveDeployments `json:"deployments"`
 }
 
 // PollerQueueEntry defines model for PollerQueueEntry.
@@ -178,7 +173,7 @@ type ClientInterface interface {
 	ListActiveDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDockerLogin request
-	GetDockerLogin(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetDockerLogin(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PollForCommands request with any body
 	PollForCommandsWithBody(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -225,8 +220,8 @@ func (c *BrainClient) ListActiveDeployments(ctx context.Context, reqEditors ...R
 	return c.Client.Do(req)
 }
 
-func (c *BrainClient) GetDockerLogin(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDockerLoginRequest(c.Server, deploymentId)
+func (c *BrainClient) GetDockerLogin(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDockerLoginRequest(c.Server, deploymentId, svcId)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +336,7 @@ func NewListActiveDeploymentsRequest(server string) (*http.Request, error) {
 }
 
 // NewGetDockerLoginRequest generates requests for GetDockerLogin
-func NewGetDockerLoginRequest(server string, deploymentId string) (*http.Request, error) {
+func NewGetDockerLoginRequest(server string, deploymentId string, svcId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -351,12 +346,19 @@ func NewGetDockerLoginRequest(server string, deploymentId string) (*http.Request
 		return nil, err
 	}
 
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "svcId", runtime.ParamLocationPath, svcId)
+	if err != nil {
+		return nil, err
+	}
+
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/cli/deployment/%s/docker/login", pathParam0)
+	operationPath := fmt.Sprintf("/api/cli/deployment/%s/docker/login/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -507,7 +509,7 @@ type ClientWithResponsesInterface interface {
 	ListActiveDeploymentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListActiveDeploymentsResponse, error)
 
 	// GetDockerLogin request
-	GetDockerLoginWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error)
+	GetDockerLoginWithResponse(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error)
 
 	// PollForCommands request with any body
 	PollForCommandsWithBodyWithResponse(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PollForCommandsResponse, error)
@@ -650,8 +652,8 @@ func (c *ClientWithResponses) ListActiveDeploymentsWithResponse(ctx context.Cont
 }
 
 // GetDockerLoginWithResponse request returning *GetDockerLoginResponse
-func (c *ClientWithResponses) GetDockerLoginWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error) {
-	rsp, err := c.GetDockerLogin(ctx, deploymentId, reqEditors...)
+func (c *ClientWithResponses) GetDockerLoginWithResponse(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error) {
+	rsp, err := c.GetDockerLogin(ctx, deploymentId, svcId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

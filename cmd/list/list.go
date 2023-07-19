@@ -31,10 +31,10 @@ func ListActiveDeployments(brainClient *brain.ClientWithResponses) error {
 		return err
 	}
 
-	var activeDeploymentsResponse brain.ListDeploymentsResponse
+	var activeDeploymentsResponse []brain.ActiveDeployment
 	json.Unmarshal(res.Body, &activeDeploymentsResponse)
 
-	for _, d := range activeDeploymentsResponse.Deployments {
+	for _, d := range activeDeploymentsResponse {
 		fmt.Printf("\n - %s (%s): %s", d.Status, d.EnvironmentName, d.DeploymentId)
 	}
 
