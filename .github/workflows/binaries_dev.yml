@@ -2,7 +2,7 @@ name: "go: build dev binaries"
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -13,12 +13,12 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-    - name: Tag Repo
-      uses: richardsimko/update-tag@v1
-      with:
-        tag_name: dev
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag Repo
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   cleanup:
     permissions:
@@ -51,7 +51,7 @@ jobs:
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release
-        uses: wangyoucao577/go-release-action@v1
+        uses: wangyoucao577/go-release-action@v1.38
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
@@ -79,7 +79,7 @@ jobs:
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release
-        uses: wangyoucao577/go-release-action@v1
+        uses: wangyoucao577/go-release-action@v1.38
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
