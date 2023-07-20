@@ -23,8 +23,6 @@ var (
 	defaultConfig []byte
 
 	configFiles []string
-
-	BrainClient *brain.ClientWithResponses
 )
 
 func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
