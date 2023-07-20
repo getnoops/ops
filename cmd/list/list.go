@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func New(brainClient *brain.ClientWithResponses) *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List active deployments.",
@@ -18,15 +18,15 @@ func New(brainClient *brain.ClientWithResponses) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_ = MustNewConfig(viper.GetViper())
 
-			return ListActiveDeployments(brainClient)
+			return ListActiveDeployments()
 		},
 	}
 
 	return cmd
 }
 
-func ListActiveDeployments(brainClient *brain.ClientWithResponses) error {
-	res, err := brainClient.ListActiveDeploymentsWithResponse(context.Background())
+func ListActiveDeployments() error {
+	res, err := brain.Client.ListActiveDeploymentsWithResponse(context.Background())
 	if err != nil {
 		return err
 	}

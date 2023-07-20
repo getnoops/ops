@@ -18,10 +18,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-//go:embed defaults.yaml
-var defaultConfig []byte
+var (
+	//go:embed defaults.yaml
+	defaultConfig []byte
 
-var configFiles []string
+	configFiles []string
+
+	BrainClient *brain.ClientWithResponses
+)
 
 func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cmd := &cobra.Command{
@@ -44,15 +48,15 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cmd.PersistentFlags().StringArrayVar(&configFiles, "config", nil, "path to config file to overwrite system defaults")
 
 	url := viper.GetString("BrainUrl")
-	brainClient, err := brain.NewClientWithResponses(url)
+	err = brain.InitClient(url)
 	logging.OnError(err).Fatal("Unable to initialise brain client")
 
 	cmd.AddCommand(
 		auth.New(),
 		upgrade.New(),
-		deploy.New(brainClient),
-		list.New(brainClient),
-		watch.New(brainClient),
+		deploy.New(),
+		list.New(),
+		watch.New(),
 	)
 
 	cmd.InitDefaultVersionFlag()

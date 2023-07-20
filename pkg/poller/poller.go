@@ -10,8 +10,6 @@ type poller interface {
 	Cancel()
 }
 
-type pollerFactory func(context.Context, time.Duration, time.Duration) (context.Context, poller)
-
 type intervalPoller struct {
 	ctx        context.Context
 	interval   time.Duration

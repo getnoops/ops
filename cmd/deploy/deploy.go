@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func New(brainClient *brain.ClientWithResponses) *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy a stack file",
@@ -25,7 +25,7 @@ func New(brainClient *brain.ClientWithResponses) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := MustNewConfig(viper.GetViper())
 
-			return Deploy(config, brainClient)
+			return Deploy(config)
 		},
 	}
 
@@ -33,7 +33,7 @@ func New(brainClient *brain.ClientWithResponses) *cobra.Command {
 	return cmd
 }
 
-func Deploy(config *Config, brainClient *brain.ClientWithResponses) error {
+func Deploy(config *Config) error {
 	// Make sure that stack file path from flag actually exists in user directory
 	if _, err := os.Stat(config.StackFile); err != nil {
 		return err
@@ -45,7 +45,7 @@ func Deploy(config *Config, brainClient *brain.ClientWithResponses) error {
 		return err
 	}
 
-	res, err := brainClient.CreateNewDeploymentWithBodyWithResponse(context.Background(), "application/json", r)
+	res, err := brain.Client.CreateNewDeploymentWithBodyWithResponse(context.Background(), "application/json", r)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func Deploy(config *Config, brainClient *brain.ClientWithResponses) error {
 
 	fmt.Println("Stack file uploaded.")
 
-	_, err = brainClient.NotifyUploadCompleted(context.Background(), newDeployment.DeploymentId)
+	_, err = brain.Client.NotifyUploadCompleted(context.Background(), newDeployment.DeploymentId)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func Deploy(config *Config, brainClient *brain.ClientWithResponses) error {
 	poller.Wait(context.Background(), poller.WaitOptions{
 		DeploymentId: newDeployment.DeploymentId,
 		ExecToken:    &newDeployment.SessionToken,
-		BrainClient:  brainClient,
+		PollerConfig: poller.PollConfig{Interval: 10, Expiry: 60},
 	})
 
 	fmt.Println("Deployment has finished!")

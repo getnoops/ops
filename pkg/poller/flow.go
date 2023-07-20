@@ -2,15 +2,19 @@ package poller
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
-	"os/exec"
 	"time"
 
 	"github.com/getnoops/ops/pkg/brain"
-	"github.com/getnoops/ops/pkg/util"
 )
+
+type PollConfig struct {
+	// The time to wait between each poll (Seconds)
+	Interval int
+
+	// The total time to run the poller until it automatically exits (Minutes)
+	Expiry int
+}
 
 // Specifies parameters to poll The Brain with until completion.
 type WaitOptions struct {
@@ -20,29 +24,26 @@ type WaitOptions struct {
 	// Also known as `sessionToken`
 	ExecToken *string
 
-	// Client to make requests to brain
-	BrainClient *brain.ClientWithResponses
-
-	// The poller to use
-	newPoller pollerFactory
+	// Config for the poller
+	PollerConfig PollConfig
 }
+
+var (
+	// The last event command ID.
+	// Used to get brain events **after** a specific event
+	commandId *string
+
+	// Ignores the `interval` value on the first pass of the poll.
+	// Otherwise the first time the function is called, the poller will wait before sending a request
+	firstPass = true
+)
 
 // Polls The Brain until the session times out or the deployment completes.
 func Wait(ctx context.Context, opts WaitOptions) error {
-	var commandId *string
-	var firstPass = true
+	interval := formatIntToTime(opts.PollerConfig.Interval, time.Second)
+	expiry := formatIntToTime(opts.PollerConfig.Expiry, time.Minute)
 
-	seconds := 10
-	checkInterval := time.Duration(seconds) * time.Second
-
-	minutes := 60
-	expiresIn := time.Duration(minutes) * time.Minute
-
-	makePoller := opts.newPoller
-	if makePoller == nil {
-		makePoller = newPoller
-	}
-	_, poll := makePoller(ctx, checkInterval, expiresIn)
+	_, poll := newPoller(ctx, interval, expiry)
 
 	for {
 		if !firstPass {
@@ -51,48 +52,24 @@ func Wait(ctx context.Context, opts WaitOptions) error {
 			}
 		}
 
-		body := brain.CliPollRequest{CommandId: commandId}
-		if opts.ExecToken != nil {
-			body.ExecToken = opts.ExecToken
-		}
-
-		r, err := util.MakeBodyReaderFromType(body)
-		if err != nil {
-			return err
-		}
-
-		res, err := opts.BrainClient.PollForCommandsWithBodyWithResponse(ctx, opts.DeploymentId, "application/json", r)
-		if err != nil {
-			return err
-		}
-
-		var pollResponse brain.CliPollResponse
-		json.Unmarshal(res.Body, &pollResponse)
-
+		pollResponse, err := makeRequestToPollEndpoint(ctx, opts)
 		if err != nil {
 			return err
 		}
 
 		if len(pollResponse.Commands) > 0 {
-			commandType := "Previous"
-			if commandId != nil {
-				commandType = "New"
-			}
-
-			fmt.Printf("\n-----------------------\n")
-			fmt.Printf("\n%s commands received: \n", commandType)
-			fmt.Printf("\n-----------------------\n")
-
 			for _, c := range pollResponse.Commands {
+				printLineBreak()
 				fmt.Printf("\nCommand order: %d", c.SeqOrder)
 				fmt.Printf("\nCommand type: %s", c.CmdType)
-				fmt.Printf("\nCommand: %s", c.Command)
-				fmt.Printf("\n\n-----------------------\n")
+				fmt.Printf("\nCommand: %s\n", c.Command)
 
-				if c.CmdType == brain.PUSHDOCKERIMAGE || c.CmdType == brain.UPLOADSTATICFILE {
-					handleWorkCommand(&c, opts.DeploymentId, opts.BrainClient, ctx)
+				if c.CmdType == brain.PUSHDOCKERIMAGE {
+					pushDockerImageToECR(ctx, &c, opts.DeploymentId)
+				} else if c.CmdType == brain.UPLOADSTATICFILE {
+					// Can be implemented later, we're not handling static files for MVP
+					context.TODO()
 				}
-
 			}
 
 			lastCommand := pollResponse.Commands[len(pollResponse.Commands)-1]
@@ -103,7 +80,8 @@ func Wait(ctx context.Context, opts WaitOptions) error {
 			}
 		}
 
-		fmt.Println("\nWaiting for events...")
+		printLineBreak()
+		fmt.Printf("\nWaiting for events...\n")
 
 		if firstPass {
 			firstPass = false
@@ -111,79 +89,10 @@ func Wait(ctx context.Context, opts WaitOptions) error {
 	}
 }
 
-type PushDockerImageCommandInfo struct {
-	ArtifactId string `json:"artifactId"`
-
-	Img string `json:"img"`
-
-	Tag string `json:"tag"`
-
-	DeploymentId string `json:"deploymentId"`
-
-	Type brain.PollerQueueEntryCmdType `json:"type"`
+func formatIntToTime(value int, unit time.Duration) time.Duration {
+	return time.Duration(value) * unit
 }
 
-func handleWorkCommand(command *brain.PollerQueueEntry, deploymentId string, client *brain.ClientWithResponses, ctx context.Context) error {
-	if command.CmdType == brain.PUSHDOCKERIMAGE {
-		fmt.Println("\nStarting process to push your docker image to ECR...")
-
-		var dockerCommandInfo PushDockerImageCommandInfo
-		err := json.Unmarshal([]byte(command.Command), &dockerCommandInfo)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("\nGetting docker login credentials")
-		res, err := client.GetDockerLoginWithResponse(ctx, deploymentId, dockerCommandInfo.ArtifactId)
-		if err != nil {
-			return err
-		}
-
-		var dockerLogin brain.DockerLoginResponse
-		err = json.Unmarshal(res.Body, &dockerLogin)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(dockerLogin.Url)
-
-		userProvidedImage := fmt.Sprintf("%s:%s", dockerCommandInfo.Img, dockerCommandInfo.Tag)
-
-		fmt.Printf("Tagging image [%s] with [%s] \n", userProvidedImage, dockerLogin.Url)
-		cmd := exec.Command("docker", "tag", userProvidedImage, dockerLogin.Url)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
-
-		// TODO: Investigate if there's a better way to add the password here.
-		// ``WARNING! Using --password via the CLI is insecure. Use --password-stdin
-		fmt.Println("\nLogging in to docker")
-		registryUrl := fmt.Sprintf("https://%s", dockerLogin.Url)
-		cmd = exec.Command("docker", "login", "--username", dockerLogin.UserName, "--password", dockerLogin.Password, registryUrl)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
-
-		cmd = exec.Command("docker", "push", dockerLogin.Url)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("\nSuccessfully pushed your image to ECR!")
-		fmt.Printf("\n-----------------------\n")
-	} else if command.CmdType == brain.UPLOADSTATICFILE {
-		// Can be implemented later, we're not handling static files for MVP
-		context.TODO()
-	}
-
-	return nil
+func printLineBreak() {
+	fmt.Printf("\n-----------------------\n")
 }
