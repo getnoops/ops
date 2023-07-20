@@ -3,7 +3,7 @@ name: "go: build versioned binaries for linux with all tags"
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release Binaries
-        uses: wangyoucao577/go-release-action@v1
+        uses: wangyoucao577/go-release-action@v1.38
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
@@ -35,7 +35,7 @@ jobs:
           overwrite: true
           pre_command: export CGO_ENABLED=0
           ldflags: -extldflags -static -X github.com/getnoops/ops/pkg/version.COMMIT=${{github.sha}} -X github.com/getnoops/ops/pkg/version.VERSION_NUMBER=${{github.ref_name}}
-          binary_name: ops 
+          binary_name: ops
           asset_name: "ops-${{ env.SHORT_SHA }}-${{ matrix.goos }}-${{ matrix.goarch }}"
 
   build_release_darwin:
@@ -53,7 +53,7 @@ jobs:
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release
-        uses: wangyoucao577/go-release-action@v1
+        uses: wangyoucao577/go-release-action@v1.38
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
