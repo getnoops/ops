@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/getnoops/ops/pkg/brain"
 	"github.com/getnoops/ops/pkg/poller"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func New(brainClient *brain.ClientWithResponses) *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "watch",
 		Short: "Watch a deployment via polling.",
@@ -22,7 +21,7 @@ func New(brainClient *brain.ClientWithResponses) *cobra.Command {
 
 			return poller.Wait(context.Background(), poller.WaitOptions{
 				DeploymentId: config.DeploymentId,
-				BrainClient:  brainClient,
+				PollerConfig: poller.PollConfig{Interval: 10, Expiry: 60},
 			})
 		},
 	}
