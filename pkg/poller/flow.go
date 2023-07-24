@@ -52,7 +52,13 @@ func Wait(ctx context.Context, opts WaitOptions) error {
 			}
 		}
 
-		pollResponse, err := makeRequestToPollEndpoint(ctx, opts)
+		pollResponse, httpResponse, err := makeRequestToPollEndpoint(ctx, opts)
+		if httpResponse.StatusCode() == 409 {
+			printLineBreak()
+			fmt.Printf("\nDeployment has been completed.\n")
+			printLineBreak()
+			return nil
+		}
 		if err != nil {
 			return err
 		}

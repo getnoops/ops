@@ -172,6 +172,9 @@ type ClientInterface interface {
 	// ListActiveDeployments request
 	ListActiveDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// NotifyDockerUploadCompleted request
+	NotifyDockerUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetDockerLogin request
 	GetDockerLogin(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -180,8 +183,8 @@ type ClientInterface interface {
 
 	PollForCommands(ctx context.Context, deploymentId string, body PollForCommandsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// NotifyUploadCompleted request
-	NotifyUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// NotifyStackFileUploadCompleted request
+	NotifyStackFileUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *BrainClient) CreateNewDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -210,6 +213,18 @@ func (c *BrainClient) CreateNewDeployment(ctx context.Context, body CreateNewDep
 
 func (c *BrainClient) ListActiveDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListActiveDeploymentsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *BrainClient) NotifyDockerUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotifyDockerUploadCompletedRequest(c.Server, deploymentId)
 	if err != nil {
 		return nil, err
 	}
@@ -256,8 +271,8 @@ func (c *BrainClient) PollForCommands(ctx context.Context, deploymentId string, 
 	return c.Client.Do(req)
 }
 
-func (c *BrainClient) NotifyUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewNotifyUploadCompletedRequest(c.Server, deploymentId)
+func (c *BrainClient) NotifyStackFileUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotifyStackFileUploadCompletedRequest(c.Server, deploymentId)
 	if err != nil {
 		return nil, err
 	}
@@ -328,6 +343,40 @@ func NewListActiveDeploymentsRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewNotifyDockerUploadCompletedRequest generates requests for NotifyDockerUploadCompleted
+func NewNotifyDockerUploadCompletedRequest(server string, deploymentId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "deploymentId", runtime.ParamLocationPath, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/cli/deployment/%s/docker-uploaded", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -423,8 +472,8 @@ func NewPollForCommandsRequestWithBody(server string, deploymentId string, conte
 	return req, nil
 }
 
-// NewNotifyUploadCompletedRequest generates requests for NotifyUploadCompleted
-func NewNotifyUploadCompletedRequest(server string, deploymentId string) (*http.Request, error) {
+// NewNotifyStackFileUploadCompletedRequest generates requests for NotifyStackFileUploadCompleted
+func NewNotifyStackFileUploadCompletedRequest(server string, deploymentId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -508,6 +557,9 @@ type ClientWithResponsesInterface interface {
 	// ListActiveDeployments request
 	ListActiveDeploymentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListActiveDeploymentsResponse, error)
 
+	// NotifyDockerUploadCompleted request
+	NotifyDockerUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error)
+
 	// GetDockerLogin request
 	GetDockerLoginWithResponse(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error)
 
@@ -516,8 +568,8 @@ type ClientWithResponsesInterface interface {
 
 	PollForCommandsWithResponse(ctx context.Context, deploymentId string, body PollForCommandsJSONRequestBody, reqEditors ...RequestEditorFn) (*PollForCommandsResponse, error)
 
-	// NotifyUploadCompleted request
-	NotifyUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyUploadCompletedResponse, error)
+	// NotifyStackFileUploadCompleted request
+	NotifyStackFileUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error)
 }
 
 type CreateNewDeploymentResponse struct {
@@ -556,6 +608,27 @@ func (r ListActiveDeploymentsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListActiveDeploymentsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NotifyDockerUploadCompletedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r NotifyDockerUploadCompletedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NotifyDockerUploadCompletedResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -604,13 +677,13 @@ func (r PollForCommandsResponse) StatusCode() int {
 	return 0
 }
 
-type NotifyUploadCompletedResponse struct {
+type NotifyStackFileUploadCompletedResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r NotifyUploadCompletedResponse) Status() string {
+func (r NotifyStackFileUploadCompletedResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -618,7 +691,7 @@ func (r NotifyUploadCompletedResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r NotifyUploadCompletedResponse) StatusCode() int {
+func (r NotifyStackFileUploadCompletedResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -651,6 +724,15 @@ func (c *ClientWithResponses) ListActiveDeploymentsWithResponse(ctx context.Cont
 	return ParseListActiveDeploymentsResponse(rsp)
 }
 
+// NotifyDockerUploadCompletedWithResponse request returning *NotifyDockerUploadCompletedResponse
+func (c *ClientWithResponses) NotifyDockerUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error) {
+	rsp, err := c.NotifyDockerUploadCompleted(ctx, deploymentId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotifyDockerUploadCompletedResponse(rsp)
+}
+
 // GetDockerLoginWithResponse request returning *GetDockerLoginResponse
 func (c *ClientWithResponses) GetDockerLoginWithResponse(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error) {
 	rsp, err := c.GetDockerLogin(ctx, deploymentId, svcId, reqEditors...)
@@ -677,13 +759,13 @@ func (c *ClientWithResponses) PollForCommandsWithResponse(ctx context.Context, d
 	return ParsePollForCommandsResponse(rsp)
 }
 
-// NotifyUploadCompletedWithResponse request returning *NotifyUploadCompletedResponse
-func (c *ClientWithResponses) NotifyUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyUploadCompletedResponse, error) {
-	rsp, err := c.NotifyUploadCompleted(ctx, deploymentId, reqEditors...)
+// NotifyStackFileUploadCompletedWithResponse request returning *NotifyStackFileUploadCompletedResponse
+func (c *ClientWithResponses) NotifyStackFileUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error) {
+	rsp, err := c.NotifyStackFileUploadCompleted(ctx, deploymentId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseNotifyUploadCompletedResponse(rsp)
+	return ParseNotifyStackFileUploadCompletedResponse(rsp)
 }
 
 // ParseCreateNewDeploymentResponse parses an HTTP response from a CreateNewDeploymentWithResponse call
@@ -711,6 +793,22 @@ func ParseListActiveDeploymentsResponse(rsp *http.Response) (*ListActiveDeployme
 	}
 
 	response := &ListActiveDeploymentsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseNotifyDockerUploadCompletedResponse parses an HTTP response from a NotifyDockerUploadCompletedWithResponse call
+func ParseNotifyDockerUploadCompletedResponse(rsp *http.Response) (*NotifyDockerUploadCompletedResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NotifyDockerUploadCompletedResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -750,15 +848,15 @@ func ParsePollForCommandsResponse(rsp *http.Response) (*PollForCommandsResponse,
 	return response, nil
 }
 
-// ParseNotifyUploadCompletedResponse parses an HTTP response from a NotifyUploadCompletedWithResponse call
-func ParseNotifyUploadCompletedResponse(rsp *http.Response) (*NotifyUploadCompletedResponse, error) {
+// ParseNotifyStackFileUploadCompletedResponse parses an HTTP response from a NotifyStackFileUploadCompletedWithResponse call
+func ParseNotifyStackFileUploadCompletedResponse(rsp *http.Response) (*NotifyStackFileUploadCompletedResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &NotifyUploadCompletedResponse{
+	response := &NotifyStackFileUploadCompletedResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

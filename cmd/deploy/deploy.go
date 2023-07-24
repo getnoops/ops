@@ -63,7 +63,7 @@ func Deploy(config *Config) error {
 
 	fmt.Println("Stack file uploaded.")
 
-	_, err = brain.Client.NotifyUploadCompleted(context.Background(), newDeployment.DeploymentId)
+	_, err = brain.Client.NotifyStackFileUploadCompleted(context.Background(), newDeployment.DeploymentId)
 	if err != nil {
 		return err
 	}
@@ -75,8 +75,6 @@ func Deploy(config *Config) error {
 		ExecToken:    &newDeployment.SessionToken,
 		PollerConfig: poller.PollConfig{Interval: 10, Expiry: 60},
 	})
-
-	fmt.Println("Deployment has finished!")
 
 	return nil
 }
