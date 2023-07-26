@@ -9,7 +9,7 @@ import (
 	"github.com/getnoops/ops/pkg/util"
 )
 
-func makeRequestToPollEndpoint(ctx context.Context, opts WaitOptions) (*brain.CliPollResponse, error) {
+func makeRequestToPollEndpoint(ctx context.Context, opts WaitOptions) (*brain.CliPollResponse, *brain.PollForCommandsResponse, error) {
 	body := brain.CliPollRequest{CommandId: commandId}
 	if opts.ExecToken != nil {
 		body.ExecToken = opts.ExecToken
@@ -17,21 +17,21 @@ func makeRequestToPollEndpoint(ctx context.Context, opts WaitOptions) (*brain.Cl
 
 	r, err := util.MakeBodyReaderFromType(body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	res, err := brain.Client.PollForCommandsWithBodyWithResponse(ctx, opts.DeploymentId, "application/json", r)
 	if err != nil {
-		return nil, err
+		return nil, res, err
 	}
 
 	var pollResponse brain.CliPollResponse
 	json.Unmarshal(res.Body, &pollResponse)
 	if err != nil {
-		return nil, err
+		return nil, res, err
 	}
 
-	return &pollResponse, nil
+	return &pollResponse, res, nil
 }
 
 func makeRequestToDockerLoginEndpoint(ctx context.Context, deploymentId, artifactId string) (*brain.DockerLoginResponse, error) {

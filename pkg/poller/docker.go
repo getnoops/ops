@@ -108,5 +108,12 @@ func pushDockerImageToECR(ctx context.Context, command *brain.PollerQueueEntry, 
 
 	fmt.Println("\nSuccessfully pushed your image to ECR!")
 
+	_, err = brain.Client.NotifyDockerUploadCompleted(ctx, deploymentId)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("\nBrain notified that Docker Image has been uploaded.")
+
 	return nil
 }
