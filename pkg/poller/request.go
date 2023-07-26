@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/getnoops/ops/pkg/brain"
-	"github.com/getnoops/ops/pkg/util"
 )
 
 func makeRequestToPollEndpoint(ctx context.Context, opts WaitOptions) (*brain.CliPollResponse, *brain.PollForCommandsResponse, error) {
@@ -15,12 +14,7 @@ func makeRequestToPollEndpoint(ctx context.Context, opts WaitOptions) (*brain.Cl
 		body.ExecToken = opts.ExecToken
 	}
 
-	r, err := util.MakeBodyReaderFromType(body)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	res, err := brain.Client.PollForCommandsWithBodyWithResponse(ctx, opts.DeploymentId, "application/json", r)
+	res, err := brain.Client.PollForCommandsWithResponse(ctx, opts.DeploymentId, body)
 	if err != nil {
 		return nil, res, err
 	}
