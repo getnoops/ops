@@ -72,6 +72,12 @@ type DockerLoginResponse struct {
 	UserName string `json:"userName"`
 }
 
+// NotifyUploadCompleteRequest defines model for NotifyUploadCompleteRequest.
+type NotifyUploadCompleteRequest struct {
+	Error   *string `json:"error,omitempty"`
+	Success bool    `json:"success"`
+}
+
 // PollerQueueEntry defines model for PollerQueueEntry.
 type PollerQueueEntry struct {
 	CmdType      PollerQueueEntryCmdType `json:"cmdType"`
@@ -88,8 +94,14 @@ type PollerQueueEntryCmdType string
 // CreateNewDeploymentJSONRequestBody defines body for CreateNewDeployment for application/json ContentType.
 type CreateNewDeploymentJSONRequestBody = CreateDeploymentRequest
 
+// NotifyDockerUploadCompletedJSONRequestBody defines body for NotifyDockerUploadCompleted for application/json ContentType.
+type NotifyDockerUploadCompletedJSONRequestBody = NotifyUploadCompleteRequest
+
 // PollForCommandsJSONRequestBody defines body for PollForCommands for application/json ContentType.
 type PollForCommandsJSONRequestBody = CliPollRequest
+
+// NotifyStackFileUploadCompletedJSONRequestBody defines body for NotifyStackFileUploadCompleted for application/json ContentType.
+type NotifyStackFileUploadCompletedJSONRequestBody = NotifyUploadCompleteRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -172,8 +184,10 @@ type ClientInterface interface {
 	// ListActiveDeployments request
 	ListActiveDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// NotifyDockerUploadCompleted request
-	NotifyDockerUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// NotifyDockerUploadCompleted request with any body
+	NotifyDockerUploadCompletedWithBody(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	NotifyDockerUploadCompleted(ctx context.Context, deploymentId string, body NotifyDockerUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDockerLogin request
 	GetDockerLogin(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -183,8 +197,10 @@ type ClientInterface interface {
 
 	PollForCommands(ctx context.Context, deploymentId string, body PollForCommandsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// NotifyStackFileUploadCompleted request
-	NotifyStackFileUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// NotifyStackFileUploadCompleted request with any body
+	NotifyStackFileUploadCompletedWithBody(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	NotifyStackFileUploadCompleted(ctx context.Context, deploymentId string, body NotifyStackFileUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *BrainClient) CreateNewDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -223,8 +239,20 @@ func (c *BrainClient) ListActiveDeployments(ctx context.Context, reqEditors ...R
 	return c.Client.Do(req)
 }
 
-func (c *BrainClient) NotifyDockerUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewNotifyDockerUploadCompletedRequest(c.Server, deploymentId)
+func (c *BrainClient) NotifyDockerUploadCompletedWithBody(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotifyDockerUploadCompletedRequestWithBody(c.Server, deploymentId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *BrainClient) NotifyDockerUploadCompleted(ctx context.Context, deploymentId string, body NotifyDockerUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotifyDockerUploadCompletedRequest(c.Server, deploymentId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -271,8 +299,20 @@ func (c *BrainClient) PollForCommands(ctx context.Context, deploymentId string, 
 	return c.Client.Do(req)
 }
 
-func (c *BrainClient) NotifyStackFileUploadCompleted(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewNotifyStackFileUploadCompletedRequest(c.Server, deploymentId)
+func (c *BrainClient) NotifyStackFileUploadCompletedWithBody(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotifyStackFileUploadCompletedRequestWithBody(c.Server, deploymentId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *BrainClient) NotifyStackFileUploadCompleted(ctx context.Context, deploymentId string, body NotifyStackFileUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotifyStackFileUploadCompletedRequest(c.Server, deploymentId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -350,8 +390,19 @@ func NewListActiveDeploymentsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewNotifyDockerUploadCompletedRequest generates requests for NotifyDockerUploadCompleted
-func NewNotifyDockerUploadCompletedRequest(server string, deploymentId string) (*http.Request, error) {
+// NewNotifyDockerUploadCompletedRequest calls the generic NotifyDockerUploadCompleted builder with application/json body
+func NewNotifyDockerUploadCompletedRequest(server string, deploymentId string, body NotifyDockerUploadCompletedJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewNotifyDockerUploadCompletedRequestWithBody(server, deploymentId, "application/json", bodyReader)
+}
+
+// NewNotifyDockerUploadCompletedRequestWithBody generates requests for NotifyDockerUploadCompleted with any type of body
+func NewNotifyDockerUploadCompletedRequestWithBody(server string, deploymentId string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -376,10 +427,12 @@ func NewNotifyDockerUploadCompletedRequest(server string, deploymentId string) (
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -472,8 +525,19 @@ func NewPollForCommandsRequestWithBody(server string, deploymentId string, conte
 	return req, nil
 }
 
-// NewNotifyStackFileUploadCompletedRequest generates requests for NotifyStackFileUploadCompleted
-func NewNotifyStackFileUploadCompletedRequest(server string, deploymentId string) (*http.Request, error) {
+// NewNotifyStackFileUploadCompletedRequest calls the generic NotifyStackFileUploadCompleted builder with application/json body
+func NewNotifyStackFileUploadCompletedRequest(server string, deploymentId string, body NotifyStackFileUploadCompletedJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewNotifyStackFileUploadCompletedRequestWithBody(server, deploymentId, "application/json", bodyReader)
+}
+
+// NewNotifyStackFileUploadCompletedRequestWithBody generates requests for NotifyStackFileUploadCompleted with any type of body
+func NewNotifyStackFileUploadCompletedRequestWithBody(server string, deploymentId string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -498,10 +562,12 @@ func NewNotifyStackFileUploadCompletedRequest(server string, deploymentId string
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -557,8 +623,10 @@ type ClientWithResponsesInterface interface {
 	// ListActiveDeployments request
 	ListActiveDeploymentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListActiveDeploymentsResponse, error)
 
-	// NotifyDockerUploadCompleted request
-	NotifyDockerUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error)
+	// NotifyDockerUploadCompleted request with any body
+	NotifyDockerUploadCompletedWithBodyWithResponse(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error)
+
+	NotifyDockerUploadCompletedWithResponse(ctx context.Context, deploymentId string, body NotifyDockerUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error)
 
 	// GetDockerLogin request
 	GetDockerLoginWithResponse(ctx context.Context, deploymentId string, svcId string, reqEditors ...RequestEditorFn) (*GetDockerLoginResponse, error)
@@ -568,8 +636,10 @@ type ClientWithResponsesInterface interface {
 
 	PollForCommandsWithResponse(ctx context.Context, deploymentId string, body PollForCommandsJSONRequestBody, reqEditors ...RequestEditorFn) (*PollForCommandsResponse, error)
 
-	// NotifyStackFileUploadCompleted request
-	NotifyStackFileUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error)
+	// NotifyStackFileUploadCompleted request with any body
+	NotifyStackFileUploadCompletedWithBodyWithResponse(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error)
+
+	NotifyStackFileUploadCompletedWithResponse(ctx context.Context, deploymentId string, body NotifyStackFileUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error)
 }
 
 type CreateNewDeploymentResponse struct {
@@ -724,9 +794,17 @@ func (c *ClientWithResponses) ListActiveDeploymentsWithResponse(ctx context.Cont
 	return ParseListActiveDeploymentsResponse(rsp)
 }
 
-// NotifyDockerUploadCompletedWithResponse request returning *NotifyDockerUploadCompletedResponse
-func (c *ClientWithResponses) NotifyDockerUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error) {
-	rsp, err := c.NotifyDockerUploadCompleted(ctx, deploymentId, reqEditors...)
+// NotifyDockerUploadCompletedWithBodyWithResponse request with arbitrary body returning *NotifyDockerUploadCompletedResponse
+func (c *ClientWithResponses) NotifyDockerUploadCompletedWithBodyWithResponse(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error) {
+	rsp, err := c.NotifyDockerUploadCompletedWithBody(ctx, deploymentId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotifyDockerUploadCompletedResponse(rsp)
+}
+
+func (c *ClientWithResponses) NotifyDockerUploadCompletedWithResponse(ctx context.Context, deploymentId string, body NotifyDockerUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*NotifyDockerUploadCompletedResponse, error) {
+	rsp, err := c.NotifyDockerUploadCompleted(ctx, deploymentId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -759,9 +837,17 @@ func (c *ClientWithResponses) PollForCommandsWithResponse(ctx context.Context, d
 	return ParsePollForCommandsResponse(rsp)
 }
 
-// NotifyStackFileUploadCompletedWithResponse request returning *NotifyStackFileUploadCompletedResponse
-func (c *ClientWithResponses) NotifyStackFileUploadCompletedWithResponse(ctx context.Context, deploymentId string, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error) {
-	rsp, err := c.NotifyStackFileUploadCompleted(ctx, deploymentId, reqEditors...)
+// NotifyStackFileUploadCompletedWithBodyWithResponse request with arbitrary body returning *NotifyStackFileUploadCompletedResponse
+func (c *ClientWithResponses) NotifyStackFileUploadCompletedWithBodyWithResponse(ctx context.Context, deploymentId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error) {
+	rsp, err := c.NotifyStackFileUploadCompletedWithBody(ctx, deploymentId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotifyStackFileUploadCompletedResponse(rsp)
+}
+
+func (c *ClientWithResponses) NotifyStackFileUploadCompletedWithResponse(ctx context.Context, deploymentId string, body NotifyStackFileUploadCompletedJSONRequestBody, reqEditors ...RequestEditorFn) (*NotifyStackFileUploadCompletedResponse, error) {
+	rsp, err := c.NotifyStackFileUploadCompleted(ctx, deploymentId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

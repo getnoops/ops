@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/getnoops/ops/pkg/brain"
 )
 
@@ -78,6 +80,27 @@ func pushImage(ecrUrl string) error {
 	return nil
 }
 
+func pushImageWithRetry(ctx context.Context, deploymentId, ecrUrl string) error {
+	err := retry.Do(
+		func() error {
+			err := pushImage(ecrUrl)
+			return err
+		},
+		retry.Attempts(3),
+		retry.OnRetry(func(n uint, err error) {
+			log.Printf("Unable to push docker image to ECR. Retrying request after error: %v", err)
+		}),
+	)
+	if err != nil {
+		e := err.Error()
+		notifyDockerUploadBody := brain.NotifyUploadCompleteRequest{Success: false, Error: &e}
+		brain.Client.NotifyDockerUploadCompleted(ctx, deploymentId, notifyDockerUploadBody)
+		return err
+	}
+
+	return nil
+}
+
 func pushDockerImageToECR(ctx context.Context, command *brain.PollerQueueEntry, deploymentId string) error {
 	fmt.Println("\nStarting process to push your docker image to ECR...")
 
@@ -101,14 +124,15 @@ func pushDockerImageToECR(ctx context.Context, command *brain.PollerQueueEntry, 
 		return err
 	}
 
-	err = pushImage(dockerLogin.Url)
+	err = pushImageWithRetry(ctx, deploymentId, dockerLogin.Url)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("\nSuccessfully pushed your image to ECR!")
 
-	_, err = brain.Client.NotifyDockerUploadCompleted(ctx, deploymentId)
+	notifyUploadCompleteBody := brain.NotifyUploadCompleteRequest{Success: true}
+	_, err = brain.Client.NotifyDockerUploadCompleted(ctx, deploymentId, notifyUploadCompleteBody)
 	if err != nil {
 		return err
 	}
