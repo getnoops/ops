@@ -7,8 +7,8 @@ Log:
     Format: text
 
 Auth: 
-  Issuer: http://localhost:8080
-  ClientId: client_id
+  Issuer: https://account.prod.contextcloud.n-cc.net/
+  ClientId: ops
   Scopes: 
     - openid
     - profile
