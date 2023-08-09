@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/getnoops/ops/pkg/logging"
+	"github.com/getnoops/ops/pkg/tokenstore"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
@@ -55,5 +56,10 @@ func Login(config *Config) {
 		fmt.Printf("AccessToken: %s\n", token.AccessToken)
 		fmt.Printf("RefreshToken: %s\n", token.RefreshToken)
 		fmt.Printf("TokenType: %s\n", token.TokenType)
+
+		err = tokenstore.Store(token)
+		if err != nil {
+			logging.OnError(err).Fatal("failed to store token")
+		}
 	}
 }
