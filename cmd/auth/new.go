@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -52,10 +51,6 @@ func Login(config *Config) {
 		if err := server.Shutdown(ctx); err != nil {
 			logging.OnError(err).Fatal("failed to shutdown server")
 		}
-
-		fmt.Printf("AccessToken: %s\n", token.AccessToken)
-		fmt.Printf("RefreshToken: %s\n", token.RefreshToken)
-		fmt.Printf("TokenType: %s\n", token.TokenType)
 
 		err = tokenstore.Store(token)
 		if err != nil {
