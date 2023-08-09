@@ -1,6 +1,9 @@
 ## golang
 vendor
 
+# idea
+.idea
+
 ## vscode
 .vscode
 
