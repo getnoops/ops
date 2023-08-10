@@ -7,7 +7,7 @@ Log:
     Format: text
 
 Auth: 
-  Issuer: https://account.prod.contextcloud.n-cc.net/
+  Issuer: https://account.getnoops.com/
   ClientId: ops
   Scopes: 
     - openid
