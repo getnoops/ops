@@ -3,7 +3,9 @@ package auth
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"github.com/getnoops/ops/pkg/tokenstore"
 	"log"
 	"net"
 	"net/http"
@@ -69,6 +71,49 @@ func CodeExchangeHandler[C oidc.IDClaims](callback rp.CodeExchangeCallback[C], p
 	}
 }
 
+// verifier and relyingParty variables needed in verifying the token
+var verifier rp.IDTokenVerifier
+var relyingParty rp.RelyingParty
+
+// VerifyTokenAndReturn verifies the token and handles the case of expiration of token
+// - it will retrieve the tokens from [User Home Directory]/.no_ops/no_opsconfig file
+// - checks whether the token is expired or not, if expired it refreshes and stores the new token
+// - returns the token if they are valid
+// - returns an error for issues in
+//   - retrieving token from file
+//   - verifying token
+//   - refreshing the access token
+//   - storing updated tokens
+func VerifyTokenAndReturn() (*tokenstore.Tokens, error) {
+	token, err := tokenstore.Retrieve()
+	if err != nil {
+		return nil, err
+	}
+
+	// Don't need claims here for now, may need later
+	_, err = rp.VerifyTokens[*oidc.IDTokenClaims](context.Background(), token.AccessToken, token.IDToken, verifier)
+	if err != nil {
+		if errors.Is(err, oidc.ErrExpired) {
+			newAccessToken, refreshAccessTokenErr := rp.RefreshAccessToken(relyingParty, token.RefreshToken, "", "")
+			if refreshAccessTokenErr != nil {
+				return nil, refreshAccessTokenErr
+			}
+			updateTokensErr := tokenstore.UpdateTokens(newAccessToken.AccessToken, newAccessToken.RefreshToken)
+			if updateTokensErr != nil {
+				return nil, updateTokensErr
+			}
+			return &tokenstore.Tokens{
+				AccessToken:  newAccessToken.AccessToken,
+				RefreshToken: newAccessToken.RefreshToken,
+				IDToken:      token.IDToken,
+				TokenType:    token.TokenType,
+			}, nil
+		}
+		return nil, err
+	}
+	return token, nil
+}
+
 func AuthRedirect(provider rp.RelyingParty, state string, codeVerifier string, urlParam ...rp.URLParamOpt) {
 	opts := make([]rp.AuthURLOpt, len(urlParam))
 
@@ -100,6 +145,7 @@ func NewServer(ctx context.Context, config *Config, tokenChan chan *oidc.Tokens[
 
 	provider, err := rp.NewRelyingPartyOIDC(config.Auth.Issuer, config.Auth.ClientId, "", redirectUri, config.Auth.Scopes, options...)
 	logging.OnError(err).Fatal("error creating provider")
+	verifier = provider.IDTokenVerifier()
 
 	callback := func(w http.ResponseWriter, r *http.Request, tokens *oidc.Tokens[*oidc.IDTokenClaims], state string, rp rp.RelyingParty) {
 		tokenChan <- tokens
@@ -116,7 +162,7 @@ func NewServer(ctx context.Context, config *Config, tokenChan chan *oidc.Tokens[
 	}
 
 	go func() {
-		if err := srv.Serve(l); err != nil && err != http.ErrServerClosed {
+		if err := srv.Serve(l); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logging.OnError(err).Fatal("error starting server")
 		}
 	}()
