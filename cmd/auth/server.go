@@ -146,6 +146,7 @@ func NewServer(ctx context.Context, config *Config, tokenChan chan *oidc.Tokens[
 	provider, err := rp.NewRelyingPartyOIDC(config.Auth.Issuer, config.Auth.ClientId, "", redirectUri, config.Auth.Scopes, options...)
 	logging.OnError(err).Fatal("error creating provider")
 	verifier = provider.IDTokenVerifier()
+	relyingParty = provider
 
 	callback := func(w http.ResponseWriter, r *http.Request, tokens *oidc.Tokens[*oidc.IDTokenClaims], state string, rp rp.RelyingParty) {
 		tokenChan <- tokens

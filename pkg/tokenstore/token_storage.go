@@ -76,7 +76,7 @@ func Store(tokens *oidc.Tokens[*oidc.IDTokenClaims]) error {
 	return nil
 }
 
-func Retrieve() (tokens *Tokens, err error) {
+func Retrieve() (*Tokens, error) {
 	noOpsFolderPath, err := getNoOpsFolderPath()
 	if err != nil {
 		return nil, fmt.Errorf("error getting user's home directory: %v", err)
@@ -89,6 +89,7 @@ func Retrieve() (tokens *Tokens, err error) {
 		return nil, fmt.Errorf("error reading 'no_opsconfig' file: %v", err)
 	}
 
+	var tokens Tokens
 	lines := strings.Split(string(configData), "\n")
 	for _, line := range lines {
 		parts := strings.SplitN(line, "=", 2)
@@ -109,11 +110,11 @@ func Retrieve() (tokens *Tokens, err error) {
 			tokens.IDToken = value
 		}
 	}
-	err = validateTokens(*tokens)
+	err = validateTokens(tokens)
 	if err != nil {
 		return nil, err
 	}
-	return tokens, nil
+	return &tokens, nil
 }
 
 func UpdateTokens(accessToken string, refreshToken string) error {
