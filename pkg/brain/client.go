@@ -645,6 +645,7 @@ type ClientWithResponsesInterface interface {
 type CreateNewDeploymentResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *CreateDeploymentResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -666,6 +667,7 @@ func (r CreateNewDeploymentResponse) StatusCode() int {
 type ListActiveDeploymentsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *[]ActiveDeployment
 }
 
 // Status returns HTTPResponse.Status
@@ -708,6 +710,7 @@ func (r NotifyDockerUploadCompletedResponse) StatusCode() int {
 type GetDockerLoginResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *DockerLoginResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -729,6 +732,7 @@ func (r GetDockerLoginResponse) StatusCode() int {
 type PollForCommandsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *CliPollResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -867,6 +871,16 @@ func ParseCreateNewDeploymentResponse(rsp *http.Response) (*CreateNewDeploymentR
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CreateDeploymentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -881,6 +895,16 @@ func ParseListActiveDeploymentsResponse(rsp *http.Response) (*ListActiveDeployme
 	response := &ListActiveDeploymentsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ActiveDeployment
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -915,6 +939,16 @@ func ParseGetDockerLoginResponse(rsp *http.Response) (*GetDockerLoginResponse, e
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DockerLoginResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -929,6 +963,16 @@ func ParsePollForCommandsResponse(rsp *http.Response) (*PollForCommandsResponse,
 	response := &PollForCommandsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CliPollResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
