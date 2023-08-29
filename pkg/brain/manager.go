@@ -20,18 +20,16 @@ type manager struct {
 }
 
 func (m *manager) CreateDeployment(ctx context.Context, envName string) (*CreateDeploymentResponse, error) {
-	fmt.Printf("eghll: %s", envName)
-	rsp, err := m.cli.CreateNewDeploymentWithResponse(ctx, CreateNewDeploymentJSONRequestBody{EnvironmentName: envName})
+	rsp, err := m.cli.CreateNewDeploymentWithResponse(ctx, CreateDeploymentRequest{EnvironmentName: envName})
 	if err != nil {
 		return nil, err
 	}
-	println("??????")
 
 	if rsp.JSON200 != nil {
 		return rsp.JSON200, nil
 	}
 
-	return nil, fmt.Errorf("unexpected response: %s", rsp.Status())
+	return nil, fmt.Errorf("CreateDeployment unexpected response: %s", rsp.Status())
 }
 
 func (m *manager) NotifyStackFileUploadCompleted(ctx context.Context, deploymentId string, body NotifyUploadCompleteRequest) error {
@@ -41,7 +39,7 @@ func (m *manager) NotifyStackFileUploadCompleted(ctx context.Context, deployment
 	}
 
 	if rsp.StatusCode() != 200 {
-		return fmt.Errorf("unexpected response: %s", rsp.Status())
+		return fmt.Errorf("NotifyStackFileUploadCompleted unexpected response: %s", rsp.Status())
 	}
 
 	return nil
@@ -54,7 +52,7 @@ func (m *manager) NotifyDockerUploadCompleted(ctx context.Context, deploymentId 
 	}
 
 	if rsp.StatusCode() != 200 {
-		return fmt.Errorf("unexpected response: %s", rsp.Status())
+		return fmt.Errorf("NotifyDockerUploadCompleted unexpected response: %s", rsp.Status())
 	}
 
 	return nil
@@ -70,7 +68,7 @@ func (m *manager) ListActiveDeployments(ctx context.Context) (*[]ActiveDeploymen
 		return rsp.JSON200, nil
 	}
 
-	return nil, fmt.Errorf("unexpected response: %s", rsp.Status())
+	return nil, fmt.Errorf("ListActiveDeployments unexpected response: %s", rsp.Status())
 }
 
 func (m *manager) GetECRCredentials(ctx context.Context, deploymentId, artifactId string) (*DockerLoginResponse, error) {
@@ -85,7 +83,7 @@ func (m *manager) GetECRCredentials(ctx context.Context, deploymentId, artifactI
 		return rsp.JSON200, nil
 	}
 
-	return nil, fmt.Errorf("unexpected response: %s", rsp.Status())
+	return nil, fmt.Errorf("GetECRCredentials unexpected response: %s", rsp.Status())
 }
 
 func (m *manager) PollForCommands(ctx context.Context, deploymentId string, commandId, execToken *string) (*CliPollResponse, *int, error) {
@@ -109,7 +107,7 @@ func (m *manager) PollForCommands(ctx context.Context, deploymentId string, comm
 		return nil, &code, nil
 	}
 
-	return nil, &code, fmt.Errorf("unexpected response: %v", code)
+	return nil, &code, fmt.Errorf("PollForCommands unexpected response: %v", code)
 }
 
 func NewManager(brainUrl string, httpClient *http.Client) (Manager, error) {

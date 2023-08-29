@@ -11,10 +11,10 @@ type TokenInterceptorTransport struct {
 }
 
 func (ti *TokenInterceptorTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	tokens, err := VerifyTokenAndReturn()
+	token, err := VerifyTokenAndReturn()
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+tokens.AccessToken)
+	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 	return ti.Transport.RoundTrip(req)
 }
