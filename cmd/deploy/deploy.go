@@ -3,7 +3,6 @@ package deploy
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -18,7 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func New() *cobra.Command {
+func New(brain brain.Manager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy a stack file",
@@ -26,7 +25,7 @@ func New() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := MustNewConfig(viper.GetViper())
 
-			return Deploy(context.Background(), config)
+			return Deploy(context.Background(), config, brain)
 		},
 	}
 
@@ -34,33 +33,25 @@ func New() *cobra.Command {
 	return cmd
 }
 
-func Deploy(ctx context.Context, config *Config) error {
+func Deploy(ctx context.Context, config *Config, b brain.Manager) error {
 	// Make sure that stack file path from flag actually exists in user directory
 	if _, err := os.Stat(config.StackFile); err != nil {
 		return err
 	}
 
-	createDeploymentBody := brain.CreateDeploymentRequest{EnvironmentName: config.Environment}
-	res, err := brain.Client.CreateNewDeploymentWithResponse(ctx, createDeploymentBody)
+	newDeployment, err := b.CreateDeployment(ctx, config.Environment)
 	if err != nil {
 		return err
 	}
 
-	var newDeployment brain.CreateDeploymentResponse
-	err = json.Unmarshal(res.Body, &newDeployment)
-	if err != nil {
-		return err
-	}
-
-	err = UploadStackFileToS3WithRetry(ctx, newDeployment.DeploymentId, config.StackFile, newDeployment.UploadUrl)
+	err = UploadStackFileToS3WithRetry(ctx, b, newDeployment.DeploymentId, config.StackFile, newDeployment.UploadUrl)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Stack file uploaded.")
 
-	notifyUploadCompleteBody := brain.NotifyUploadCompleteRequest{Success: true}
-	_, err = brain.Client.NotifyStackFileUploadCompleted(ctx, newDeployment.DeploymentId, notifyUploadCompleteBody)
+	err = b.NotifyStackFileUploadCompleted(ctx, newDeployment.DeploymentId, brain.NotifyUploadCompleteRequest{Success: true})
 	if err != nil {
 		return err
 	}
@@ -71,6 +62,7 @@ func Deploy(ctx context.Context, config *Config) error {
 		DeploymentId: newDeployment.DeploymentId,
 		ExecToken:    &newDeployment.SessionToken,
 		PollerConfig: poller.PollConfig{Interval: 10, Expiry: 60},
+		BrainClient:  b,
 	})
 
 	return nil
@@ -116,7 +108,7 @@ func UploadStackFileToS3(stackFilePath, uploadUrl string) error {
 	return nil
 }
 
-func UploadStackFileToS3WithRetry(ctx context.Context, deploymentId, stackFilePath, uploadUrl string) error {
+func UploadStackFileToS3WithRetry(ctx context.Context, b brain.Manager, deploymentId, stackFilePath, uploadUrl string) error {
 	err := retry.Do(
 		func() error {
 			err := UploadStackFileToS3(stackFilePath, uploadUrl)
@@ -129,8 +121,8 @@ func UploadStackFileToS3WithRetry(ctx context.Context, deploymentId, stackFilePa
 	)
 	if err != nil {
 		e := err.Error()
-		notifyDockerUploadBody := brain.NotifyUploadCompleteRequest{Success: false, Error: &e}
-		brain.Client.NotifyStackFileUploadCompleted(ctx, deploymentId, notifyDockerUploadBody)
+		notifyStackFileUploadBody := brain.NotifyUploadCompleteRequest{Success: false, Error: &e}
+		b.NotifyStackFileUploadCompleted(ctx, deploymentId, notifyStackFileUploadBody)
 		return err
 	}
 

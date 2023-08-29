@@ -26,6 +26,9 @@ type WaitOptions struct {
 
 	// Config for the poller
 	PollerConfig PollConfig
+
+	// Brain request client
+	BrainClient brain.Manager
 }
 
 var (
@@ -52,8 +55,8 @@ func Wait(ctx context.Context, opts WaitOptions) error {
 			}
 		}
 
-		pollResponse, httpResponse, err := makeRequestToPollEndpoint(ctx, opts)
-		if httpResponse.StatusCode() == 409 {
+		pollResponse, statusCode, err := opts.BrainClient.PollForCommands(ctx, opts.DeploymentId, commandId, opts.ExecToken)
+		if *statusCode == 409 {
 			printLineBreak()
 			fmt.Printf("\nDeployment has been completed.\n")
 			printLineBreak()
@@ -71,7 +74,7 @@ func Wait(ctx context.Context, opts WaitOptions) error {
 				fmt.Printf("\nCommand: %s\n", c.Command)
 
 				if c.CmdType == brain.PUSHDOCKERIMAGE {
-					pushDockerImageToECR(ctx, &c, opts.DeploymentId)
+					pushDockerImageToECR(ctx, opts.BrainClient, &c, opts.DeploymentId)
 				} else if c.CmdType == brain.UPLOADSTATICFILE {
 					// Can be implemented later, we're not handling static files for MVP
 					context.TODO()

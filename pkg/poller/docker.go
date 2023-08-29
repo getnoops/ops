@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"os/exec"
 
 	"github.com/avast/retry-go/v4"
+	dockerTypes "github.com/docker/docker/api/types"
+	docker "github.com/docker/docker/client"
 	"github.com/getnoops/ops/pkg/brain"
 )
 
@@ -35,55 +35,35 @@ func formatDockerCommandInfo(commandMsg string) (*PushDockerImageCommandInfo, er
 	return &dockerCommandInfo, nil
 }
 
-func tagDockerImageWithEcrUrl(dockerCommandInfo *PushDockerImageCommandInfo, dockerLogin *brain.DockerLoginResponse) error {
-	userProvidedImage := fmt.Sprintf("%s:%s", dockerCommandInfo.Img, dockerCommandInfo.Tag)
-	fmt.Printf("Tagging image [%s] with [%s]", userProvidedImage, dockerLogin.Url)
+// func tagDockerImageWithEcrUrl(dockerCommandInfo *PushDockerImageCommandInfo, dockerLogin *brain.DockerLoginResponse) error {
+// 	userProvidedImage := fmt.Sprintf("%s:%s", dockerCommandInfo.Img, dockerCommandInfo.Tag)
+// 	fmt.Printf("Tagging image [%s] with [%s]", userProvidedImage, dockerLogin.Url)
 
-	cmd := exec.Command("docker", "tag", userProvidedImage, dockerLogin.Url)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+// 	cmd := exec.Command("docker", "tag", userProvidedImage, dockerLogin.Url)
+// 	cmd.Stdout = os.Stdout
+// 	cmd.Stderr = os.Stderr
+// 	err := cmd.Run()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+func pushImage(ctx context.Context, dockerClient *docker.Client, docker *brain.DockerLoginResponse) error {
+	closer, err := dockerClient.ImagePush(ctx, docker.Url, dockerTypes.ImagePushOptions{RegistryAuth: docker.UserName + ":" + docker.Password})
 	if err != nil {
 		return err
 	}
+	closer.Close()
 
 	return nil
 }
 
-func loginToDocker(dockerLogin *brain.DockerLoginResponse) error {
-	// TODO: Investigate if there's a better way to add the password here.
-	// ``WARNING! Using --password via the CLI is insecure. Use --password-stdin
-	fmt.Println("\nLogging in to docker")
-
-	registryUrl := fmt.Sprintf("https://%s", dockerLogin.Url)
-
-	cmd := exec.Command("docker", "login", "--username", dockerLogin.UserName, "--password", dockerLogin.Password, registryUrl)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func pushImage(ecrUrl string) error {
-	cmd := exec.Command("docker", "push", ecrUrl)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func pushImageWithRetry(ctx context.Context, deploymentId, ecrUrl string) error {
+func pushImageWithRetry(ctx context.Context, b brain.Manager, dockerClient *docker.Client, deploymentId string, docker *brain.DockerLoginResponse) error {
 	err := retry.Do(
 		func() error {
-			err := pushImage(ecrUrl)
+			err := pushImage(ctx, dockerClient, docker)
 			return err
 		},
 		retry.Attempts(3),
@@ -94,37 +74,54 @@ func pushImageWithRetry(ctx context.Context, deploymentId, ecrUrl string) error 
 	if err != nil {
 		e := err.Error()
 		notifyDockerUploadBody := brain.NotifyUploadCompleteRequest{Success: false, Error: &e}
-		brain.Client.NotifyDockerUploadCompleted(ctx, deploymentId, notifyDockerUploadBody)
+		b.NotifyDockerUploadCompleted(ctx, deploymentId, notifyDockerUploadBody)
 		return err
 	}
 
 	return nil
 }
 
-func pushDockerImageToECR(ctx context.Context, command *brain.PollerQueueEntry, deploymentId string) error {
+func pushDockerImageToECR(ctx context.Context, b brain.Manager, command *brain.PollerQueueEntry, deploymentId string) error {
 	fmt.Println("\nStarting process to push your docker image to ECR...")
+
+	dockerCli, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
 
 	dockerCommandInfo, err := formatDockerCommandInfo(command.Command)
 	if err != nil {
 		return err
 	}
 
-	dockerLogin, err := makeRequestToDockerLoginEndpoint(ctx, deploymentId, dockerCommandInfo.ArtifactId)
+	dockerLogin, err := b.GetECRCredentials(ctx, deploymentId, dockerCommandInfo.ArtifactId)
 	if err != nil {
 		return err
 	}
 
-	err = tagDockerImageWithEcrUrl(dockerCommandInfo, dockerLogin)
+	// TODO: Build docker image
+
+	// registryUrl := fmt.Sprintf("https://%s", dockerLogin.Url)
+
+	userImage := dockerCommandInfo.Img + ":" + dockerCommandInfo.Tag
+	fmt.Printf("Tagging image [%s] with [%s]", userImage, dockerLogin.Url)
+	err = dockerCli.ImageTag(ctx, userImage, dockerLogin.Url)
 	if err != nil {
 		return err
 	}
 
-	err = loginToDocker(dockerLogin)
-	if err != nil {
-		return err
-	}
+	// err = tagDockerImageWithEcrUrl(dockerCommandInfo, dockerLogin)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = pushImageWithRetry(ctx, deploymentId, dockerLogin.Url)
+	// err = loginToDocker(dockerLogin)
+	// if err != nil {
+	// 	return err
+	// }
+
+	err = pushImageWithRetry(ctx, b, dockerCli, deploymentId, dockerLogin)
+
 	if err != nil {
 		return err
 	}
@@ -132,7 +129,7 @@ func pushDockerImageToECR(ctx context.Context, command *brain.PollerQueueEntry, 
 	fmt.Println("\nSuccessfully pushed your image to ECR!")
 
 	notifyUploadCompleteBody := brain.NotifyUploadCompleteRequest{Success: true}
-	_, err = brain.Client.NotifyDockerUploadCompleted(ctx, deploymentId, notifyUploadCompleteBody)
+	err = b.NotifyDockerUploadCompleted(ctx, deploymentId, notifyUploadCompleteBody)
 	if err != nil {
 		return err
 	}

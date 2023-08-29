@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/getnoops/ops/pkg/tokenstore"
-	"github.com/spf13/viper"
 	"log"
 	"net"
 	"net/http"
 	"os/exec"
 	"runtime"
+
+	"github.com/getnoops/ops/pkg/tokenstore"
+	"github.com/spf13/viper"
 
 	"github.com/getnoops/ops/pkg/logging"
 	"github.com/google/uuid"
@@ -97,7 +98,7 @@ func VerifyTokenAndReturn() (*tokenstore.Tokens, error) {
 	// Don't need claims here for now, may need later
 	_, err = rp.VerifyTokens[*oidc.IDTokenClaims](context.Background(), token.AccessToken, token.IDToken, provider.IDTokenVerifier())
 	if err != nil {
-		if errors.Is(err, oidc.ErrExpired) {
+		if errors.Is(err, oidc.ErrExpired) || errors.Is(err, oidc.ErrSignatureInvalid) {
 			newAccessToken, refreshAccessTokenErr := rp.RefreshAccessToken(provider, token.RefreshToken, "", "")
 			if refreshAccessTokenErr != nil {
 				return nil, refreshAccessTokenErr

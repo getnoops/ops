@@ -4,7 +4,9 @@ import (
 	"bytes"
 	_ "embed"
 	"io"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/getnoops/ops/cmd/auth"
 	"github.com/getnoops/ops/cmd/deploy"
@@ -45,16 +47,17 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cobra.OnInitialize(initConfig)
 	cmd.PersistentFlags().StringArrayVar(&configFiles, "config", nil, "path to config file to overwrite system defaults")
 
+	httpClient := initClient()
 	url := viper.GetString("BrainUrl")
-	err = brain.InitClient(url)
-	logging.OnError(err).Fatal("Unable to initialise brain client")
+	brainManager, err := brain.NewManager(url, httpClient)
+	logging.OnError(err).Fatal("unable to initialise brain client")
 
 	cmd.AddCommand(
 		auth.New(),
 		upgrade.New(),
-		deploy.New(),
-		list.New(),
-		watch.New(),
+		deploy.New(brainManager),
+		list.New(brainManager),
+		watch.New(brainManager),
 	)
 
 	cmd.InitDefaultVersionFlag()
@@ -66,5 +69,14 @@ func initConfig() {
 		viper.SetConfigFile(file)
 		err := viper.MergeInConfig()
 		logging.WithFields("file", file).OnError(err).Warn("unable to read config file")
+	}
+}
+
+func initClient() *http.Client {
+	return &http.Client{
+		Transport: &auth.TokenInterceptorTransport{
+			Transport: http.DefaultTransport,
+		},
+		Timeout: time.Duration(90) * time.Second,
 	}
 }
