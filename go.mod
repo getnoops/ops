@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/avast/retry-go/v4 v4.5.0
 	github.com/deepmap/oapi-codegen v1.16.2
-	github.com/docker/docker v24.0.6+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.4.0
 	github.com/sirupsen/logrus v1.9.3
