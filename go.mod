@@ -7,7 +7,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.16.1
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
