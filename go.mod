@@ -3,7 +3,7 @@ module github.com/getnoops/ops
 go 1.20
 
 require (
-	github.com/avast/retry-go/v4 v4.5.0
+	github.com/avast/retry-go/v4 v4.5.1
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/google/go-github/v53 v53.2.0
