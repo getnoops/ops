@@ -1,13 +1,14 @@
 Home:
-  Path: ~/.config/ops
+  Path: ~/.config/no_ops
 
 Log:
-  Level: info
-  Formatter:
-    Format: text
+  Level: debug
+
+Server:
+  Url: http://localhost:8200
 
 Auth: 
-  Issuer: https://account.getnoops.com/
+  Issuer: http://localhost:8080
   ClientId: ops
   Scopes: 
     - openid

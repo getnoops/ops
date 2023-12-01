@@ -1,7 +1,0 @@
-package: brain
-generate:
-  client: true
-  models: true
-output: pkg/brain/client.go
-output-options:
-  client-type-name: BrainClient

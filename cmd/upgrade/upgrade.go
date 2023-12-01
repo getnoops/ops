@@ -10,9 +10,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/selfupdate"
 	"github.com/getnoops/ops/pkg/version"
 )
+
+type Config struct {
+	Prerelease bool `default:"false"`
+	Draft      bool `default:"false"`
+}
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
@@ -20,7 +26,12 @@ func New() *cobra.Command {
 		Short: "Upgrades ops tool to the latest version",
 		Long:  `Upgrade will check for the latest version and upgrade if necessary.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config := MustNewConfig(viper.GetViper())
+			ctx := cmd.Context()
+
+			config, err := config.New[Config](ctx, viper.GetViper())
+			if err != nil {
+				return err
+			}
 			return Update(config)
 		},
 	}
@@ -29,10 +40,10 @@ func New() *cobra.Command {
 	return cmd
 }
 
-func Update(config *Config) error {
+func Update(config *config.NoOps[Config]) error {
 	ctx := context.Background()
 
-	updater, err := selfupdate.NewUpdater("getnoops/ops", config.Prerelease, config.Draft)
+	updater, err := selfupdate.NewUpdater("getnoops/ops", config.Command.Prerelease, config.Command.Draft)
 	if err != nil {
 		return fmt.Errorf("error occurred while creating updater: %w", err)
 	}

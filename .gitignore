@@ -4,10 +4,9 @@ vendor
 # idea
 .idea
 
-## vscode
-.vscode
-
 ## Binary output
 /bin/
 
 stack.yaml
+
+__debug_bin*

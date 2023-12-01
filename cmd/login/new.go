@@ -1,4 +1,4 @@
-package auth
+package login
 
 import (
 	"context"
@@ -6,22 +6,31 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/getnoops/ops/pkg/logging"
-	"github.com/getnoops/ops/pkg/tokenstore"
+	"github.com/getnoops/ops/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
+	"go.uber.org/zap"
 )
+
+type Config struct {
+}
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "login",
 		Short: "Login to NoOps",
 		Long:  `Using SSO login to NoOps`,
-		Run: func(cmd *cobra.Command, args []string) {
-			config := MustNewConfig(viper.GetViper())
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+
+			config, err := config.New[Config](ctx, viper.GetViper())
+			if err != nil {
+				return err
+			}
 
 			Login(config)
+			return nil
 		},
 	}
 
@@ -29,7 +38,7 @@ func New() *cobra.Command {
 	return cmd
 }
 
-func Login(config *Config) {
+func Login(config *config.NoOps[Config]) {
 	ctx, cancel := context.WithCancel(context.Background())
 	tokenChan := make(chan *oidc.Tokens[*oidc.IDTokenClaims], 1)
 
@@ -42,19 +51,20 @@ func Login(config *Config) {
 	}()
 
 	server, err := NewServer(ctx, config, tokenChan)
-	logging.OnError(err).Fatal("failed to create server")
+	if err != nil {
+		config.Log.Fatal("failed to create server", zap.Error(err))
+	}
 
 	select {
 	case <-ctx.Done():
 		os.Exit(0)
 	case token := <-tokenChan:
 		if err := server.Shutdown(ctx); err != nil {
-			logging.OnError(err).Fatal("failed to shutdown server")
+			config.Log.Fatal("failed to shutdown server", zap.Error(err))
 		}
 
-		err = tokenstore.Store(token)
-		if err != nil {
-			logging.OnError(err).Fatal("failed to store token")
+		if err := config.StoreToken(token); err != nil {
+			config.Log.Fatal("failed to store token", zap.Error(err))
 		}
 	}
 }
