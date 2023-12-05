@@ -7,8 +7,12 @@ import (
 	"log"
 	"strings"
 
+	"github.com/getnoops/ops/cmd/configs"
 	"github.com/getnoops/ops/cmd/login"
+	"github.com/getnoops/ops/cmd/orgs"
+	"github.com/getnoops/ops/cmd/settings"
 	"github.com/getnoops/ops/cmd/upgrade"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/getnoops/ops/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,27 +36,21 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	viper.SetEnvPrefix("NOOPS")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.SetConfigType("yaml")
+
 	if err := viper.ReadConfig(bytes.NewBuffer(defaultConfig)); err != nil {
 		log.Fatal(err)
 	}
 
-	cobra.OnInitialize(initConfig)
-	cmd.PersistentFlags().StringArrayVar(&configFiles, "config", nil, "path to config file to overwrite system defaults")
+	util.BindStringPersistentFlag(cmd, "organisation", "The organisation to use", "")
+	util.BindStringPersistentFlag(cmd, "format", "The format for printing output", "table")
 
 	cmd.AddCommand(
 		login.New(),
 		upgrade.New(),
+		configs.New(),
+		orgs.New(),
+		settings.New(),
 	)
-
 	cmd.InitDefaultVersionFlag()
 	return cmd
-}
-
-func initConfig() {
-	for _, file := range configFiles {
-		viper.SetConfigFile(file)
-		if err := viper.MergeInConfig(); err != nil {
-			log.Fatal(err)
-		}
-	}
 }

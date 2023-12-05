@@ -1,0 +1,55 @@
+query GetConfigs($organisationId: UUID!, $page: Int, $pageSize: Int) {
+  configs(input: {
+    organisation_id: $organisationId,
+    page: $page,
+    page_size: $pageSize
+  }) {
+    items {
+      id
+      code
+      class
+      name
+      business_unit_id
+      folder_id
+      resources {
+        code
+        type
+        data
+        references
+        allow_access
+      }
+      version_number
+      status
+      created_at
+      updated_at
+    }
+    limit
+    page
+    total_items
+    total_pages
+  }
+}
+
+query GetMemberOrganisations($userId: UUID!, $page: Int, $pageSize: Int) {
+  memberOrganisations(input: {
+    user_id: $userId,
+    page: $page,
+    page_size: $pageSize
+  }) {
+    # @genqlient(typename: "Organisation")
+    items {
+      id
+      code
+      name
+      state
+      stripe_customer_id
+      created_at
+      updated_at
+      deleted_at
+    }
+    limit
+    page
+    total_items
+    total_pages
+  }
+}

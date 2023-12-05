@@ -11,7 +11,9 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "login"
+        "configs",
+        "list",
+        "--format=json"
       ],
     }
   ]

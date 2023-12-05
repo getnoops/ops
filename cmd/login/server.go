@@ -10,7 +10,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/getnoops/ops/pkg/config"
-	"go.uber.org/zap"
 
 	"github.com/google/uuid"
 	"github.com/zitadel/oidc/v2/pkg/client/rp"
@@ -62,25 +61,19 @@ type Server interface {
 	Shutdown(ctx context.Context) error
 }
 
-func NewServer(ctx context.Context, config *config.NoOps[Config], tokenChan chan *oidc.Tokens[*oidc.IDTokenClaims]) (Server, error) {
-	options := []rp.Option{
-		rp.WithPKCE(nil),
-	}
-
+func NewServer(ctx context.Context, cfg *config.NoOps[Config], tokenChan chan *oidc.Tokens[*oidc.IDTokenClaims]) (Server, error) {
 	l, err := net.Listen("tcp", ":0")
 	if err != nil {
-		config.Log.Error("failed to listen on port", zap.Error(err))
+		cfg.WriteStderr("failed to listen on port")
 		return nil, err
 	}
 
 	port := l.Addr().(*net.TCPAddr).Port
 	redirectUri := fmt.Sprintf("http://localhost:%d/auth/callback", port)
-	state := uuid.NewString()
-	codeVerifier := base64.RawURLEncoding.EncodeToString([]byte(uuid.New().String()))
 
-	provider, err := rp.NewRelyingPartyOIDC(config.Auth.Issuer, config.Auth.ClientId, "", redirectUri, config.Auth.Scopes, options...)
+	provider, err := cfg.NewRelyingPartyOIDC(ctx, redirectUri)
 	if err != nil {
-		config.Log.Error("failed to create provider", zap.Error(err))
+		cfg.WriteStderr("failed to create provider")
 		return nil, err
 	}
 
@@ -93,6 +86,9 @@ func NewServer(ctx context.Context, config *config.NoOps[Config], tokenChan chan
 		w.Write([]byte(msg))
 	}
 
+	state := uuid.NewString()
+	codeVerifier := base64.RawURLEncoding.EncodeToString([]byte(uuid.New().String()))
+
 	mux := http.NewServeMux()
 	mux.Handle("/auth/callback", codeExchangeHandler(callback, provider, state, codeVerifier))
 
@@ -102,7 +98,7 @@ func NewServer(ctx context.Context, config *config.NoOps[Config], tokenChan chan
 
 	go func() {
 		if err := srv.Serve(l); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			config.Log.Fatal("failed to serve", zap.Error(err))
+			cfg.WriteStderr("failed to serve")
 		}
 	}()
 
@@ -110,10 +106,10 @@ func NewServer(ctx context.Context, config *config.NoOps[Config], tokenChan chan
 
 	out := lipgloss.JoinVertical(
 		lipgloss.Left,
-		config.Styles.Title.Render("To authenticate please follow the link below:"),
-		config.Styles.Url.Render(url),
+		cfg.Styles.Title.Render("To authenticate please follow the link below:"),
+		cfg.Styles.Url.Render(url),
 	)
 
-	config.Write(out)
+	cfg.WriteStdout(out)
 	return srv, nil
 }

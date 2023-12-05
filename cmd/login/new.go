@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
-	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -23,14 +22,7 @@ func New() *cobra.Command {
 		Long:  `Using SSO login to NoOps`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-
-			config, err := config.New[Config](ctx, viper.GetViper())
-			if err != nil {
-				return err
-			}
-
-			Login(config)
-			return nil
+			return Login(ctx)
 		},
 	}
 
@@ -38,8 +30,13 @@ func New() *cobra.Command {
 	return cmd
 }
 
-func Login(config *config.NoOps[Config]) {
-	ctx, cancel := context.WithCancel(context.Background())
+func Login(ctx context.Context) error {
+	cfg, err := config.New[Config](ctx, viper.GetViper())
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
 	tokenChan := make(chan *oidc.Tokens[*oidc.IDTokenClaims], 1)
 
 	sigs := make(chan os.Signal, 1)
@@ -50,9 +47,10 @@ func Login(config *config.NoOps[Config]) {
 		cancel()
 	}()
 
-	server, err := NewServer(ctx, config, tokenChan)
+	server, err := NewServer(ctx, cfg, tokenChan)
 	if err != nil {
-		config.Log.Fatal("failed to create server", zap.Error(err))
+		cfg.WriteStderr("failed to create server")
+		return err
 	}
 
 	select {
@@ -60,11 +58,14 @@ func Login(config *config.NoOps[Config]) {
 		os.Exit(0)
 	case token := <-tokenChan:
 		if err := server.Shutdown(ctx); err != nil {
-			config.Log.Fatal("failed to shutdown server", zap.Error(err))
+			cfg.WriteStderr("failed to shutdown server")
+			return err
 		}
 
-		if err := config.StoreToken(token); err != nil {
-			config.Log.Fatal("failed to store token", zap.Error(err))
+		if err := cfg.StoreToken(token); err != nil {
+			cfg.WriteStderr("failed to store token")
+			return err
 		}
 	}
+	return nil
 }

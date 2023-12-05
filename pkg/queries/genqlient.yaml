@@ -1,0 +1,12 @@
+schema: schema.graphql
+operations:
+- query.graphql
+generated: generated.go
+
+bindings:
+  UUID:
+    type: github.com/google/uuid.UUID
+  JSON:
+    type: map[string]interface{}
+  Time:
+    type: time.Time

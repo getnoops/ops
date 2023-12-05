@@ -4,8 +4,8 @@ Home:
 Log:
   Level: debug
 
-Server:
-  Url: http://localhost:8200
+Api:
+  GraphQL: http://localhost:8200/api/graphql
 
 Auth: 
   Issuer: http://localhost:8080
