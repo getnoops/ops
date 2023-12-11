@@ -41,6 +41,11 @@ enum AWSAccountStatus {
   deleted
 }
 
+input CodeWithOrgInput {
+  organisation_id: UUID!
+  code: String!
+}
+
 type Config {
   id: UUID!
   code: String!
@@ -88,11 +93,12 @@ input ConfigHistoryInput {
 
 input ConfigsInput {
   organisation_id: UUID!
+  class: ConfigClass
+  folder_id: UUID
+  folder_type: FolderType
+  no_folder: Boolean
   page: Int
   page_size: Int
-  folder_id: UUID
-  class: ConfigClass
-  has_folder: Boolean
 }
 
 enum ConfigStatus {
@@ -481,7 +487,7 @@ input PlanCalculateUnitsInput {
 }
 
 type Query {
-  config(input: IdWithOrgInput!): Config
+  config(input: CodeWithOrgInput!): Config
   configs(input: ConfigsInput!): PagedConfigsOutput!
   configHistories(input: ConfigHistoriesInput!): PagedConfigHistoriesOutput!
   configHistory(input: ConfigHistoryInput!): ConfigHistory

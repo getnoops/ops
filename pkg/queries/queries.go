@@ -12,7 +12,7 @@ import (
 
 type Queries interface {
 	GetCurrentOrganisation(ctx context.Context) (*Organisation, error)
-	GetConfigs(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error)
+	GetConfigs(ctx context.Context, organisationId uuid.UUID, class ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error)
 	GetMemberOrganisations(ctx context.Context, page int, pageSize int) (*GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput, error)
 }
 
@@ -41,8 +41,8 @@ func (q *queries) GetCurrentOrganisation(ctx context.Context) (*Organisation, er
 	return nil, config.ErrNoOrganisation
 }
 
-func (q *queries) GetConfigs(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error) {
-	resp, err := GetConfigs(ctx, q.client, organisationId, page, pageSize)
+func (q *queries) GetConfigs(ctx context.Context, organisationId uuid.UUID, class ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error) {
+	resp, err := GetConfigs(ctx, q.client, organisationId, class, page, pageSize)
 	if err != nil {
 		return nil, err
 	}

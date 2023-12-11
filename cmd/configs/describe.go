@@ -15,18 +15,16 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 )
 
-type ListConfig struct {
-	Page     int `mapstructure:"page" default:"1"`
-	PageSize int `mapstructure:"page-size" default:"10"`
+type DescribeConfig struct {
 }
 
-func ListCommand(class queries.ConfigClass) *cobra.Command {
+func DescribeCommand(class queries.ConfigClass) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list projects accessible by the active account",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return List(ctx, class)
+			return Describe(ctx, class)
 		},
 	}
 
@@ -35,7 +33,7 @@ func ListCommand(class queries.ConfigClass) *cobra.Command {
 	return cmd
 }
 
-func List(ctx context.Context, class queries.ConfigClass) error {
+func Describe(ctx context.Context, class queries.ConfigClass) error {
 	cfg, err := config.New[ListConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err

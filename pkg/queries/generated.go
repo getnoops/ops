@@ -27,6 +27,86 @@ const (
 	ConfigStatusDeleted ConfigStatus = "deleted"
 )
 
+// GetConfigConfig includes the requested fields of the GraphQL type Config.
+type GetConfigConfig struct {
+	Id               uuid.UUID                          `json:"id"`
+	Code             string                             `json:"code"`
+	Class            ConfigClass                        `json:"class"`
+	Name             string                             `json:"name"`
+	Business_unit_id uuid.UUID                          `json:"business_unit_id"`
+	Folder_id        uuid.UUID                          `json:"folder_id"`
+	Resources        []GetConfigConfigResourcesResource `json:"resources"`
+	Version_number   string                             `json:"version_number"`
+	Status           ConfigStatus                       `json:"status"`
+	Created_at       time.Time                          `json:"created_at"`
+	Updated_at       time.Time                          `json:"updated_at"`
+}
+
+// GetId returns GetConfigConfig.Id, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetId() uuid.UUID { return v.Id }
+
+// GetCode returns GetConfigConfig.Code, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetCode() string { return v.Code }
+
+// GetClass returns GetConfigConfig.Class, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetClass() ConfigClass { return v.Class }
+
+// GetName returns GetConfigConfig.Name, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetName() string { return v.Name }
+
+// GetBusiness_unit_id returns GetConfigConfig.Business_unit_id, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetBusiness_unit_id() uuid.UUID { return v.Business_unit_id }
+
+// GetFolder_id returns GetConfigConfig.Folder_id, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetFolder_id() uuid.UUID { return v.Folder_id }
+
+// GetResources returns GetConfigConfig.Resources, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetResources() []GetConfigConfigResourcesResource { return v.Resources }
+
+// GetVersion_number returns GetConfigConfig.Version_number, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetVersion_number() string { return v.Version_number }
+
+// GetStatus returns GetConfigConfig.Status, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetStatus() ConfigStatus { return v.Status }
+
+// GetCreated_at returns GetConfigConfig.Created_at, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns GetConfigConfig.Updated_at, and is useful for accessing the field via an interface.
+func (v *GetConfigConfig) GetUpdated_at() time.Time { return v.Updated_at }
+
+// GetConfigConfigResourcesResource includes the requested fields of the GraphQL type Resource.
+type GetConfigConfigResourcesResource struct {
+	Code         string                 `json:"code"`
+	Type         ResourceType           `json:"type"`
+	Data         map[string]interface{} `json:"data"`
+	References   []string               `json:"references"`
+	Allow_access []string               `json:"allow_access"`
+}
+
+// GetCode returns GetConfigConfigResourcesResource.Code, and is useful for accessing the field via an interface.
+func (v *GetConfigConfigResourcesResource) GetCode() string { return v.Code }
+
+// GetType returns GetConfigConfigResourcesResource.Type, and is useful for accessing the field via an interface.
+func (v *GetConfigConfigResourcesResource) GetType() ResourceType { return v.Type }
+
+// GetData returns GetConfigConfigResourcesResource.Data, and is useful for accessing the field via an interface.
+func (v *GetConfigConfigResourcesResource) GetData() map[string]interface{} { return v.Data }
+
+// GetReferences returns GetConfigConfigResourcesResource.References, and is useful for accessing the field via an interface.
+func (v *GetConfigConfigResourcesResource) GetReferences() []string { return v.References }
+
+// GetAllow_access returns GetConfigConfigResourcesResource.Allow_access, and is useful for accessing the field via an interface.
+func (v *GetConfigConfigResourcesResource) GetAllow_access() []string { return v.Allow_access }
+
+// GetConfigResponse is returned by GetConfig on success.
+type GetConfigResponse struct {
+	Config GetConfigConfig `json:"config"`
+}
+
+// GetConfig returns GetConfigResponse.Config, and is useful for accessing the field via an interface.
+func (v *GetConfigResponse) GetConfig() GetConfigConfig { return v.Config }
+
 // GetConfigsConfigsPagedConfigsOutput includes the requested fields of the GraphQL type PagedConfigsOutput.
 type GetConfigsConfigsPagedConfigsOutput struct {
 	Items       []GetConfigsConfigsPagedConfigsOutputItemsConfig `json:"items"`
@@ -250,15 +330,31 @@ const (
 	ResourceTypeQueue     ResourceType = "queue"
 )
 
+// __GetConfigInput is used internally by genqlient
+type __GetConfigInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	Code           string    `json:"code"`
+}
+
+// GetOrganisationId returns __GetConfigInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__GetConfigInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetCode returns __GetConfigInput.Code, and is useful for accessing the field via an interface.
+func (v *__GetConfigInput) GetCode() string { return v.Code }
+
 // __GetConfigsInput is used internally by genqlient
 type __GetConfigsInput struct {
-	OrganisationId uuid.UUID `json:"organisationId"`
-	Page           int       `json:"page"`
-	PageSize       int       `json:"pageSize"`
+	OrganisationId uuid.UUID   `json:"organisationId"`
+	Class          ConfigClass `json:"class"`
+	Page           int         `json:"page"`
+	PageSize       int         `json:"pageSize"`
 }
 
 // GetOrganisationId returns __GetConfigsInput.OrganisationId, and is useful for accessing the field via an interface.
 func (v *__GetConfigsInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetClass returns __GetConfigsInput.Class, and is useful for accessing the field via an interface.
+func (v *__GetConfigsInput) GetClass() ConfigClass { return v.Class }
 
 // GetPage returns __GetConfigsInput.Page, and is useful for accessing the field via an interface.
 func (v *__GetConfigsInput) GetPage() int { return v.Page }
@@ -282,10 +378,63 @@ func (v *__GetMemberOrganisationsInput) GetPage() int { return v.Page }
 // GetPageSize returns __GetMemberOrganisationsInput.PageSize, and is useful for accessing the field via an interface.
 func (v *__GetMemberOrganisationsInput) GetPageSize() int { return v.PageSize }
 
+// The query or mutation executed by GetConfig.
+const GetConfig_Operation = `
+query GetConfig ($organisationId: UUID!, $code: String!) {
+	config(input: {organisation_id:$organisationId,code:$code}) {
+		id
+		code
+		class
+		name
+		business_unit_id
+		folder_id
+		resources {
+			code
+			type
+			data
+			references
+			allow_access
+		}
+		version_number
+		status
+		created_at
+		updated_at
+	}
+}
+`
+
+func GetConfig(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	code string,
+) (*GetConfigResponse, error) {
+	req := &graphql.Request{
+		OpName: "GetConfig",
+		Query:  GetConfig_Operation,
+		Variables: &__GetConfigInput{
+			OrganisationId: organisationId,
+			Code:           code,
+		},
+	}
+	var err error
+
+	var data GetConfigResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by GetConfigs.
 const GetConfigs_Operation = `
-query GetConfigs ($organisationId: UUID!, $page: Int, $pageSize: Int) {
-	configs(input: {organisation_id:$organisationId,page:$page,page_size:$pageSize}) {
+query GetConfigs ($organisationId: UUID!, $class: ConfigClass!, $page: Int, $pageSize: Int) {
+	configs(input: {organisation_id:$organisationId,class:$class,page:$page,page_size:$pageSize}) {
 		items {
 			id
 			code
@@ -317,6 +466,7 @@ func GetConfigs(
 	ctx context.Context,
 	client graphql.Client,
 	organisationId uuid.UUID,
+	class ConfigClass,
 	page int,
 	pageSize int,
 ) (*GetConfigsResponse, error) {
@@ -325,6 +475,7 @@ func GetConfigs(
 		Query:  GetConfigs_Operation,
 		Variables: &__GetConfigsInput{
 			OrganisationId: organisationId,
+			Class:          class,
 			Page:           page,
 			PageSize:       pageSize,
 		},

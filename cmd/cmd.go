@@ -12,6 +12,7 @@ import (
 	"github.com/getnoops/ops/cmd/orgs"
 	"github.com/getnoops/ops/cmd/settings"
 	"github.com/getnoops/ops/cmd/upgrade"
+	"github.com/getnoops/ops/pkg/queries"
 	"github.com/getnoops/ops/pkg/util"
 	"github.com/getnoops/ops/pkg/version"
 	"github.com/spf13/cobra"
@@ -47,7 +48,9 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cmd.AddCommand(
 		login.New(),
 		upgrade.New(),
-		configs.New(),
+		configs.New("Compute", queries.ConfigClassCompute),
+		configs.New("Storage", queries.ConfigClassStorage),
+		configs.New("Integration", queries.ConfigClassIntegration),
 		orgs.New(),
 		settings.New(),
 	)

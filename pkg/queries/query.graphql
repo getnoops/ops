@@ -1,6 +1,7 @@
-query GetConfigs($organisationId: UUID!, $page: Int, $pageSize: Int) {
+query GetConfigs($organisationId: UUID!, $class: ConfigClass!, $page: Int, $pageSize: Int) {
   configs(input: {
     organisation_id: $organisationId,
+    class: $class,
     page: $page,
     page_size: $pageSize
   }) {
@@ -27,6 +28,31 @@ query GetConfigs($organisationId: UUID!, $page: Int, $pageSize: Int) {
     page
     total_items
     total_pages
+  }
+}
+
+query GetConfig($organisationId: UUID!, $code: String!) {
+  config(input: {
+    organisation_id: $organisationId,
+    code: $code
+  }) {
+    id
+    code
+    class
+    name
+    business_unit_id
+    folder_id
+    resources {
+      code
+      type
+      data
+      references
+      allow_access
+    }
+    version_number
+    status
+    created_at
+    updated_at
   }
 }
 
