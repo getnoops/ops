@@ -10,3 +10,5 @@ vendor
 stack.yaml
 
 __debug_bin*
+
+/examples/

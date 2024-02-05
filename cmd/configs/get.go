@@ -15,25 +15,26 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 )
 
-type DescribeConfig struct {
+type GetConfig struct {
 }
 
-func DescribeCommand(class queries.ConfigClass) *cobra.Command {
+func GetCommand(class queries.ConfigClass) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list projects accessible by the active account",
+		Use:   "get [code]",
+		Short: "Get a config",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context()
-			return Describe(ctx, class)
-		},
-	}
+			code := args[0]
 
-	util.BindIntFlag(cmd, "page", "The page to load", 1)
-	util.BindIntFlag(cmd, "page-size", "The number of items in the page", 10)
+			ctx := cmd.Context()
+			return Get(ctx, class, code)
+		},
+		ValidArgs: []string{"code"},
+	}
 	return cmd
 }
 
-func Describe(ctx context.Context, class queries.ConfigClass) error {
+func Get(ctx context.Context, class queries.ConfigClass, code string) error {
 	cfg, err := config.New[ListConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err
@@ -53,9 +54,14 @@ func Describe(ctx context.Context, class queries.ConfigClass) error {
 		return err
 	}
 
-	configs, err := q.GetConfigs(ctx, organisation.Id, class, cfg.Command.Page, cfg.Command.PageSize)
+	config, err := q.GetConfig(ctx, organisation.Id, code)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
+		return nil
+	}
+
+	if config == nil || config.Class != class {
+		cfg.WriteStderr("config not found")
 		return nil
 	}
 
@@ -64,18 +70,19 @@ func Describe(ctx context.Context, class queries.ConfigClass) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Code", "Name", "Status", "Version")
+			Headers("Code", "Name", "State", "Version", "Revisions")
 
-		for _, item := range configs.Items {
-			t.Row(item.Code, item.Name, string(item.Status), item.Version_number)
-		}
+		revisions := "[" + util.JoinStrings(config.Revisions, func(r queries.ConfigWithRevisionsRevisionsConfigRevision) string {
+			return r.Version_number
+		}, ",") + "]"
+		t.Row(config.Code, config.Name, string(config.State), config.Version_number, revisions)
 
 		cfg.WriteStdout(t.Render())
 	case "json":
-		out, _ := json.Marshal(configs)
+		out, _ := json.Marshal(config)
 		cfg.WriteStdout(string(out))
 	case "yaml":
-		out, _ := yaml.Marshal(configs)
+		out, _ := yaml.Marshal(config)
 		cfg.WriteStdout(string(out))
 	}
 	return nil

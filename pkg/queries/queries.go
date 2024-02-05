@@ -13,7 +13,10 @@ import (
 type Queries interface {
 	GetCurrentOrganisation(ctx context.Context) (*Organisation, error)
 	GetConfigs(ctx context.Context, organisationId uuid.UUID, class ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error)
+	GetConfig(ctx context.Context, organisationId uuid.UUID, code string) (*ConfigWithRevisions, error)
+	GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error)
 	GetMemberOrganisations(ctx context.Context, page int, pageSize int) (*GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput, error)
+	NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (uuid.UUID, error)
 }
 
 type queries struct {
@@ -49,12 +52,37 @@ func (q *queries) GetConfigs(ctx context.Context, organisationId uuid.UUID, clas
 	return &resp.Configs, nil
 }
 
+func (q *queries) GetConfig(ctx context.Context, organisationId uuid.UUID, code string) (*ConfigWithRevisions, error) {
+	resp, err := GetConfig(ctx, q.client, organisationId, code)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Config, nil
+}
+
+func (q *queries) GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error) {
+	resp, err := GetEnvironments(ctx, q.client, organisationId, codes, page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Environments, nil
+}
+
 func (q *queries) GetMemberOrganisations(ctx context.Context, page int, pageSize int) (*GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput, error) {
 	resp, err := GetMemberOrganisations(ctx, q.client, q.userId, page, pageSize)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.MemberOrganisations, nil
+}
+
+func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (uuid.UUID, error) {
+	id := uuid.New()
+	resp, err := NewDeployment(ctx, q.client, id, organisationId, environmentId, configId, configRevisionId, revisionId)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return resp.NewDeployment, nil
 }
 
 func New[T any](ctx context.Context, cfg *config.NoOps[T]) (Queries, error) {
@@ -68,9 +96,14 @@ func New[T any](ctx context.Context, cfg *config.NoOps[T]) (Queries, error) {
 		return nil, err
 	}
 
+	orgCode, err := cfg.GetOrganisationCode()
+	if err != nil {
+		return nil, err
+	}
+
 	client := graphql.NewClient(cfg.Api.GraphQL, httpClient)
 	return &queries{
-		organisation: cfg.Organisation,
+		organisation: orgCode,
 		userId:       userId,
 		client:       client,
 	}, nil

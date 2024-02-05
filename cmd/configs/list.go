@@ -66,10 +66,10 @@ func List(ctx context.Context, class queries.ConfigClass) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Code", "Name", "Status", "Version")
+			Headers("Code", "Name", "State", "Version")
 
 		for _, item := range configs.Items {
-			t.Row(item.Code, item.Name, string(item.Status), item.Version_number)
+			t.Row(item.Code, item.Name, string(item.State), item.Version_number)
 		}
 
 		cfg.WriteStdout(t.Render())

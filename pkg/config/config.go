@@ -165,6 +165,18 @@ func (c *NoOps[C]) GetUserId() (uuid.UUID, error) {
 	return id, nil
 }
 
+func (c *NoOps[C]) GetOrganisationCode() (string, error) {
+	if len(c.Global.Organisation) > 0 {
+		return c.Global.Organisation, nil
+	}
+
+	if len(c.Organisation) > 0 {
+		return c.Organisation, nil
+	}
+
+	return "", fmt.Errorf("no organisation set")
+}
+
 func (c *NoOps[C]) WriteStderr(out string) {
 	c.writerStderr.Write([]byte(out))
 }

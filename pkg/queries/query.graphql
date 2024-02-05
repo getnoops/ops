@@ -5,13 +5,12 @@ query GetConfigs($organisationId: UUID!, $class: ConfigClass!, $page: Int, $page
     page: $page,
     page_size: $pageSize
   }) {
+    # @genqlient(typename: "Config")
     items {
       id
       code
       class
       name
-      business_unit_id
-      folder_id
       resources {
         code
         type
@@ -20,11 +19,11 @@ query GetConfigs($organisationId: UUID!, $class: ConfigClass!, $page: Int, $page
         allow_access
       }
       version_number
-      status
+      state
       created_at
       updated_at
     }
-    limit
+    page_size
     page
     total_items
     total_pages
@@ -32,6 +31,7 @@ query GetConfigs($organisationId: UUID!, $class: ConfigClass!, $page: Int, $page
 }
 
 query GetConfig($organisationId: UUID!, $code: String!) {
+  # @genqlient(typename: "ConfigWithRevisions")
   config(input: {
     organisation_id: $organisationId,
     code: $code
@@ -40,8 +40,6 @@ query GetConfig($organisationId: UUID!, $code: String!) {
     code
     class
     name
-    business_unit_id
-    folder_id
     resources {
       code
       type
@@ -50,9 +48,64 @@ query GetConfig($organisationId: UUID!, $code: String!) {
       allow_access
     }
     version_number
-    status
+    state
+    revisions {
+      id
+      version_number
+      state
+      created_at
+      updated_at
+    }
     created_at
     updated_at
+  }
+}
+
+query GetConfigRevision($organisationId: UUID!, $code: String!) {
+  # @genqlient(typename: "ConfigWithEnvironments")
+  config(input: {
+    organisation_id: $organisationId,
+    code: $code
+  }) {
+    id
+    code
+    class
+    name
+    resources {
+      code
+      type
+      data
+      references
+      allow_access
+    }
+    version_number
+    state
+    created_at
+    updated_at
+  }
+}
+
+query GetEnvironments($organisationId: UUID!, $codes: [String!], $page: Int, $pageSize: Int) {
+  environments(input: {
+    organisation_id: $organisationId,
+    codes: $codes,
+    page: $page,
+    page_size: $pageSize
+  }) {
+    # @genqlient(typename: "Environment")
+    items {
+      id
+      type
+      state
+      code
+      name
+      created_at
+      updated_at
+    }
+    page_size
+    page
+    total_items
+    total_pages
   }
 }
 
@@ -68,7 +121,6 @@ query GetMemberOrganisations($userId: UUID!, $page: Int, $pageSize: Int) {
       code
       name
       state
-      stripe_customer_id
       created_at
       updated_at
       deleted_at
@@ -78,4 +130,15 @@ query GetMemberOrganisations($userId: UUID!, $page: Int, $pageSize: Int) {
     total_items
     total_pages
   }
+}
+
+mutation NewDeployment($organisationId: UUID!, $aggregateId: UUID!, $environmentId: UUID!, $configId: UUID!, $configRevisionId: UUID!, $revisionId: UUID!) {
+  newDeployment(input: {
+    organisation_id: $organisationId,
+    aggregate_id: $aggregateId,
+    environment_id: $environmentId,
+    config_id: $configId,
+    config_revision_id: $configRevisionId,
+    revision_id: $revisionId,
+  })
 }

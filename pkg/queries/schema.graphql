@@ -17,28 +17,13 @@ directive @specifiedBy(url: String!) on SCALAR
 
 scalar Any
 
-input AuthenticateAWSAccountInput {
-  organisation_id: String!
-  aggregate_id: UUID!
-  account_id: String!
-  stack_region: String!
-  role_arn: String!
-}
-
 type AWSAccount {
   id: UUID!
   name: String!
-  account_id: String
-  status: AWSAccountStatus!
+  state: StackState!
+  stack: Stack
   created_at: Time!
   updated_at: Time
-}
-
-enum AWSAccountStatus {
-  new
-  pending
-  connected
-  deleted
 }
 
 input CodeWithOrgInput {
@@ -51,13 +36,14 @@ type Config {
   code: String!
   class: ConfigClass!
   name: String!
-  business_unit_id: UUID
-  folder_id: UUID
+  folder: Folder
   resources: [Resource!]!
   version_number: String
-  status: ConfigStatus!
+  state: ConfigState!
   created_at: Time
   updated_at: Time
+  deployments: [Deployment!]!
+  revisions: [ConfigRevision!]!
 }
 
 enum ConfigClass {
@@ -66,56 +52,69 @@ enum ConfigClass {
   integration
 }
 
-input ConfigHistoriesInput {
-  organisation_id: UUID!
-  config_id: UUID!
-  page: Int
-  page_size: Int
-}
-
-type ConfigHistory {
+type ConfigRevision {
   id: UUID!
-  config_id: UUID!
-  code: String!
-  class: ConfigClass!
   resources: [Resource!]!
   version_number: String!
-  status: ConfigStatus!
+  state: ConfigState!
   created_at: Time
   updated_at: Time
-}
-
-input ConfigHistoryInput {
-  organisation_id: UUID!
-  config_id: UUID!
-  version_number: String!
 }
 
 input ConfigsInput {
   organisation_id: UUID!
   class: ConfigClass
+  codes: [String!]
   folder_id: UUID
-  folder_type: FolderType
   no_folder: Boolean
   page: Int
   page_size: Int
 }
 
-enum ConfigStatus {
+enum ConfigState {
   pending
   running
   failed
   deleted
 }
 
+enum ContainerInsightsMetricName {
+  CpuUtilized
+  CpuReserved
+  DeploymentCount
+  DesiredTaskCount
+  EphemeralStorageReserved
+  EphemeralStorageUtilized
+  MemoryUtilized
+  MemoryReserved
+  NetworkRxBytes
+  NetworkTxBytes
+  PendingTaskCount
+  RunningTaskCount
+  ServiceCount
+  StorageReadBytes
+  StorageWriteBytes
+  TaskCount
+  TaskSetCount
+}
+
 input CreateAWSAccountInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   name: String!
 }
 
+input CreateCheckoutSessionInput {
+  organisation_code: String!
+  organisation_id: UUID!
+  currency: String!
+  interval: PlanInterval!
+  tier: PlanTier!
+  units: PlanUnitsInput!
+}
+
 input CreateConfigInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   code: String!
   class: ConfigClass!
@@ -123,53 +122,64 @@ input CreateConfigInput {
   resources: [ResourceInput!]!
   version_number: String!
   folder_id: UUID
-  business_unit_id: UUID
+  revision_id: UUID!
 }
 
 input CreateDomainInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   domain: String!
   environment_id: UUID!
 }
 
+input CreateEdgeInput {
+  organisation_id: UUID!
+  aggregate_id: UUID!
+  domain_id: UUID!
+  subdomain: String
+}
+
 input CreateEnvironmentInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   type: EnvironmentType!
   code: String!
   name: String!
   regions: [String!]!
+  azs: Int!
   account_id: UUID!
 }
 
 input CreateFolderInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
-  type: FolderType!
   name: String
   parent_id: UUID
+}
+
+input CreateMemberInput {
+  organisation_id: UUID!
+  user_id: UUID!
+  role: MemberRole!
 }
 
 input CreateOrganisationInput {
   aggregate_id: UUID!
   code: String!
   name: String!
-}
-
-input CreateOrganisationMemberInput {
-  organisation_id: UUID!
-  user_id: UUID!
-}
-
-input CreateRegistryInput {
-  organisation_id: String!
-  aggregate_id: UUID!
-  name: String!
-  account_id: UUID!
+  settings: OrganisationSettingsInput
 }
 
 scalar Date
+
+type Deployment {
+  id: UUID!
+  state: StackState!
+  environment: Environment!
+  config_revision: ConfigRevision!
+  created_at: Time
+  updated_at: Time
+}
 
 type DeploymentEnvironment {
   id: UUID!
@@ -181,16 +191,17 @@ type DeploymentEnvironment {
 
 type DeploymentItem {
   version_number: String!
-  environment_id: UUID!
+  config_revision_id: UUID!
+  environment: Environment!
   exists: Boolean!
   latest: Boolean!
-  status: String
+  state: StackState
   updated_at: Time
 }
 
 type Deployments {
-  Versions: [DeploymentVersion!]!
-  Environments: [DeploymentEnvironment!]!
+  versions: [DeploymentVersion!]!
+  environments: [DeploymentEnvironment!]!
 }
 
 input DeploymentsInput {
@@ -202,7 +213,7 @@ input DeploymentsInput {
 
 type DeploymentVersion {
   version_number: String!
-  status: ConfigStatus!
+  state: ConfigState!
   created_at: Time!
   updated_at: Time
   items: [DeploymentItem!]!
@@ -211,57 +222,63 @@ type DeploymentVersion {
 type Domain {
   id: UUID!
   domain: String!
-  status: DomainStatus!
-  environment_id: UUID!
+  state: StackState!
+  stack: Stack
+  environment: Environment!
   verified: Boolean!
-  hosted_zone_id: String
-  name_servers: [String!]
-  parent_id: UUID
+  parent: Domain
   created_at: Time!
   updated_at: Time
   verified_at: Time
   deleted_at: Time
 }
 
-enum DomainStatus {
-  active
-  created
-  pending
-  deleted
+input DomainsInput {
+  organisation_id: UUID!
+  states: [StackState!]
+  verified: Boolean
+  page: Int
+  page_size: Int
 }
 
 type Edge {
   id: UUID!
+  name: String!
   domain: Domain!
-  environment: Environment!
-  status: EdgeStatus!
+  subdomain: String
+  state: StackState!
+  stack: Stack
   created_at: Time!
   updated_at: Time
 }
 
-enum EdgeStatus {
-  active
-  pending
-  deleted
+input EdgesInput {
+  organisation_id: UUID!
+  states: [StackState!]
+  page: Int
+  page_size: Int
 }
 
 type Environment {
   id: UUID!
   type: EnvironmentType!
-  status: EnvironmentStatus!
+  state: StackState!
+  stack: Stack
   code: String!
   name: String!
   regions: [String!]!
-  account_id: UUID!
+  azs: Int!
+  account: AWSAccount!
   created_at: Time!
   updated_at: Time
 }
 
-enum EnvironmentStatus {
-  pending
-  active
-  failed
-  deleted
+input EnvironmentsInput {
+  organisation_id: UUID!
+  codes: [String!]
+  states: [StackState!]
+  page: Int
+  page_size: Int
 }
 
 enum EnvironmentType {
@@ -272,29 +289,21 @@ enum EnvironmentType {
 
 type Folder {
   id: UUID!
-  type: FolderType!
   name: String!
-  status: FolderStatus!
+  state: FolderState!
   parent_id: UUID
+  children_ids: [UUID!]!
   created_at: Time
   updated_at: Time
 }
 
 input FoldersInput {
   organisation_id: UUID!
-  page: Int
-  page_size: Int
-  folder_type: FolderType
 }
 
-enum FolderStatus {
+enum FolderState {
   active
   deleted
-}
-
-enum FolderType {
-  generic
-  business_unit
 }
 
 input IdInput {
@@ -306,18 +315,130 @@ input IdWithOrgInput {
   id: UUID!
 }
 
+input InviteMemberInput {
+  email: String!
+  organisation_id: UUID!
+  organisation_name: String!
+}
+
 scalar JSON
 
+type Log {
+  event_id: String!
+  ingestion_time: Int!
+  log_stream_name: String!
+  message: String!
+  timestamp: Int!
+}
+
+type LogsOutput {
+  logs: [Log!]!
+  next_token: String
+}
+
+input LogsSubscriptionInput {
+  id: UUID!
+  organisation_id: UUID!
+  environment_id: UUID!
+  config_code: String!
+  start_time: Int
+  end_time: Int
+  next_token: String
+}
+
+type Member {
+  id: UUID!
+  organisation_id: UUID!
+  role: MemberRole!
+  state: MemberState!
+  user_id: UUID!
+  user: User!
+  created_at: Time!
+  updated_at: Time
+  deleted_at: Time
+}
+
+enum MemberRole {
+  member
+  owner
+}
+
+input MembersInput {
+  user_id: UUID
+  organisation_id: UUID
+  page: Int
+  page_size: Int
+}
+
+enum MemberState {
+  new
+  created
+  deleted
+}
+
+type MessageData {
+  code: String
+  value: String
+}
+
+type MetricDataResult {
+  id: String
+  label: String
+  messages: [MessageData!]!
+  status_code: MetricStatusCode!
+  timestamps: [Time!]!
+  values: [Float!]!
+}
+
+input MetricDimension {
+  name: String!
+  value: String!
+}
+
+input MetricQueryInput {
+  metric_statistic: String!
+  metric_name: String!
+  period: Int!
+  dimensions: [MetricDimension!]!
+}
+
+input MetricsInput {
+  organisation_id: UUID!
+  compute_id: UUID!
+  environment_id: UUID!
+  start_time: Int!
+  end_time: Int!
+  metric_queries: [MetricQueryInput!]!
+  metric_namespace: String!
+}
+
+type MetricsOutput {
+  metric_data_results: [MetricDataResult!]!
+  messages: [MessageData!]!
+  next_token: String
+  result_metadata: MiddlewareMetadata!
+}
+
+enum MetricStatusCode {
+  Complete
+  InternalError
+  PartialData
+  Forbidden
+}
+
+type MiddlewareMetadata {
+  values: JSON!
+}
+
 input MoveConfigInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   name: String!
   folder_id: UUID
-  business_unit_id: UUID
 }
 
 input MoveFolderInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   name: String
   parent_id: UUID
@@ -334,42 +455,67 @@ type Mutation {
   newDeployment(input: NewDeploymentInput!): UUID!
   createAWSAccount(input: CreateAWSAccountInput!): UUID!
   updateAWSAccount(input: UpdateAWSAccountInput!): UUID!
-  authenticateAWSAccount(input: AuthenticateAWSAccountInput!): UUID!
   deleteAWSAccount(input: IdWithOrgInput!): UUID!
   createEnvironment(input: CreateEnvironmentInput!): UUID!
   updateEnvironment(input: UpdateEnvironmentInput!): UUID!
   deleteEnvironment(input: IdWithOrgInput!): UUID!
   createOrganisation(input: CreateOrganisationInput!): UUID!
-  createOrganisationMember(input: CreateOrganisationMemberInput!): UUID!
   updateOrganisation(input: UpdateOrganisationInput!): UUID!
   deleteOrganisation(input: IdInput!): UUID!
   updateUser(input: UpdateUserInput!): UUID!
-  createRegistry(input: CreateRegistryInput!): UUID!
-  updateRegistry(input: UpdateRegistryInput!): UUID!
-  deleteRegistry(input: IdWithOrgInput): UUID!
   createDomain(input: CreateDomainInput!): UUID!
   verifyDomain(input: IdWithOrgInput!): UUID!
   deleteDomain(input: IdWithOrgInput!): UUID!
+  createEdge(input: CreateEdgeInput!): UUID!
   deleteEdge(input: IdWithOrgInput!): UUID!
+  createCheckoutSession(input: CreateCheckoutSessionInput!): String
+  updatePlan(input: UpdatePlanInput!): UUID!
+  cancelPlan(input: PlanIdInput!): UUID!
+  reactivatePlan(input: PlanIdInput!): UUID!
+  readNotifications(input: ReadNotificationsInput!): [UUID!]!
+  createMember(input: CreateMemberInput!): UUID!
+  deleteMember(input: IdInput!): UUID!
+  updateMember(input: UpdateMemberInput!): UUID!
+  inviteMember(input: InviteMemberInput!): UUID!
 }
 
 input NewDeploymentInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
-  config_id: UUID!
   environment_id: UUID!
-  version_number: String!
+  config_id: UUID!
+  config_revision_id: UUID!
+  revision_id: UUID!
+}
+
+type Notification {
+  notification_id: UUID!
+  aggregate_id: UUID!
+  aggregate_type: String!
+  message: String!
+  timestamp: Time!
+  read: Boolean!
 }
 
 type Organisation {
   id: UUID!
   code: String!
   name: String!
+  settings: OrganisationSettings!
   state: OrganisationState!
-  stripe_customer_id: String
   created_at: Time!
   updated_at: Time
   deleted_at: Time
+}
+
+type OrganisationSettings {
+  bond_url: String
+  registry_id: UUID
+}
+
+input OrganisationSettingsInput {
+  bond_url: String
+  registry_id: UUID
 }
 
 input OrganisationsInput {
@@ -384,17 +530,13 @@ enum OrganisationState {
   deleted
 }
 
-type PagedAWSAccountsOutput {
-  items: [AWSAccount!]!
-  limit: Int!
-  page: Int!
-  total_items: Int!
-  total_pages: Int!
+input OrgIdInput {
+  organisation_id: UUID!
 }
 
-type PagedConfigHistoriesOutput {
-  items: [ConfigHistory!]!
-  limit: Int!
+type PagedAWSAccountsOutput {
+  items: [AWSAccount!]!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -402,7 +544,7 @@ type PagedConfigHistoriesOutput {
 
 type PagedConfigsOutput {
   items: [Config!]!
-  limit: Int!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -410,7 +552,7 @@ type PagedConfigsOutput {
 
 type PagedDomainsOutput {
   items: [Domain!]!
-  limit: Int!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -418,7 +560,7 @@ type PagedDomainsOutput {
 
 type PagedEdgesOutput {
   items: [Edge!]!
-  limit: Int!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -426,15 +568,7 @@ type PagedEdgesOutput {
 
 type PagedEnvironmentsOutput {
   items: [Environment!]!
-  limit: Int!
-  page: Int!
-  total_items: Int!
-  total_pages: Int!
-}
-
-type PagedFoldersOutput {
-  items: [Folder!]!
-  limit: Int!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -451,6 +585,22 @@ input PagedInputWithOrg {
   page_size: Int
 }
 
+type PagedMembersOutput {
+  items: [Member!]!
+  limit: Int!
+  page: Int!
+  total_items: Int!
+  total_pages: Int!
+}
+
+type PagedNotificationsOutput {
+  items: [Notification!]!
+  limit: Int!
+  page: Int!
+  total_items: Int!
+  total_pages: Int!
+}
+
 type PagedOrganisationsOutput {
   items: [Organisation!]!
   limit: Int!
@@ -459,68 +609,131 @@ type PagedOrganisationsOutput {
   total_pages: Int!
 }
 
-type PagedRegistriesOutput {
-  items: [Registry!]!
-  limit: Int!
-  page: Int!
-  total_items: Int!
-  total_pages: Int!
+type Plan {
+  id: UUID!
+  state: PlanState!
+  billing_start_date: Time
+  cancels_at: Time
+  created_at: Time!
+  currency: String!
+  deleted_at: Time
+  interval: PlanInterval!
+  tier: PlanTier!
+  organisation_id: UUID!
+  stripe_customer_id: String
+  stripe_subscription_id: String
+  units: PlanUnits!
+  updated_at: Time
 }
 
 input PlanCalculateInput {
-  interval: PlanCalculateInterval!
-  units: PlanCalculateUnitsInput!
-}
-
-enum PlanCalculateInterval {
-  monthly
-  annually
+  interval: PlanInterval!
+  units: PlanUnitsInput!
 }
 
 type PlanCalculateOutput {
   price: Int!
 }
 
-input PlanCalculateUnitsInput {
+input PlanIdInput {
+  plan_id: UUID!
+}
+
+enum PlanInterval {
+  monthly
+  annually
+}
+
+enum PlanState {
+  new
+  created
+  active
+  cancelled
+  deleted
+}
+
+enum PlanTier {
+  free
+  pro
+  enterprise
+}
+
+type PlanUnits {
+  microservices: Int!
+  databases: Int!
+}
+
+input PlanUnitsInput {
   microservices: Int!
   databases: Int!
 }
 
 type Query {
+  organisations(input: PagedInput!): PagedOrganisationsOutput!
+  memberOrganisations(input: OrganisationsInput!): PagedOrganisationsOutput!
+  members(input: MembersInput!): PagedMembersOutput!
   config(input: CodeWithOrgInput!): Config
   configs(input: ConfigsInput!): PagedConfigsOutput!
-  configHistories(input: ConfigHistoriesInput!): PagedConfigHistoriesOutput!
-  configHistory(input: ConfigHistoryInput!): ConfigHistory
-  folders(input: FoldersInput!): PagedFoldersOutput!
+  folders(input: FoldersInput!): [Folder!]!
   deployments(input: DeploymentsInput!): Deployments!
   awsAccount(input: IdWithOrgInput!): AWSAccount
   awsAccounts(input: PagedInputWithOrg!): PagedAWSAccountsOutput!
-  environment(input: IdWithOrgInput!): Environment
-  environments(input: PagedInputWithOrg!): PagedEnvironmentsOutput!
-  memberOrganisations(input: OrganisationsInput!): PagedOrganisationsOutput!
-  organisations(input: PagedInput!): PagedOrganisationsOutput!
-  registry(input: IdWithOrgInput!): Registry
-  registries(input: PagedInputWithOrg!): PagedRegistriesOutput!
+  environment(input: CodeWithOrgInput!): Environment
+  environments(input: EnvironmentsInput!): PagedEnvironmentsOutput!
   domain(input: IdWithOrgInput!): Domain
-  domainNameServers(input: IdWithOrgInput!): [String!]!
-  domains(input: PagedInputWithOrg!): PagedDomainsOutput!
+  domains(input: DomainsInput!): PagedDomainsOutput!
   edge(input: IdWithOrgInput!): Edge
-  edges(input: PagedInputWithOrg!): PagedEdgesOutput!
+  edges(input: EdgesInput!): PagedEdgesOutput!
   planCalculate(input: PlanCalculateInput!): PlanCalculateOutput!
+  plan(input: OrgIdInput!): Plan
+  unreadNotifications(input: PagedInputWithOrg): PagedNotificationsOutput!
+  metrics(input: MetricsInput!): MetricsOutput!
 }
 
-type Registry {
-  id: UUID!
-  name: String!
-  account_id: UUID!
-  status: RegistryStatus!
-  created_at: Time!
-  updated_at: Time
+enum RDSMetricName {
+  BinLogDiskUsage
+  BurstBalance
+  CheckpointLag
+  ConnectionAttempts
+  CPUUtilization
+  CPUCreditUsage
+  CPUCreditBalance
+  CPUSurplusCreditBalance
+  CPUSurplusCreditsCharged
+  DatabaseConnections
+  DiskQueueDepth
+  DiskQueueDepthLogVolume
+  FailedSQLServerAgentJobsCount
+  FreeableMemory
+  FreeStorageSpace
+  FreeStorageSpaceLogVolume
+  MaximumUsedTransactionIDs
+  NetworkReceiveThroughput
+  NetworkTransmitThroughput
+  OldestReplicationSlotLag
+  ReadIOPS
+  ReadIOPSLogVolume
+  ReadLatency
+  ReadLatencyLogVolume
+  ReadThroughput
+  ReadThroughputLogVolume
+  ReplicaLag
+  ReplicationChannelLag
+  ReplicationSlotDiskUsage
+  SwapUsage
+  TransactionLogsDiskUsage
+  TransactionLogsGeneration
+  WriteIOPS
+  WriteIOPSLogVolume
+  WriteLatency
+  WriteLatencyLogVolume
+  WriteThroughput
+  WriteThroughputLogVolume
 }
 
-enum RegistryStatus {
-  active
-  deleted
+input ReadNotificationsInput {
+  organisation_id: UUID!
+  notification_ids: [UUID!]!
 }
 
 type Resource {
@@ -546,37 +759,86 @@ enum ResourceType {
   queue
 }
 
+type Stack {
+  id: UUID!
+  state: StackState!
+  name: String!
+  status: String
+  resources: [StackResource!]
+  outputs: [StackOutput!]
+}
+
+type StackOutput {
+  description: String!
+  output_key: String!
+  output_value: String!
+}
+
+type StackResource {
+  physical_resource_id: String!
+  logical_resource_id: String!
+  resource_type: String!
+  resource_status: String!
+  description: String!
+  resource_status_reason: String!
+  timestamp: Time!
+}
+
+enum StackState {
+  new
+  creating
+  created
+  updating
+  updated
+  failed
+  deleting
+  deleted
+}
+
+type Subscription {
+  notification(organisation_id: UUID!): Notification!
+  logs(input: LogsSubscriptionInput!): LogsOutput!
+}
+
 scalar Time
 
 input UpdateAWSAccountInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   name: String!
 }
 
 input UpdateConfigInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
+  name: String!
   resources: [ResourceInput!]!
   version_number: String!
+  revision_id: UUID!
 }
 
 input UpdateEnvironmentInput {
-  organisation_id: String!
+  organisation_id: UUID!
   aggregate_id: UUID!
   name: String!
-  status: EnvironmentStatus!
+}
+
+input UpdateMemberInput {
+  id: UUID!
+  role: MemberRole!
 }
 
 input UpdateOrganisationInput {
   aggregate_id: UUID!
   name: String!
+  settings: OrganisationSettingsInput
 }
 
-input UpdateRegistryInput {
-  organisation_id: String!
-  aggregate_id: UUID!
-  name: String!
+input UpdatePlanInput {
+  plan_id: UUID!
+  interval: PlanInterval
+  tier: PlanTier
+  units: PlanUnitsInput
 }
 
 input UpdateUserInput {
@@ -584,6 +846,26 @@ input UpdateUserInput {
   name: String!
   email: String!
   avatar_url: String
+}
+
+type User {
+  id: UUID!
+  avatar_url: String!
+  company_size: String
+  company: String
+  email: String!
+  metadata: JSON
+  name: String!
+  state: UserState!
+  created_at: Time!
+  updated_at: Time
+  deleted_at: Time
+}
+
+enum UserState {
+  new
+  created
+  deleted
 }
 
 scalar UUID

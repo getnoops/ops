@@ -20,6 +20,6 @@ func New(name string, class queries.ConfigClass) *cobra.Command {
 	}
 
 	cmd.AddCommand(ListCommand(class))
-	cmd.AddCommand(DescribeCommand(class))
+	cmd.AddCommand(GetCommand(class))
 	return cmd
 }
