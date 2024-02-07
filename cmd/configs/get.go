@@ -70,12 +70,16 @@ func Get(ctx context.Context, class queries.ConfigClass, code string) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Code", "Name", "State", "Version", "Revisions")
+			Headers("Code", "Name", "State", "Version", "Revisions", "Registries")
 
-		revisions := "[" + util.JoinStrings(config.Revisions, func(r queries.ConfigWithRevisionsRevisionsConfigRevision) string {
+		revisions := util.JoinStrings(config.Revisions, func(r queries.ConfigWithRevisionsRevisionsConfigRevision) string {
 			return r.Version_number
-		}, ",") + "]"
-		t.Row(config.Code, config.Name, string(config.State), config.Version_number, revisions)
+		}, ", ")
+		registries := util.JoinStrings(config.ContainerRegistries, func(r queries.ConfigWithRevisionsContainerRegistriesContainerRegistry) string {
+			return r.Code
+		}, ", ")
+
+		t.Row(config.Code, config.Name, string(config.State), config.Version_number, revisions, registries)
 
 		cfg.WriteStdout(t.Render())
 	case "json":

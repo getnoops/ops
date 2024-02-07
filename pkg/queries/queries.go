@@ -17,6 +17,9 @@ type Queries interface {
 	GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error)
 	GetMemberOrganisations(ctx context.Context, page int, pageSize int) (*GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput, error)
 	NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (uuid.UUID, error)
+
+	CreateContainerRegistry(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error)
+	DeleteContainerRegistry(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error)
 }
 
 type queries struct {
@@ -78,11 +81,28 @@ func (q *queries) GetMemberOrganisations(ctx context.Context, page int, pageSize
 
 func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (uuid.UUID, error) {
 	id := uuid.New()
-	resp, err := NewDeployment(ctx, q.client, id, organisationId, environmentId, configId, configRevisionId, revisionId)
+	resp, err := NewDeployment(ctx, q.client, organisationId, id, environmentId, configId, configRevisionId, revisionId)
 	if err != nil {
 		return uuid.Nil, err
 	}
 	return resp.NewDeployment, nil
+}
+
+func (q *queries) CreateContainerRegistry(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error) {
+	id := uuid.New()
+	resp, err := CreateContainerRegistry(ctx, q.client, organisationId, id, configId, code)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return resp.CreateContainerRegistry, nil
+}
+
+func (q *queries) DeleteContainerRegistry(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error) {
+	resp, err := DeleteContainerRegistry(ctx, q.client, organisationId, id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return resp.DeleteContainerRegistry, nil
 }
 
 func New[T any](ctx context.Context, cfg *config.NoOps[T]) (Queries, error) {

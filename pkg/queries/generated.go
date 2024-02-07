@@ -159,16 +159,17 @@ func (v *ConfigWithEnvironmentsResourcesResource) GetAllow_access() []string { r
 
 // ConfigWithRevisions includes the requested fields of the GraphQL type Config.
 type ConfigWithRevisions struct {
-	Id             uuid.UUID                                    `json:"id"`
-	Code           string                                       `json:"code"`
-	Class          ConfigClass                                  `json:"class"`
-	Name           string                                       `json:"name"`
-	Resources      []ConfigWithRevisionsResourcesResource       `json:"resources"`
-	Version_number string                                       `json:"version_number"`
-	State          ConfigState                                  `json:"state"`
-	Revisions      []ConfigWithRevisionsRevisionsConfigRevision `json:"revisions"`
-	Created_at     time.Time                                    `json:"created_at"`
-	Updated_at     time.Time                                    `json:"updated_at"`
+	Id                  uuid.UUID                                                 `json:"id"`
+	Code                string                                                    `json:"code"`
+	Class               ConfigClass                                               `json:"class"`
+	Name                string                                                    `json:"name"`
+	Resources           []ConfigWithRevisionsResourcesResource                    `json:"resources"`
+	Version_number      string                                                    `json:"version_number"`
+	State               ConfigState                                               `json:"state"`
+	Revisions           []ConfigWithRevisionsRevisionsConfigRevision              `json:"revisions"`
+	ContainerRegistries []ConfigWithRevisionsContainerRegistriesContainerRegistry `json:"containerRegistries"`
+	Created_at          time.Time                                                 `json:"created_at"`
+	Updated_at          time.Time                                                 `json:"updated_at"`
 }
 
 // GetId returns ConfigWithRevisions.Id, and is useful for accessing the field via an interface.
@@ -199,11 +200,46 @@ func (v *ConfigWithRevisions) GetRevisions() []ConfigWithRevisionsRevisionsConfi
 	return v.Revisions
 }
 
+// GetContainerRegistries returns ConfigWithRevisions.ContainerRegistries, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisions) GetContainerRegistries() []ConfigWithRevisionsContainerRegistriesContainerRegistry {
+	return v.ContainerRegistries
+}
+
 // GetCreated_at returns ConfigWithRevisions.Created_at, and is useful for accessing the field via an interface.
 func (v *ConfigWithRevisions) GetCreated_at() time.Time { return v.Created_at }
 
 // GetUpdated_at returns ConfigWithRevisions.Updated_at, and is useful for accessing the field via an interface.
 func (v *ConfigWithRevisions) GetUpdated_at() time.Time { return v.Updated_at }
+
+// ConfigWithRevisionsContainerRegistriesContainerRegistry includes the requested fields of the GraphQL type ContainerRegistry.
+type ConfigWithRevisionsContainerRegistriesContainerRegistry struct {
+	Id         uuid.UUID  `json:"id"`
+	State      StackState `json:"state"`
+	Code       string     `json:"code"`
+	Created_at time.Time  `json:"created_at"`
+	Updated_at time.Time  `json:"updated_at"`
+}
+
+// GetId returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Id, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetId() uuid.UUID { return v.Id }
+
+// GetState returns ConfigWithRevisionsContainerRegistriesContainerRegistry.State, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetState() StackState {
+	return v.State
+}
+
+// GetCode returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Code, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetCode() string { return v.Code }
+
+// GetCreated_at returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Created_at, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetCreated_at() time.Time {
+	return v.Created_at
+}
+
+// GetUpdated_at returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Updated_at, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetUpdated_at() time.Time {
+	return v.Updated_at
+}
 
 // ConfigWithRevisionsResourcesResource includes the requested fields of the GraphQL type Resource.
 type ConfigWithRevisionsResourcesResource struct {
@@ -254,6 +290,26 @@ func (v *ConfigWithRevisionsRevisionsConfigRevision) GetCreated_at() time.Time {
 
 // GetUpdated_at returns ConfigWithRevisionsRevisionsConfigRevision.Updated_at, and is useful for accessing the field via an interface.
 func (v *ConfigWithRevisionsRevisionsConfigRevision) GetUpdated_at() time.Time { return v.Updated_at }
+
+// CreateContainerRegistryResponse is returned by CreateContainerRegistry on success.
+type CreateContainerRegistryResponse struct {
+	CreateContainerRegistry uuid.UUID `json:"createContainerRegistry"`
+}
+
+// GetCreateContainerRegistry returns CreateContainerRegistryResponse.CreateContainerRegistry, and is useful for accessing the field via an interface.
+func (v *CreateContainerRegistryResponse) GetCreateContainerRegistry() uuid.UUID {
+	return v.CreateContainerRegistry
+}
+
+// DeleteContainerRegistryResponse is returned by DeleteContainerRegistry on success.
+type DeleteContainerRegistryResponse struct {
+	DeleteContainerRegistry uuid.UUID `json:"deleteContainerRegistry"`
+}
+
+// GetDeleteContainerRegistry returns DeleteContainerRegistryResponse.DeleteContainerRegistry, and is useful for accessing the field via an interface.
+func (v *DeleteContainerRegistryResponse) GetDeleteContainerRegistry() uuid.UUID {
+	return v.DeleteContainerRegistry
+}
 
 // Environment includes the requested fields of the GraphQL type Environment.
 type Environment struct {
@@ -495,6 +551,38 @@ const (
 	StackStateDeleted  StackState = "deleted"
 )
 
+// __CreateContainerRegistryInput is used internally by genqlient
+type __CreateContainerRegistryInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+	ConfigId       uuid.UUID `json:"configId"`
+	Code           string    `json:"code"`
+}
+
+// GetOrganisationId returns __CreateContainerRegistryInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRegistryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __CreateContainerRegistryInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRegistryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// GetConfigId returns __CreateContainerRegistryInput.ConfigId, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRegistryInput) GetConfigId() uuid.UUID { return v.ConfigId }
+
+// GetCode returns __CreateContainerRegistryInput.Code, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRegistryInput) GetCode() string { return v.Code }
+
+// __DeleteContainerRegistryInput is used internally by genqlient
+type __DeleteContainerRegistryInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	Id             uuid.UUID `json:"id"`
+}
+
+// GetOrganisationId returns __DeleteContainerRegistryInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__DeleteContainerRegistryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetId returns __DeleteContainerRegistryInput.Id, and is useful for accessing the field via an interface.
+func (v *__DeleteContainerRegistryInput) GetId() uuid.UUID { return v.Id }
+
 // __GetConfigInput is used internally by genqlient
 type __GetConfigInput struct {
 	OrganisationId uuid.UUID `json:"organisationId"`
@@ -603,6 +691,80 @@ func (v *__NewDeploymentInput) GetConfigRevisionId() uuid.UUID { return v.Config
 // GetRevisionId returns __NewDeploymentInput.RevisionId, and is useful for accessing the field via an interface.
 func (v *__NewDeploymentInput) GetRevisionId() uuid.UUID { return v.RevisionId }
 
+// The query or mutation executed by CreateContainerRegistry.
+const CreateContainerRegistry_Operation = `
+mutation CreateContainerRegistry ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
+	createContainerRegistry(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,config_id:$configId,code:$code})
+}
+`
+
+func CreateContainerRegistry(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+	configId uuid.UUID,
+	code string,
+) (*CreateContainerRegistryResponse, error) {
+	req := &graphql.Request{
+		OpName: "CreateContainerRegistry",
+		Query:  CreateContainerRegistry_Operation,
+		Variables: &__CreateContainerRegistryInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+			ConfigId:       configId,
+			Code:           code,
+		},
+	}
+	var err error
+
+	var data CreateContainerRegistryResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by DeleteContainerRegistry.
+const DeleteContainerRegistry_Operation = `
+mutation DeleteContainerRegistry ($organisationId: UUID!, $id: UUID!) {
+	deleteContainerRegistry(input: {organisation_id:$organisationId,id:$id})
+}
+`
+
+func DeleteContainerRegistry(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	id uuid.UUID,
+) (*DeleteContainerRegistryResponse, error) {
+	req := &graphql.Request{
+		OpName: "DeleteContainerRegistry",
+		Query:  DeleteContainerRegistry_Operation,
+		Variables: &__DeleteContainerRegistryInput{
+			OrganisationId: organisationId,
+			Id:             id,
+		},
+	}
+	var err error
+
+	var data DeleteContainerRegistryResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by GetConfig.
 const GetConfig_Operation = `
 query GetConfig ($organisationId: UUID!, $code: String!) {
@@ -624,6 +786,13 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 			id
 			version_number
 			state
+			created_at
+			updated_at
+		}
+		containerRegistries {
+			id
+			state
+			code
 			created_at
 			updated_at
 		}

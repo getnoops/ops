@@ -44,6 +44,7 @@ type Config {
   updated_at: Time
   deployments: [Deployment!]!
   revisions: [ConfigRevision!]!
+  containerRegistries: [ContainerRegistry!]!
 }
 
 enum ConfigClass {
@@ -98,6 +99,14 @@ enum ContainerInsightsMetricName {
   TaskSetCount
 }
 
+type ContainerRegistry {
+  id: UUID!
+  state: StackState!
+  code: String!
+  created_at: Time
+  updated_at: Time
+}
+
 input CreateAWSAccountInput {
   organisation_id: UUID!
   aggregate_id: UUID!
@@ -123,6 +132,13 @@ input CreateConfigInput {
   version_number: String!
   folder_id: UUID
   revision_id: UUID!
+}
+
+input CreateContainerRegistryInput {
+  organisation_id: UUID!
+  aggregate_id: UUID!
+  config_id: UUID!
+  code: String!
 }
 
 input CreateDomainInput {
@@ -268,6 +284,7 @@ type Environment {
   name: String!
   regions: [String!]!
   azs: Int!
+  sort_order: Int!
   account: AWSAccount!
   created_at: Time!
   updated_at: Time
@@ -445,38 +462,41 @@ input MoveFolderInput {
 }
 
 type Mutation {
-  createConfig(input: CreateConfigInput!): UUID!
-  updateConfig(input: UpdateConfigInput!): UUID!
-  moveConfig(input: MoveConfigInput!): UUID!
-  deleteConfig(input: IdWithOrgInput!): UUID!
-  createFolder(input: CreateFolderInput!): UUID!
-  moveFolder(input: MoveFolderInput!): UUID!
-  deleteFolder(input: IdWithOrgInput!): UUID!
-  newDeployment(input: NewDeploymentInput!): UUID!
+  createOrganisation(input: CreateOrganisationInput!): UUID!
+  updateOrganisation(input: UpdateOrganisationInput!): UUID!
+  deleteOrganisation(input: IdInput!): UUID!
+  updateUser(input: UpdateUserInput!): UUID!
+  createMember(input: CreateMemberInput!): UUID!
+  deleteMember(input: IdInput!): UUID!
+  updateMember(input: UpdateMemberInput!): UUID!
+  inviteMember(input: InviteMemberInput!): UUID!
+  updatePlan(input: UpdatePlanInput!): UUID!
+  cancelPlan(input: PlanIdInput!): UUID!
+  reactivatePlan(input: PlanIdInput!): UUID!
+  createCheckoutSession(input: CreateCheckoutSessionInput!): String
   createAWSAccount(input: CreateAWSAccountInput!): UUID!
   updateAWSAccount(input: UpdateAWSAccountInput!): UUID!
   deleteAWSAccount(input: IdWithOrgInput!): UUID!
   createEnvironment(input: CreateEnvironmentInput!): UUID!
   updateEnvironment(input: UpdateEnvironmentInput!): UUID!
+  orderEnvironment(input: OrderEnvironmentInput!): UUID!
   deleteEnvironment(input: IdWithOrgInput!): UUID!
-  createOrganisation(input: CreateOrganisationInput!): UUID!
-  updateOrganisation(input: UpdateOrganisationInput!): UUID!
-  deleteOrganisation(input: IdInput!): UUID!
-  updateUser(input: UpdateUserInput!): UUID!
   createDomain(input: CreateDomainInput!): UUID!
   verifyDomain(input: IdWithOrgInput!): UUID!
   deleteDomain(input: IdWithOrgInput!): UUID!
   createEdge(input: CreateEdgeInput!): UUID!
   deleteEdge(input: IdWithOrgInput!): UUID!
-  createCheckoutSession(input: CreateCheckoutSessionInput!): String
-  updatePlan(input: UpdatePlanInput!): UUID!
-  cancelPlan(input: PlanIdInput!): UUID!
-  reactivatePlan(input: PlanIdInput!): UUID!
+  createFolder(input: CreateFolderInput!): UUID!
+  moveFolder(input: MoveFolderInput!): UUID!
+  deleteFolder(input: IdWithOrgInput!): UUID!
+  createConfig(input: CreateConfigInput!): UUID!
+  updateConfig(input: UpdateConfigInput!): UUID!
+  moveConfig(input: MoveConfigInput!): UUID!
+  deleteConfig(input: IdWithOrgInput!): UUID!
+  createContainerRegistry(input: CreateContainerRegistryInput!): UUID!
+  deleteContainerRegistry(input: IdWithOrgInput!): UUID!
+  newDeployment(input: NewDeploymentInput!): UUID!
   readNotifications(input: ReadNotificationsInput!): [UUID!]!
-  createMember(input: CreateMemberInput!): UUID!
-  deleteMember(input: IdInput!): UUID!
-  updateMember(input: UpdateMemberInput!): UUID!
-  inviteMember(input: InviteMemberInput!): UUID!
 }
 
 input NewDeploymentInput {
@@ -495,6 +515,12 @@ type Notification {
   message: String!
   timestamp: Time!
   read: Boolean!
+}
+
+input OrderEnvironmentInput {
+  organisation_id: UUID!
+  aggregate_id: UUID!
+  sort_order: Int!
 }
 
 type Organisation {

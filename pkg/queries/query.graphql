@@ -56,6 +56,13 @@ query GetConfig($organisationId: UUID!, $code: String!) {
       created_at
       updated_at
     }
+    containerRegistries {
+      id
+      state
+      code
+      created_at
+      updated_at
+    }
     created_at
     updated_at
   }
@@ -140,5 +147,21 @@ mutation NewDeployment($organisationId: UUID!, $aggregateId: UUID!, $environment
     config_id: $configId,
     config_revision_id: $configRevisionId,
     revision_id: $revisionId,
+  })
+}
+
+mutation CreateContainerRegistry($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
+  createContainerRegistry(input: {
+    organisation_id: $organisationId,
+    aggregate_id: $aggregateId,
+    config_id: $configId,
+    code: $code,
+  })
+}
+
+mutation DeleteContainerRegistry($organisationId: UUID!, $id: UUID!) {
+  deleteContainerRegistry(input: {
+    organisation_id: $organisationId,
+    id: $id,
   })
 }

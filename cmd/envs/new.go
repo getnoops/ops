@@ -1,4 +1,4 @@
-package deploy
+package envs
 
 import (
 	"github.com/spf13/cobra"
@@ -9,10 +9,10 @@ type Config struct {
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deploy",
-		Short: "Deploy commands",
+		Use:   "envs",
+		Short: "Environment commands",
 	}
 
-	cmd.AddCommand(ApplyCommand())
+	cmd.AddCommand(ListCommand())
 	return cmd
 }
