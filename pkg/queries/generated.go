@@ -10,6 +10,26 @@ import (
 	"github.com/google/uuid"
 )
 
+// AuthContainerRepository includes the requested fields of the GraphQL type AuthContainerRepository.
+type AuthContainerRepository struct {
+	Username        string `json:"username"`
+	Password        string `json:"password"`
+	Registry_url    string `json:"registry_url"`
+	Repository_name string `json:"repository_name"`
+}
+
+// GetUsername returns AuthContainerRepository.Username, and is useful for accessing the field via an interface.
+func (v *AuthContainerRepository) GetUsername() string { return v.Username }
+
+// GetPassword returns AuthContainerRepository.Password, and is useful for accessing the field via an interface.
+func (v *AuthContainerRepository) GetPassword() string { return v.Password }
+
+// GetRegistry_url returns AuthContainerRepository.Registry_url, and is useful for accessing the field via an interface.
+func (v *AuthContainerRepository) GetRegistry_url() string { return v.Registry_url }
+
+// GetRepository_name returns AuthContainerRepository.Repository_name, and is useful for accessing the field via an interface.
+func (v *AuthContainerRepository) GetRepository_name() string { return v.Repository_name }
+
 // Config includes the requested fields of the GraphQL type Config.
 type Config struct {
 	Id             uuid.UUID                 `json:"id"`
@@ -159,17 +179,17 @@ func (v *ConfigWithEnvironmentsResourcesResource) GetAllow_access() []string { r
 
 // ConfigWithRevisions includes the requested fields of the GraphQL type Config.
 type ConfigWithRevisions struct {
-	Id                  uuid.UUID                                                 `json:"id"`
-	Code                string                                                    `json:"code"`
-	Class               ConfigClass                                               `json:"class"`
-	Name                string                                                    `json:"name"`
-	Resources           []ConfigWithRevisionsResourcesResource                    `json:"resources"`
-	Version_number      string                                                    `json:"version_number"`
-	State               ConfigState                                               `json:"state"`
-	Revisions           []ConfigWithRevisionsRevisionsConfigRevision              `json:"revisions"`
-	ContainerRegistries []ConfigWithRevisionsContainerRegistriesContainerRegistry `json:"containerRegistries"`
-	Created_at          time.Time                                                 `json:"created_at"`
-	Updated_at          time.Time                                                 `json:"updated_at"`
+	Id                    uuid.UUID                                                     `json:"id"`
+	Code                  string                                                        `json:"code"`
+	Class                 ConfigClass                                                   `json:"class"`
+	Name                  string                                                        `json:"name"`
+	Resources             []ConfigWithRevisionsResourcesResource                        `json:"resources"`
+	Version_number        string                                                        `json:"version_number"`
+	State                 ConfigState                                                   `json:"state"`
+	Revisions             []ConfigWithRevisionsRevisionsConfigRevision                  `json:"revisions"`
+	ContainerRepositories []ConfigWithRevisionsContainerRepositoriesContainerRepository `json:"containerRepositories"`
+	Created_at            time.Time                                                     `json:"created_at"`
+	Updated_at            time.Time                                                     `json:"updated_at"`
 }
 
 // GetId returns ConfigWithRevisions.Id, and is useful for accessing the field via an interface.
@@ -200,9 +220,9 @@ func (v *ConfigWithRevisions) GetRevisions() []ConfigWithRevisionsRevisionsConfi
 	return v.Revisions
 }
 
-// GetContainerRegistries returns ConfigWithRevisions.ContainerRegistries, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetContainerRegistries() []ConfigWithRevisionsContainerRegistriesContainerRegistry {
-	return v.ContainerRegistries
+// GetContainerRepositories returns ConfigWithRevisions.ContainerRepositories, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisions) GetContainerRepositories() []ConfigWithRevisionsContainerRepositoriesContainerRepository {
+	return v.ContainerRepositories
 }
 
 // GetCreated_at returns ConfigWithRevisions.Created_at, and is useful for accessing the field via an interface.
@@ -211,8 +231,8 @@ func (v *ConfigWithRevisions) GetCreated_at() time.Time { return v.Created_at }
 // GetUpdated_at returns ConfigWithRevisions.Updated_at, and is useful for accessing the field via an interface.
 func (v *ConfigWithRevisions) GetUpdated_at() time.Time { return v.Updated_at }
 
-// ConfigWithRevisionsContainerRegistriesContainerRegistry includes the requested fields of the GraphQL type ContainerRegistry.
-type ConfigWithRevisionsContainerRegistriesContainerRegistry struct {
+// ConfigWithRevisionsContainerRepositoriesContainerRepository includes the requested fields of the GraphQL type ContainerRepository.
+type ConfigWithRevisionsContainerRepositoriesContainerRepository struct {
 	Id         uuid.UUID  `json:"id"`
 	State      StackState `json:"state"`
 	Code       string     `json:"code"`
@@ -220,24 +240,24 @@ type ConfigWithRevisionsContainerRegistriesContainerRegistry struct {
 	Updated_at time.Time  `json:"updated_at"`
 }
 
-// GetId returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Id, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetId() uuid.UUID { return v.Id }
+// GetId returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Id, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetId() uuid.UUID { return v.Id }
 
-// GetState returns ConfigWithRevisionsContainerRegistriesContainerRegistry.State, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetState() StackState {
+// GetState returns ConfigWithRevisionsContainerRepositoriesContainerRepository.State, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetState() StackState {
 	return v.State
 }
 
-// GetCode returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Code, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetCode() string { return v.Code }
+// GetCode returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Code, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetCode() string { return v.Code }
 
-// GetCreated_at returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Created_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetCreated_at() time.Time {
+// GetCreated_at returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Created_at, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetCreated_at() time.Time {
 	return v.Created_at
 }
 
-// GetUpdated_at returns ConfigWithRevisionsContainerRegistriesContainerRegistry.Updated_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRegistriesContainerRegistry) GetUpdated_at() time.Time {
+// GetUpdated_at returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Updated_at, and is useful for accessing the field via an interface.
+func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetUpdated_at() time.Time {
 	return v.Updated_at
 }
 
@@ -291,24 +311,24 @@ func (v *ConfigWithRevisionsRevisionsConfigRevision) GetCreated_at() time.Time {
 // GetUpdated_at returns ConfigWithRevisionsRevisionsConfigRevision.Updated_at, and is useful for accessing the field via an interface.
 func (v *ConfigWithRevisionsRevisionsConfigRevision) GetUpdated_at() time.Time { return v.Updated_at }
 
-// CreateContainerRegistryResponse is returned by CreateContainerRegistry on success.
-type CreateContainerRegistryResponse struct {
-	CreateContainerRegistry uuid.UUID `json:"createContainerRegistry"`
+// CreateContainerRepositoryResponse is returned by CreateContainerRepository on success.
+type CreateContainerRepositoryResponse struct {
+	CreateContainerRepository uuid.UUID `json:"createContainerRepository"`
 }
 
-// GetCreateContainerRegistry returns CreateContainerRegistryResponse.CreateContainerRegistry, and is useful for accessing the field via an interface.
-func (v *CreateContainerRegistryResponse) GetCreateContainerRegistry() uuid.UUID {
-	return v.CreateContainerRegistry
+// GetCreateContainerRepository returns CreateContainerRepositoryResponse.CreateContainerRepository, and is useful for accessing the field via an interface.
+func (v *CreateContainerRepositoryResponse) GetCreateContainerRepository() uuid.UUID {
+	return v.CreateContainerRepository
 }
 
-// DeleteContainerRegistryResponse is returned by DeleteContainerRegistry on success.
-type DeleteContainerRegistryResponse struct {
-	DeleteContainerRegistry uuid.UUID `json:"deleteContainerRegistry"`
+// DeleteContainerRepositoryResponse is returned by DeleteContainerRepository on success.
+type DeleteContainerRepositoryResponse struct {
+	DeleteContainerRepository uuid.UUID `json:"deleteContainerRepository"`
 }
 
-// GetDeleteContainerRegistry returns DeleteContainerRegistryResponse.DeleteContainerRegistry, and is useful for accessing the field via an interface.
-func (v *DeleteContainerRegistryResponse) GetDeleteContainerRegistry() uuid.UUID {
-	return v.DeleteContainerRegistry
+// GetDeleteContainerRepository returns DeleteContainerRepositoryResponse.DeleteContainerRepository, and is useful for accessing the field via an interface.
+func (v *DeleteContainerRepositoryResponse) GetDeleteContainerRepository() uuid.UUID {
+	return v.DeleteContainerRepository
 }
 
 // Environment includes the requested fields of the GraphQL type Environment.
@@ -481,6 +501,16 @@ func (v *GetMemberOrganisationsResponse) GetMemberOrganisations() GetMemberOrgan
 	return v.MemberOrganisations
 }
 
+// LoginContainerRepositoryResponse is returned by LoginContainerRepository on success.
+type LoginContainerRepositoryResponse struct {
+	LoginContainerRepository AuthContainerRepository `json:"loginContainerRepository"`
+}
+
+// GetLoginContainerRepository returns LoginContainerRepositoryResponse.LoginContainerRepository, and is useful for accessing the field via an interface.
+func (v *LoginContainerRepositoryResponse) GetLoginContainerRepository() AuthContainerRepository {
+	return v.LoginContainerRepository
+}
+
 // NewDeploymentResponse is returned by NewDeployment on success.
 type NewDeploymentResponse struct {
 	NewDeployment uuid.UUID `json:"newDeployment"`
@@ -551,37 +581,37 @@ const (
 	StackStateDeleted  StackState = "deleted"
 )
 
-// __CreateContainerRegistryInput is used internally by genqlient
-type __CreateContainerRegistryInput struct {
+// __CreateContainerRepositoryInput is used internally by genqlient
+type __CreateContainerRepositoryInput struct {
 	OrganisationId uuid.UUID `json:"organisationId"`
 	AggregateId    uuid.UUID `json:"aggregateId"`
 	ConfigId       uuid.UUID `json:"configId"`
 	Code           string    `json:"code"`
 }
 
-// GetOrganisationId returns __CreateContainerRegistryInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__CreateContainerRegistryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+// GetOrganisationId returns __CreateContainerRepositoryInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
-// GetAggregateId returns __CreateContainerRegistryInput.AggregateId, and is useful for accessing the field via an interface.
-func (v *__CreateContainerRegistryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+// GetAggregateId returns __CreateContainerRepositoryInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRepositoryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
-// GetConfigId returns __CreateContainerRegistryInput.ConfigId, and is useful for accessing the field via an interface.
-func (v *__CreateContainerRegistryInput) GetConfigId() uuid.UUID { return v.ConfigId }
+// GetConfigId returns __CreateContainerRepositoryInput.ConfigId, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRepositoryInput) GetConfigId() uuid.UUID { return v.ConfigId }
 
-// GetCode returns __CreateContainerRegistryInput.Code, and is useful for accessing the field via an interface.
-func (v *__CreateContainerRegistryInput) GetCode() string { return v.Code }
+// GetCode returns __CreateContainerRepositoryInput.Code, and is useful for accessing the field via an interface.
+func (v *__CreateContainerRepositoryInput) GetCode() string { return v.Code }
 
-// __DeleteContainerRegistryInput is used internally by genqlient
-type __DeleteContainerRegistryInput struct {
+// __DeleteContainerRepositoryInput is used internally by genqlient
+type __DeleteContainerRepositoryInput struct {
 	OrganisationId uuid.UUID `json:"organisationId"`
 	Id             uuid.UUID `json:"id"`
 }
 
-// GetOrganisationId returns __DeleteContainerRegistryInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__DeleteContainerRegistryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+// GetOrganisationId returns __DeleteContainerRepositoryInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__DeleteContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
-// GetId returns __DeleteContainerRegistryInput.Id, and is useful for accessing the field via an interface.
-func (v *__DeleteContainerRegistryInput) GetId() uuid.UUID { return v.Id }
+// GetId returns __DeleteContainerRepositoryInput.Id, and is useful for accessing the field via an interface.
+func (v *__DeleteContainerRepositoryInput) GetId() uuid.UUID { return v.Id }
 
 // __GetConfigInput is used internally by genqlient
 type __GetConfigInput struct {
@@ -663,6 +693,18 @@ func (v *__GetMemberOrganisationsInput) GetPage() int { return v.Page }
 // GetPageSize returns __GetMemberOrganisationsInput.PageSize, and is useful for accessing the field via an interface.
 func (v *__GetMemberOrganisationsInput) GetPageSize() int { return v.PageSize }
 
+// __LoginContainerRepositoryInput is used internally by genqlient
+type __LoginContainerRepositoryInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	Id             uuid.UUID `json:"id"`
+}
+
+// GetOrganisationId returns __LoginContainerRepositoryInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__LoginContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetId returns __LoginContainerRepositoryInput.Id, and is useful for accessing the field via an interface.
+func (v *__LoginContainerRepositoryInput) GetId() uuid.UUID { return v.Id }
+
 // __NewDeploymentInput is used internally by genqlient
 type __NewDeploymentInput struct {
 	OrganisationId   uuid.UUID `json:"organisationId"`
@@ -691,25 +733,25 @@ func (v *__NewDeploymentInput) GetConfigRevisionId() uuid.UUID { return v.Config
 // GetRevisionId returns __NewDeploymentInput.RevisionId, and is useful for accessing the field via an interface.
 func (v *__NewDeploymentInput) GetRevisionId() uuid.UUID { return v.RevisionId }
 
-// The query or mutation executed by CreateContainerRegistry.
-const CreateContainerRegistry_Operation = `
-mutation CreateContainerRegistry ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
-	createContainerRegistry(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,config_id:$configId,code:$code})
+// The query or mutation executed by CreateContainerRepository.
+const CreateContainerRepository_Operation = `
+mutation CreateContainerRepository ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
+	createContainerRepository(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,config_id:$configId,code:$code})
 }
 `
 
-func CreateContainerRegistry(
+func CreateContainerRepository(
 	ctx context.Context,
 	client graphql.Client,
 	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
 	configId uuid.UUID,
 	code string,
-) (*CreateContainerRegistryResponse, error) {
+) (*CreateContainerRepositoryResponse, error) {
 	req := &graphql.Request{
-		OpName: "CreateContainerRegistry",
-		Query:  CreateContainerRegistry_Operation,
-		Variables: &__CreateContainerRegistryInput{
+		OpName: "CreateContainerRepository",
+		Query:  CreateContainerRepository_Operation,
+		Variables: &__CreateContainerRepositoryInput{
 			OrganisationId: organisationId,
 			AggregateId:    aggregateId,
 			ConfigId:       configId,
@@ -718,7 +760,7 @@ func CreateContainerRegistry(
 	}
 	var err error
 
-	var data CreateContainerRegistryResponse
+	var data CreateContainerRepositoryResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -730,30 +772,30 @@ func CreateContainerRegistry(
 	return &data, err
 }
 
-// The query or mutation executed by DeleteContainerRegistry.
-const DeleteContainerRegistry_Operation = `
-mutation DeleteContainerRegistry ($organisationId: UUID!, $id: UUID!) {
-	deleteContainerRegistry(input: {organisation_id:$organisationId,id:$id})
+// The query or mutation executed by DeleteContainerRepository.
+const DeleteContainerRepository_Operation = `
+mutation DeleteContainerRepository ($organisationId: UUID!, $id: UUID!) {
+	deleteContainerRepository(input: {organisation_id:$organisationId,id:$id})
 }
 `
 
-func DeleteContainerRegistry(
+func DeleteContainerRepository(
 	ctx context.Context,
 	client graphql.Client,
 	organisationId uuid.UUID,
 	id uuid.UUID,
-) (*DeleteContainerRegistryResponse, error) {
+) (*DeleteContainerRepositoryResponse, error) {
 	req := &graphql.Request{
-		OpName: "DeleteContainerRegistry",
-		Query:  DeleteContainerRegistry_Operation,
-		Variables: &__DeleteContainerRegistryInput{
+		OpName: "DeleteContainerRepository",
+		Query:  DeleteContainerRepository_Operation,
+		Variables: &__DeleteContainerRepositoryInput{
 			OrganisationId: organisationId,
 			Id:             id,
 		},
 	}
 	var err error
 
-	var data DeleteContainerRegistryResponse
+	var data DeleteContainerRepositoryResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -789,7 +831,7 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 			created_at
 			updated_at
 		}
-		containerRegistries {
+		containerRepositories {
 			id
 			state
 			code
@@ -1035,6 +1077,46 @@ func GetMemberOrganisations(
 	var err error
 
 	var data GetMemberOrganisationsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by LoginContainerRepository.
+const LoginContainerRepository_Operation = `
+mutation LoginContainerRepository ($organisationId: UUID!, $id: UUID!) {
+	loginContainerRepository(input: {organisation_id:$organisationId,id:$id}) {
+		username
+		password
+		registry_url
+		repository_name
+	}
+}
+`
+
+func LoginContainerRepository(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	id uuid.UUID,
+) (*LoginContainerRepositoryResponse, error) {
+	req := &graphql.Request{
+		OpName: "LoginContainerRepository",
+		Query:  LoginContainerRepository_Operation,
+		Variables: &__LoginContainerRepositoryInput{
+			OrganisationId: organisationId,
+			Id:             id,
+		},
+	}
+	var err error
+
+	var data LoginContainerRepositoryResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

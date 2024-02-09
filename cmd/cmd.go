@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/getnoops/ops/cmd/configs"
-	"github.com/getnoops/ops/cmd/containerregistry"
+	"github.com/getnoops/ops/cmd/containerrepository"
 	"github.com/getnoops/ops/cmd/deploy"
 	"github.com/getnoops/ops/cmd/envs"
 	"github.com/getnoops/ops/cmd/login"
@@ -57,7 +57,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 		configs.New("Compute", queries.ConfigClassCompute),
 		configs.New("Storage", queries.ConfigClassStorage),
 		configs.New("Integration", queries.ConfigClassIntegration),
-		containerregistry.New(),
+		containerrepository.New(),
 		deploy.New(),
 	)
 	cmd.InitDefaultVersionFlag()

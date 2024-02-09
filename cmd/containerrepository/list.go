@@ -1,4 +1,4 @@
-package containerregistry
+package containerrepository
 
 import (
 	"context"
@@ -61,7 +61,7 @@ func List(ctx context.Context, configCode string) error {
 		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
 		Headers("Code", "State")
 
-	for _, item := range out.ContainerRegistries {
+	for _, item := range out.ContainerRepositories {
 		t.Row(item.Code, string(item.State))
 	}
 

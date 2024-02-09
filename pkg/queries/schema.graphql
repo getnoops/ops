@@ -17,6 +17,13 @@ directive @specifiedBy(url: String!) on SCALAR
 
 scalar Any
 
+type AuthContainerRepository {
+  username: String!
+  password: String!
+  registry_url: String!
+  repository_name: String!
+}
+
 type AWSAccount {
   id: UUID!
   name: String!
@@ -44,7 +51,7 @@ type Config {
   updated_at: Time
   deployments: [Deployment!]!
   revisions: [ConfigRevision!]!
-  containerRegistries: [ContainerRegistry!]!
+  containerRepositories: [ContainerRepository!]!
 }
 
 enum ConfigClass {
@@ -99,7 +106,7 @@ enum ContainerInsightsMetricName {
   TaskSetCount
 }
 
-type ContainerRegistry {
+type ContainerRepository {
   id: UUID!
   state: StackState!
   code: String!
@@ -128,13 +135,10 @@ input CreateConfigInput {
   code: String!
   class: ConfigClass!
   name: String!
-  resources: [ResourceInput!]!
-  version_number: String!
   folder_id: UUID
-  revision_id: UUID!
 }
 
-input CreateContainerRegistryInput {
+input CreateContainerRepositoryInput {
   organisation_id: UUID!
   aggregate_id: UUID!
   config_id: UUID!
@@ -164,6 +168,7 @@ input CreateEnvironmentInput {
   regions: [String!]!
   azs: Int!
   account_id: UUID!
+  sort_order: Int!
 }
 
 input CreateFolderInput {
@@ -356,8 +361,8 @@ type LogsOutput {
 input LogsSubscriptionInput {
   id: UUID!
   organisation_id: UUID!
-  environment_id: UUID!
-  config_code: String!
+  deployment_id: UUID!
+  region: String!
   start_time: Int
   end_time: Int
   next_token: String
@@ -421,8 +426,8 @@ input MetricQueryInput {
 
 input MetricsInput {
   organisation_id: UUID!
-  compute_id: UUID!
-  environment_id: UUID!
+  deployment_id: UUID!
+  region: String!
   start_time: Int!
   end_time: Int!
   metric_queries: [MetricQueryInput!]!
@@ -479,8 +484,8 @@ type Mutation {
   deleteAWSAccount(input: IdWithOrgInput!): UUID!
   createEnvironment(input: CreateEnvironmentInput!): UUID!
   updateEnvironment(input: UpdateEnvironmentInput!): UUID!
-  orderEnvironment(input: OrderEnvironmentInput!): UUID!
   deleteEnvironment(input: IdWithOrgInput!): UUID!
+  orderEnvironments(input: OrderEnvironmentsInput!): [UUID!]!
   createDomain(input: CreateDomainInput!): UUID!
   verifyDomain(input: IdWithOrgInput!): UUID!
   deleteDomain(input: IdWithOrgInput!): UUID!
@@ -493,8 +498,9 @@ type Mutation {
   updateConfig(input: UpdateConfigInput!): UUID!
   moveConfig(input: MoveConfigInput!): UUID!
   deleteConfig(input: IdWithOrgInput!): UUID!
-  createContainerRegistry(input: CreateContainerRegistryInput!): UUID!
-  deleteContainerRegistry(input: IdWithOrgInput!): UUID!
+  createContainerRepository(input: CreateContainerRepositoryInput!): UUID!
+  deleteContainerRepository(input: IdWithOrgInput!): UUID!
+  loginContainerRepository(input: IdWithOrgInput!): AuthContainerRepository!
   newDeployment(input: NewDeploymentInput!): UUID!
   readNotifications(input: ReadNotificationsInput!): [UUID!]!
 }
@@ -518,9 +524,13 @@ type Notification {
 }
 
 input OrderEnvironmentInput {
-  organisation_id: UUID!
   aggregate_id: UUID!
   sort_order: Int!
+}
+
+input OrderEnvironmentsInput {
+  organisation_id: UUID!
+  environment_orders: [OrderEnvironmentInput!]!
 }
 
 type Organisation {

@@ -75,7 +75,7 @@ func Get(ctx context.Context, class queries.ConfigClass, code string) error {
 		revisions := util.JoinStrings(config.Revisions, func(r queries.ConfigWithRevisionsRevisionsConfigRevision) string {
 			return r.Version_number
 		}, ", ")
-		registries := util.JoinStrings(config.ContainerRegistries, func(r queries.ConfigWithRevisionsContainerRegistriesContainerRegistry) string {
+		registries := util.JoinStrings(config.ContainerRepositories, func(r queries.ConfigWithRevisionsContainerRepositoriesContainerRepository) string {
 			return r.Code
 		}, ", ")
 

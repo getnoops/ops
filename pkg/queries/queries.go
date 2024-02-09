@@ -18,8 +18,9 @@ type Queries interface {
 	GetMemberOrganisations(ctx context.Context, page int, pageSize int) (*GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput, error)
 	NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (uuid.UUID, error)
 
-	CreateContainerRegistry(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error)
-	DeleteContainerRegistry(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error)
+	CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error)
+	DeleteContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error)
+	LoginContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*AuthContainerRepository, error)
 }
 
 type queries struct {
@@ -88,21 +89,29 @@ func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, e
 	return resp.NewDeployment, nil
 }
 
-func (q *queries) CreateContainerRegistry(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error) {
+func (q *queries) CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error) {
 	id := uuid.New()
-	resp, err := CreateContainerRegistry(ctx, q.client, organisationId, id, configId, code)
+	resp, err := CreateContainerRepository(ctx, q.client, organisationId, id, configId, code)
 	if err != nil {
 		return uuid.Nil, err
 	}
-	return resp.CreateContainerRegistry, nil
+	return resp.CreateContainerRepository, nil
 }
 
-func (q *queries) DeleteContainerRegistry(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error) {
-	resp, err := DeleteContainerRegistry(ctx, q.client, organisationId, id)
+func (q *queries) DeleteContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error) {
+	resp, err := DeleteContainerRepository(ctx, q.client, organisationId, id)
 	if err != nil {
 		return uuid.Nil, err
 	}
-	return resp.DeleteContainerRegistry, nil
+	return resp.DeleteContainerRepository, nil
+}
+
+func (q *queries) LoginContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*AuthContainerRepository, error) {
+	resp, err := LoginContainerRepository(ctx, q.client, organisationId, id)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.LoginContainerRepository, nil
 }
 
 func New[T any](ctx context.Context, cfg *config.NoOps[T]) (Queries, error) {

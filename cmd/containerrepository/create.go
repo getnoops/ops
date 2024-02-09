@@ -1,9 +1,8 @@
-package containerregistry
+package containerrepository
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
@@ -14,28 +13,28 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type DeleteConfig struct {
+type CreateConfig struct {
 }
 
-func DeleteCommand() *cobra.Command {
+func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete [compute] [code]",
-		Short: "Will delete a container registry for a given compute",
+		Use:   "create [compute] [code]",
+		Short: "Will create a container registry for a given compute",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
 			code := args[1]
 
 			ctx := cmd.Context()
-			return Delete(ctx, configCode, code)
+			return Create(ctx, configCode, code)
 		},
 		ValidArgs: []string{"compute", "code"},
 	}
 	return cmd
 }
 
-func Delete(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[DeleteConfig](ctx, viper.GetViper())
+func Create(ctx context.Context, computeCode string, code string) error {
+	cfg, err := config.New[CreateConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -60,16 +59,9 @@ func Delete(ctx context.Context, computeCode string, code string) error {
 		return nil
 	}
 
-	// todo get the container id.
-	containerRegistry, err := GetContainerRegistry(config.Revisions, code)
+	out, err := q.CreateContainerRepository(ctx, organisation.Id, config.Id, code)
 	if err != nil {
-		cfg.WriteStderr("container registry not found")
-		return nil
-	}
-
-	out, err := q.DeleteContainerRegistry(ctx, organisation.Id, containerRegistry.Id)
-	if err != nil {
-		cfg.WriteStderr("failed to delete container registry")
+		cfg.WriteStderr("failed to create container registry")
 		return nil
 	}
 
@@ -84,21 +76,11 @@ func Delete(ctx context.Context, computeCode string, code string) error {
 
 		cfg.WriteStdout(t.Render())
 	case "json":
-		out, _ := json.Marshal(config)
+		out, _ := json.Marshal(out)
 		cfg.WriteStdout(string(out))
 	case "yaml":
-		out, _ := yaml.Marshal(config)
+		out, _ := yaml.Marshal(out)
 		cfg.WriteStdout(string(out))
 	}
 	return nil
-}
-
-func GetContainerRegistry(revisions []queries.ConfigWithRevisionsRevisionsConfigRevision, code string) (*queries.ConfigWithRevisionsRevisionsConfigRevision, error) {
-	for _, revision := range revisions {
-		if revision.Version_number == code {
-			return &revision, nil
-		}
-	}
-
-	return nil, fmt.Errorf("revision not found")
 }

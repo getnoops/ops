@@ -56,7 +56,7 @@ query GetConfig($organisationId: UUID!, $code: String!) {
       created_at
       updated_at
     }
-    containerRegistries {
+    containerRepositories {
       id
       state
       code
@@ -150,8 +150,8 @@ mutation NewDeployment($organisationId: UUID!, $aggregateId: UUID!, $environment
   })
 }
 
-mutation CreateContainerRegistry($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
-  createContainerRegistry(input: {
+mutation CreateContainerRepository($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
+  createContainerRepository(input: {
     organisation_id: $organisationId,
     aggregate_id: $aggregateId,
     config_id: $configId,
@@ -159,9 +159,22 @@ mutation CreateContainerRegistry($organisationId: UUID!, $aggregateId: UUID!, $c
   })
 }
 
-mutation DeleteContainerRegistry($organisationId: UUID!, $id: UUID!) {
-  deleteContainerRegistry(input: {
+mutation DeleteContainerRepository($organisationId: UUID!, $id: UUID!) {
+  deleteContainerRepository(input: {
     organisation_id: $organisationId,
     id: $id,
   })
+}
+
+mutation LoginContainerRepository($organisationId: UUID!, $id: UUID!) {
+    # @genqlient(typename: "AuthContainerRepository")
+  loginContainerRepository(input: {
+    organisation_id: $organisationId,
+    id: $id,
+  }) {
+    username,
+    password,
+    registry_url,
+    repository_name,
+  }
 }
