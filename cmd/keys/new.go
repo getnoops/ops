@@ -1,4 +1,4 @@
-package containerrepository
+package keys
 
 import (
 	"github.com/spf13/cobra"
@@ -6,14 +6,14 @@ import (
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "container-registry",
-		Short: "Container Registry commands",
+		Use:   "keys",
+		Short: "Api Keys commands",
 	}
 
 	cmd.AddCommand(ListCommand())
 	cmd.AddCommand(GetCommand())
-	cmd.AddCommand(LoginCommand())
 	cmd.AddCommand(CreateCommand())
+	cmd.AddCommand(UpdateCommand())
 	cmd.AddCommand(DeleteCommand())
 	return cmd
 }

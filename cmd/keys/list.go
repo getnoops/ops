@@ -1,4 +1,4 @@
-package configs
+package keys
 
 import (
 	"context"
@@ -6,36 +6,33 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
-	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 )
 
 type ListConfig struct {
-	Page     int `mapstructure:"page" default:"1"`
-	PageSize int `mapstructure:"page-size" default:"10"`
 }
 
-func ListCommand(class queries.ConfigClass) *cobra.Command {
+func ListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list projects accessible by the active account",
+		Use:   "list [compute|storage|integration]",
+		Short: "list api keys for a given compute, storage or integration",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			configCode := args[0]
+
 			ctx := cmd.Context()
-			return List(ctx, class)
+			return List(ctx, configCode)
 		},
 	}
-
-	util.BindIntFlag(cmd, "page", "The page to load", 1)
-	util.BindIntFlag(cmd, "page-size", "The number of items in the page", 10)
 	return cmd
 }
 
-func List(ctx context.Context, class queries.ConfigClass) error {
+func List(ctx context.Context, configCode string) error {
 	cfg, err := config.New[ListConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err
@@ -55,10 +52,10 @@ func List(ctx context.Context, class queries.ConfigClass) error {
 		return err
 	}
 
-	configs, err := q.GetConfigs(ctx, organisation.Id, class, cfg.Command.Page, cfg.Command.PageSize)
+	out, err := q.GetConfig(ctx, organisation.Id, configCode)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		cfg.WriteStderr("failed to get config")
+		return err
 	}
 
 	switch cfg.Global.Format {
@@ -66,18 +63,18 @@ func List(ctx context.Context, class queries.ConfigClass) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Class", "Name", "Code", "State")
+			Headers("Id", "State", "Code", "Created At", "Updated At", "Deleted At", "Authed At")
 
-		for _, item := range configs.Items {
-			t.Row(string(item.Class), item.Name, item.Code, string(item.State))
+		for _, item := range out.ApiKeys {
+			t.Row(item.Id.String(), string(item.State), item.Code, item.Created_at.String(), item.Updated_at.String(), item.Deleted_at.String(), item.Authed_at.String())
 		}
 
 		cfg.WriteStdout(t.Render())
 	case "json":
-		out, _ := json.Marshal(configs)
+		out, _ := json.Marshal(out.ApiKeys)
 		cfg.WriteStdout(string(out))
 	case "yaml":
-		out, _ := yaml.Marshal(configs)
+		out, _ := yaml.Marshal(out.ApiKeys)
 		cfg.WriteStdout(string(out))
 	}
 	return nil

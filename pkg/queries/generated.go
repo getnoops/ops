@@ -10,6 +10,38 @@ import (
 	"github.com/google/uuid"
 )
 
+// ApiKeyItem includes the requested fields of the GraphQL type ApiKey.
+type ApiKeyItem struct {
+	Id         uuid.UUID  `json:"id"`
+	State      StackState `json:"state"`
+	Code       string     `json:"code"`
+	Created_at time.Time  `json:"created_at"`
+	Updated_at time.Time  `json:"updated_at"`
+	Deleted_at time.Time  `json:"deleted_at"`
+	Authed_at  time.Time  `json:"authed_at"`
+}
+
+// GetId returns ApiKeyItem.Id, and is useful for accessing the field via an interface.
+func (v *ApiKeyItem) GetId() uuid.UUID { return v.Id }
+
+// GetState returns ApiKeyItem.State, and is useful for accessing the field via an interface.
+func (v *ApiKeyItem) GetState() StackState { return v.State }
+
+// GetCode returns ApiKeyItem.Code, and is useful for accessing the field via an interface.
+func (v *ApiKeyItem) GetCode() string { return v.Code }
+
+// GetCreated_at returns ApiKeyItem.Created_at, and is useful for accessing the field via an interface.
+func (v *ApiKeyItem) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns ApiKeyItem.Updated_at, and is useful for accessing the field via an interface.
+func (v *ApiKeyItem) GetUpdated_at() time.Time { return v.Updated_at }
+
+// GetDeleted_at returns ApiKeyItem.Deleted_at, and is useful for accessing the field via an interface.
+func (v *ApiKeyItem) GetDeleted_at() time.Time { return v.Deleted_at }
+
+// GetAuthed_at returns ApiKeyItem.Authed_at, and is useful for accessing the field via an interface.
+func (v *ApiKeyItem) GetAuthed_at() time.Time { return v.Authed_at }
+
 // AuthContainerRepository includes the requested fields of the GraphQL type AuthContainerRepository.
 type AuthContainerRepository struct {
 	Username        string `json:"username"`
@@ -32,15 +64,18 @@ func (v *AuthContainerRepository) GetRepository_name() string { return v.Reposit
 
 // Config includes the requested fields of the GraphQL type Config.
 type Config struct {
-	Id             uuid.UUID                 `json:"id"`
-	Code           string                    `json:"code"`
-	Class          ConfigClass               `json:"class"`
-	Name           string                    `json:"name"`
-	Resources      []ConfigResourcesResource `json:"resources"`
-	Version_number string                    `json:"version_number"`
-	State          ConfigState               `json:"state"`
-	Created_at     time.Time                 `json:"created_at"`
-	Updated_at     time.Time                 `json:"updated_at"`
+	Id                    uuid.UUID                 `json:"id"`
+	Code                  string                    `json:"code"`
+	Class                 ConfigClass               `json:"class"`
+	Name                  string                    `json:"name"`
+	Resources             []Resources               `json:"resources"`
+	Version_number        string                    `json:"version_number"`
+	State                 ConfigState               `json:"state"`
+	Revisions             []RevisionItem            `json:"revisions"`
+	ContainerRepositories []ContainerRepositoryItem `json:"containerRepositories"`
+	ApiKeys               []ApiKeyItem              `json:"apiKeys"`
+	Created_at            time.Time                 `json:"created_at"`
+	Updated_at            time.Time                 `json:"updated_at"`
 }
 
 // GetId returns Config.Id, and is useful for accessing the field via an interface.
@@ -56,13 +91,22 @@ func (v *Config) GetClass() ConfigClass { return v.Class }
 func (v *Config) GetName() string { return v.Name }
 
 // GetResources returns Config.Resources, and is useful for accessing the field via an interface.
-func (v *Config) GetResources() []ConfigResourcesResource { return v.Resources }
+func (v *Config) GetResources() []Resources { return v.Resources }
 
 // GetVersion_number returns Config.Version_number, and is useful for accessing the field via an interface.
 func (v *Config) GetVersion_number() string { return v.Version_number }
 
 // GetState returns Config.State, and is useful for accessing the field via an interface.
 func (v *Config) GetState() ConfigState { return v.State }
+
+// GetRevisions returns Config.Revisions, and is useful for accessing the field via an interface.
+func (v *Config) GetRevisions() []RevisionItem { return v.Revisions }
+
+// GetContainerRepositories returns Config.ContainerRepositories, and is useful for accessing the field via an interface.
+func (v *Config) GetContainerRepositories() []ContainerRepositoryItem { return v.ContainerRepositories }
+
+// GetApiKeys returns Config.ApiKeys, and is useful for accessing the field via an interface.
+func (v *Config) GetApiKeys() []ApiKeyItem { return v.ApiKeys }
 
 // GetCreated_at returns Config.Created_at, and is useful for accessing the field via an interface.
 func (v *Config) GetCreated_at() time.Time { return v.Created_at }
@@ -78,29 +122,37 @@ const (
 	ConfigClassIntegration ConfigClass = "integration"
 )
 
-// ConfigResourcesResource includes the requested fields of the GraphQL type Resource.
-type ConfigResourcesResource struct {
-	Code         string                 `json:"code"`
-	Type         ResourceType           `json:"type"`
-	Data         map[string]interface{} `json:"data"`
-	References   []string               `json:"references"`
-	Allow_access []string               `json:"allow_access"`
+// ConfigItem includes the requested fields of the GraphQL type Config.
+type ConfigItem struct {
+	Id         uuid.UUID   `json:"id"`
+	Code       string      `json:"code"`
+	Class      ConfigClass `json:"class"`
+	Name       string      `json:"name"`
+	State      ConfigState `json:"state"`
+	Created_at time.Time   `json:"created_at"`
+	Updated_at time.Time   `json:"updated_at"`
 }
 
-// GetCode returns ConfigResourcesResource.Code, and is useful for accessing the field via an interface.
-func (v *ConfigResourcesResource) GetCode() string { return v.Code }
+// GetId returns ConfigItem.Id, and is useful for accessing the field via an interface.
+func (v *ConfigItem) GetId() uuid.UUID { return v.Id }
 
-// GetType returns ConfigResourcesResource.Type, and is useful for accessing the field via an interface.
-func (v *ConfigResourcesResource) GetType() ResourceType { return v.Type }
+// GetCode returns ConfigItem.Code, and is useful for accessing the field via an interface.
+func (v *ConfigItem) GetCode() string { return v.Code }
 
-// GetData returns ConfigResourcesResource.Data, and is useful for accessing the field via an interface.
-func (v *ConfigResourcesResource) GetData() map[string]interface{} { return v.Data }
+// GetClass returns ConfigItem.Class, and is useful for accessing the field via an interface.
+func (v *ConfigItem) GetClass() ConfigClass { return v.Class }
 
-// GetReferences returns ConfigResourcesResource.References, and is useful for accessing the field via an interface.
-func (v *ConfigResourcesResource) GetReferences() []string { return v.References }
+// GetName returns ConfigItem.Name, and is useful for accessing the field via an interface.
+func (v *ConfigItem) GetName() string { return v.Name }
 
-// GetAllow_access returns ConfigResourcesResource.Allow_access, and is useful for accessing the field via an interface.
-func (v *ConfigResourcesResource) GetAllow_access() []string { return v.Allow_access }
+// GetState returns ConfigItem.State, and is useful for accessing the field via an interface.
+func (v *ConfigItem) GetState() ConfigState { return v.State }
+
+// GetCreated_at returns ConfigItem.Created_at, and is useful for accessing the field via an interface.
+func (v *ConfigItem) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns ConfigItem.Updated_at, and is useful for accessing the field via an interface.
+func (v *ConfigItem) GetUpdated_at() time.Time { return v.Updated_at }
 
 type ConfigState string
 
@@ -111,205 +163,81 @@ const (
 	ConfigStateDeleted ConfigState = "deleted"
 )
 
-// ConfigWithEnvironments includes the requested fields of the GraphQL type Config.
-type ConfigWithEnvironments struct {
-	Id             uuid.UUID                                 `json:"id"`
-	Code           string                                    `json:"code"`
-	Class          ConfigClass                               `json:"class"`
-	Name           string                                    `json:"name"`
-	Resources      []ConfigWithEnvironmentsResourcesResource `json:"resources"`
-	Version_number string                                    `json:"version_number"`
-	State          ConfigState                               `json:"state"`
-	Created_at     time.Time                                 `json:"created_at"`
-	Updated_at     time.Time                                 `json:"updated_at"`
+// ContainerRepository includes the requested fields of the GraphQL type ContainerRepository.
+type ContainerRepository struct {
+	Id         uuid.UUID                `json:"id"`
+	Code       string                   `json:"code"`
+	State      StackState               `json:"state"`
+	Stack      ContainerRepositoryStack `json:"stack"`
+	Created_at time.Time                `json:"created_at"`
+	Updated_at time.Time                `json:"updated_at"`
 }
 
-// GetId returns ConfigWithEnvironments.Id, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetId() uuid.UUID { return v.Id }
+// GetId returns ContainerRepository.Id, and is useful for accessing the field via an interface.
+func (v *ContainerRepository) GetId() uuid.UUID { return v.Id }
 
-// GetCode returns ConfigWithEnvironments.Code, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetCode() string { return v.Code }
+// GetCode returns ContainerRepository.Code, and is useful for accessing the field via an interface.
+func (v *ContainerRepository) GetCode() string { return v.Code }
 
-// GetClass returns ConfigWithEnvironments.Class, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetClass() ConfigClass { return v.Class }
+// GetState returns ContainerRepository.State, and is useful for accessing the field via an interface.
+func (v *ContainerRepository) GetState() StackState { return v.State }
 
-// GetName returns ConfigWithEnvironments.Name, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetName() string { return v.Name }
+// GetStack returns ContainerRepository.Stack, and is useful for accessing the field via an interface.
+func (v *ContainerRepository) GetStack() ContainerRepositoryStack { return v.Stack }
 
-// GetResources returns ConfigWithEnvironments.Resources, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetResources() []ConfigWithEnvironmentsResourcesResource {
-	return v.Resources
-}
+// GetCreated_at returns ContainerRepository.Created_at, and is useful for accessing the field via an interface.
+func (v *ContainerRepository) GetCreated_at() time.Time { return v.Created_at }
 
-// GetVersion_number returns ConfigWithEnvironments.Version_number, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetVersion_number() string { return v.Version_number }
+// GetUpdated_at returns ContainerRepository.Updated_at, and is useful for accessing the field via an interface.
+func (v *ContainerRepository) GetUpdated_at() time.Time { return v.Updated_at }
 
-// GetState returns ConfigWithEnvironments.State, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetState() ConfigState { return v.State }
-
-// GetCreated_at returns ConfigWithEnvironments.Created_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetCreated_at() time.Time { return v.Created_at }
-
-// GetUpdated_at returns ConfigWithEnvironments.Updated_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironments) GetUpdated_at() time.Time { return v.Updated_at }
-
-// ConfigWithEnvironmentsResourcesResource includes the requested fields of the GraphQL type Resource.
-type ConfigWithEnvironmentsResourcesResource struct {
-	Code         string                 `json:"code"`
-	Type         ResourceType           `json:"type"`
-	Data         map[string]interface{} `json:"data"`
-	References   []string               `json:"references"`
-	Allow_access []string               `json:"allow_access"`
-}
-
-// GetCode returns ConfigWithEnvironmentsResourcesResource.Code, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironmentsResourcesResource) GetCode() string { return v.Code }
-
-// GetType returns ConfigWithEnvironmentsResourcesResource.Type, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironmentsResourcesResource) GetType() ResourceType { return v.Type }
-
-// GetData returns ConfigWithEnvironmentsResourcesResource.Data, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironmentsResourcesResource) GetData() map[string]interface{} { return v.Data }
-
-// GetReferences returns ConfigWithEnvironmentsResourcesResource.References, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironmentsResourcesResource) GetReferences() []string { return v.References }
-
-// GetAllow_access returns ConfigWithEnvironmentsResourcesResource.Allow_access, and is useful for accessing the field via an interface.
-func (v *ConfigWithEnvironmentsResourcesResource) GetAllow_access() []string { return v.Allow_access }
-
-// ConfigWithRevisions includes the requested fields of the GraphQL type Config.
-type ConfigWithRevisions struct {
-	Id                    uuid.UUID                                                     `json:"id"`
-	Code                  string                                                        `json:"code"`
-	Class                 ConfigClass                                                   `json:"class"`
-	Name                  string                                                        `json:"name"`
-	Resources             []ConfigWithRevisionsResourcesResource                        `json:"resources"`
-	Version_number        string                                                        `json:"version_number"`
-	State                 ConfigState                                                   `json:"state"`
-	Revisions             []ConfigWithRevisionsRevisionsConfigRevision                  `json:"revisions"`
-	ContainerRepositories []ConfigWithRevisionsContainerRepositoriesContainerRepository `json:"containerRepositories"`
-	Created_at            time.Time                                                     `json:"created_at"`
-	Updated_at            time.Time                                                     `json:"updated_at"`
-}
-
-// GetId returns ConfigWithRevisions.Id, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetId() uuid.UUID { return v.Id }
-
-// GetCode returns ConfigWithRevisions.Code, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetCode() string { return v.Code }
-
-// GetClass returns ConfigWithRevisions.Class, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetClass() ConfigClass { return v.Class }
-
-// GetName returns ConfigWithRevisions.Name, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetName() string { return v.Name }
-
-// GetResources returns ConfigWithRevisions.Resources, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetResources() []ConfigWithRevisionsResourcesResource {
-	return v.Resources
-}
-
-// GetVersion_number returns ConfigWithRevisions.Version_number, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetVersion_number() string { return v.Version_number }
-
-// GetState returns ConfigWithRevisions.State, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetState() ConfigState { return v.State }
-
-// GetRevisions returns ConfigWithRevisions.Revisions, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetRevisions() []ConfigWithRevisionsRevisionsConfigRevision {
-	return v.Revisions
-}
-
-// GetContainerRepositories returns ConfigWithRevisions.ContainerRepositories, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetContainerRepositories() []ConfigWithRevisionsContainerRepositoriesContainerRepository {
-	return v.ContainerRepositories
-}
-
-// GetCreated_at returns ConfigWithRevisions.Created_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetCreated_at() time.Time { return v.Created_at }
-
-// GetUpdated_at returns ConfigWithRevisions.Updated_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisions) GetUpdated_at() time.Time { return v.Updated_at }
-
-// ConfigWithRevisionsContainerRepositoriesContainerRepository includes the requested fields of the GraphQL type ContainerRepository.
-type ConfigWithRevisionsContainerRepositoriesContainerRepository struct {
+// ContainerRepositoryItem includes the requested fields of the GraphQL type ContainerRepository.
+type ContainerRepositoryItem struct {
 	Id         uuid.UUID  `json:"id"`
-	State      StackState `json:"state"`
 	Code       string     `json:"code"`
+	State      StackState `json:"state"`
 	Created_at time.Time  `json:"created_at"`
 	Updated_at time.Time  `json:"updated_at"`
 }
 
-// GetId returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Id, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetId() uuid.UUID { return v.Id }
+// GetId returns ContainerRepositoryItem.Id, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItem) GetId() uuid.UUID { return v.Id }
 
-// GetState returns ConfigWithRevisionsContainerRepositoriesContainerRepository.State, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetState() StackState {
-	return v.State
+// GetCode returns ContainerRepositoryItem.Code, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItem) GetCode() string { return v.Code }
+
+// GetState returns ContainerRepositoryItem.State, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItem) GetState() StackState { return v.State }
+
+// GetCreated_at returns ContainerRepositoryItem.Created_at, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItem) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns ContainerRepositoryItem.Updated_at, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItem) GetUpdated_at() time.Time { return v.Updated_at }
+
+// ContainerRepositoryStack includes the requested fields of the GraphQL type Stack.
+type ContainerRepositoryStack struct {
+	Id      uuid.UUID         `json:"id"`
+	State   StackState        `json:"state"`
+	Outputs []StackOutputItem `json:"outputs"`
 }
 
-// GetCode returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Code, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetCode() string { return v.Code }
+// GetId returns ContainerRepositoryStack.Id, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryStack) GetId() uuid.UUID { return v.Id }
 
-// GetCreated_at returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Created_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetCreated_at() time.Time {
-	return v.Created_at
+// GetState returns ContainerRepositoryStack.State, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryStack) GetState() StackState { return v.State }
+
+// GetOutputs returns ContainerRepositoryStack.Outputs, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryStack) GetOutputs() []StackOutputItem { return v.Outputs }
+
+// CreateApiKeyResponse is returned by CreateApiKey on success.
+type CreateApiKeyResponse struct {
+	CreateApiKey uuid.UUID `json:"createApiKey"`
 }
 
-// GetUpdated_at returns ConfigWithRevisionsContainerRepositoriesContainerRepository.Updated_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsContainerRepositoriesContainerRepository) GetUpdated_at() time.Time {
-	return v.Updated_at
-}
-
-// ConfigWithRevisionsResourcesResource includes the requested fields of the GraphQL type Resource.
-type ConfigWithRevisionsResourcesResource struct {
-	Code         string                 `json:"code"`
-	Type         ResourceType           `json:"type"`
-	Data         map[string]interface{} `json:"data"`
-	References   []string               `json:"references"`
-	Allow_access []string               `json:"allow_access"`
-}
-
-// GetCode returns ConfigWithRevisionsResourcesResource.Code, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsResourcesResource) GetCode() string { return v.Code }
-
-// GetType returns ConfigWithRevisionsResourcesResource.Type, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsResourcesResource) GetType() ResourceType { return v.Type }
-
-// GetData returns ConfigWithRevisionsResourcesResource.Data, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsResourcesResource) GetData() map[string]interface{} { return v.Data }
-
-// GetReferences returns ConfigWithRevisionsResourcesResource.References, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsResourcesResource) GetReferences() []string { return v.References }
-
-// GetAllow_access returns ConfigWithRevisionsResourcesResource.Allow_access, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsResourcesResource) GetAllow_access() []string { return v.Allow_access }
-
-// ConfigWithRevisionsRevisionsConfigRevision includes the requested fields of the GraphQL type ConfigRevision.
-type ConfigWithRevisionsRevisionsConfigRevision struct {
-	Id             uuid.UUID   `json:"id"`
-	Version_number string      `json:"version_number"`
-	State          ConfigState `json:"state"`
-	Created_at     time.Time   `json:"created_at"`
-	Updated_at     time.Time   `json:"updated_at"`
-}
-
-// GetId returns ConfigWithRevisionsRevisionsConfigRevision.Id, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsRevisionsConfigRevision) GetId() uuid.UUID { return v.Id }
-
-// GetVersion_number returns ConfigWithRevisionsRevisionsConfigRevision.Version_number, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsRevisionsConfigRevision) GetVersion_number() string {
-	return v.Version_number
-}
-
-// GetState returns ConfigWithRevisionsRevisionsConfigRevision.State, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsRevisionsConfigRevision) GetState() ConfigState { return v.State }
-
-// GetCreated_at returns ConfigWithRevisionsRevisionsConfigRevision.Created_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsRevisionsConfigRevision) GetCreated_at() time.Time { return v.Created_at }
-
-// GetUpdated_at returns ConfigWithRevisionsRevisionsConfigRevision.Updated_at, and is useful for accessing the field via an interface.
-func (v *ConfigWithRevisionsRevisionsConfigRevision) GetUpdated_at() time.Time { return v.Updated_at }
+// GetCreateApiKey returns CreateApiKeyResponse.CreateApiKey, and is useful for accessing the field via an interface.
+func (v *CreateApiKeyResponse) GetCreateApiKey() uuid.UUID { return v.CreateApiKey }
 
 // CreateContainerRepositoryResponse is returned by CreateContainerRepository on success.
 type CreateContainerRepositoryResponse struct {
@@ -320,6 +248,14 @@ type CreateContainerRepositoryResponse struct {
 func (v *CreateContainerRepositoryResponse) GetCreateContainerRepository() uuid.UUID {
 	return v.CreateContainerRepository
 }
+
+// DeleteApiKeyResponse is returned by DeleteApiKey on success.
+type DeleteApiKeyResponse struct {
+	DeleteApiKey uuid.UUID `json:"deleteApiKey"`
+}
+
+// GetDeleteApiKey returns DeleteApiKeyResponse.DeleteApiKey, and is useful for accessing the field via an interface.
+func (v *DeleteApiKeyResponse) GetDeleteApiKey() uuid.UUID { return v.DeleteApiKey }
 
 // DeleteContainerRepositoryResponse is returned by DeleteContainerRepository on success.
 type DeleteContainerRepositoryResponse struct {
@@ -373,31 +309,23 @@ const (
 
 // GetConfigResponse is returned by GetConfig on success.
 type GetConfigResponse struct {
-	Config ConfigWithRevisions `json:"config"`
+	Config Config `json:"config"`
 }
 
 // GetConfig returns GetConfigResponse.Config, and is useful for accessing the field via an interface.
-func (v *GetConfigResponse) GetConfig() ConfigWithRevisions { return v.Config }
-
-// GetConfigRevisionResponse is returned by GetConfigRevision on success.
-type GetConfigRevisionResponse struct {
-	Config ConfigWithEnvironments `json:"config"`
-}
-
-// GetConfig returns GetConfigRevisionResponse.Config, and is useful for accessing the field via an interface.
-func (v *GetConfigRevisionResponse) GetConfig() ConfigWithEnvironments { return v.Config }
+func (v *GetConfigResponse) GetConfig() Config { return v.Config }
 
 // GetConfigsConfigsPagedConfigsOutput includes the requested fields of the GraphQL type PagedConfigsOutput.
 type GetConfigsConfigsPagedConfigsOutput struct {
-	Items       []Config `json:"items"`
-	Page_size   int      `json:"page_size"`
-	Page        int      `json:"page"`
-	Total_items int      `json:"total_items"`
-	Total_pages int      `json:"total_pages"`
+	Items       []ConfigItem `json:"items"`
+	Page_size   int          `json:"page_size"`
+	Page        int          `json:"page"`
+	Total_items int          `json:"total_items"`
+	Total_pages int          `json:"total_pages"`
 }
 
 // GetItems returns GetConfigsConfigsPagedConfigsOutput.Items, and is useful for accessing the field via an interface.
-func (v *GetConfigsConfigsPagedConfigsOutput) GetItems() []Config { return v.Items }
+func (v *GetConfigsConfigsPagedConfigsOutput) GetItems() []ConfigItem { return v.Items }
 
 // GetPage_size returns GetConfigsConfigsPagedConfigsOutput.Page_size, and is useful for accessing the field via an interface.
 func (v *GetConfigsConfigsPagedConfigsOutput) GetPage_size() int { return v.Page_size }
@@ -418,6 +346,16 @@ type GetConfigsResponse struct {
 
 // GetConfigs returns GetConfigsResponse.Configs, and is useful for accessing the field via an interface.
 func (v *GetConfigsResponse) GetConfigs() GetConfigsConfigsPagedConfigsOutput { return v.Configs }
+
+// GetContainerRegistryResponse is returned by GetContainerRegistry on success.
+type GetContainerRegistryResponse struct {
+	ContainerRepository ContainerRepository `json:"containerRepository"`
+}
+
+// GetContainerRepository returns GetContainerRegistryResponse.ContainerRepository, and is useful for accessing the field via an interface.
+func (v *GetContainerRegistryResponse) GetContainerRepository() ContainerRepository {
+	return v.ContainerRepository
+}
 
 // GetEnvironmentsEnvironmentsPagedEnvironmentsOutput includes the requested fields of the GraphQL type PagedEnvironmentsOutput.
 type GetEnvironmentsEnvironmentsPagedEnvironmentsOutput struct {
@@ -568,6 +506,66 @@ const (
 	ResourceTypeQueue     ResourceType = "queue"
 )
 
+// Resources includes the requested fields of the GraphQL type Resource.
+type Resources struct {
+	Code         string                 `json:"code"`
+	Type         ResourceType           `json:"type"`
+	Data         map[string]interface{} `json:"data"`
+	References   []string               `json:"references"`
+	Allow_access []string               `json:"allow_access"`
+}
+
+// GetCode returns Resources.Code, and is useful for accessing the field via an interface.
+func (v *Resources) GetCode() string { return v.Code }
+
+// GetType returns Resources.Type, and is useful for accessing the field via an interface.
+func (v *Resources) GetType() ResourceType { return v.Type }
+
+// GetData returns Resources.Data, and is useful for accessing the field via an interface.
+func (v *Resources) GetData() map[string]interface{} { return v.Data }
+
+// GetReferences returns Resources.References, and is useful for accessing the field via an interface.
+func (v *Resources) GetReferences() []string { return v.References }
+
+// GetAllow_access returns Resources.Allow_access, and is useful for accessing the field via an interface.
+func (v *Resources) GetAllow_access() []string { return v.Allow_access }
+
+// RevisionItem includes the requested fields of the GraphQL type ConfigRevision.
+type RevisionItem struct {
+	Id             uuid.UUID   `json:"id"`
+	Version_number string      `json:"version_number"`
+	State          ConfigState `json:"state"`
+	Created_at     time.Time   `json:"created_at"`
+	Updated_at     time.Time   `json:"updated_at"`
+}
+
+// GetId returns RevisionItem.Id, and is useful for accessing the field via an interface.
+func (v *RevisionItem) GetId() uuid.UUID { return v.Id }
+
+// GetVersion_number returns RevisionItem.Version_number, and is useful for accessing the field via an interface.
+func (v *RevisionItem) GetVersion_number() string { return v.Version_number }
+
+// GetState returns RevisionItem.State, and is useful for accessing the field via an interface.
+func (v *RevisionItem) GetState() ConfigState { return v.State }
+
+// GetCreated_at returns RevisionItem.Created_at, and is useful for accessing the field via an interface.
+func (v *RevisionItem) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns RevisionItem.Updated_at, and is useful for accessing the field via an interface.
+func (v *RevisionItem) GetUpdated_at() time.Time { return v.Updated_at }
+
+// StackOutputItem includes the requested fields of the GraphQL type StackOutput.
+type StackOutputItem struct {
+	Output_key   string `json:"output_key"`
+	Output_value string `json:"output_value"`
+}
+
+// GetOutput_key returns StackOutputItem.Output_key, and is useful for accessing the field via an interface.
+func (v *StackOutputItem) GetOutput_key() string { return v.Output_key }
+
+// GetOutput_value returns StackOutputItem.Output_value, and is useful for accessing the field via an interface.
+func (v *StackOutputItem) GetOutput_value() string { return v.Output_value }
+
 type StackState string
 
 const (
@@ -580,6 +578,38 @@ const (
 	StackStateDeleting StackState = "deleting"
 	StackStateDeleted  StackState = "deleted"
 )
+
+// UpdateApiKeyResponse is returned by UpdateApiKey on success.
+type UpdateApiKeyResponse struct {
+	UpdateApiKey uuid.UUID `json:"updateApiKey"`
+}
+
+// GetUpdateApiKey returns UpdateApiKeyResponse.UpdateApiKey, and is useful for accessing the field via an interface.
+func (v *UpdateApiKeyResponse) GetUpdateApiKey() uuid.UUID { return v.UpdateApiKey }
+
+// __CreateApiKeyInput is used internally by genqlient
+type __CreateApiKeyInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+	ConfigId       uuid.UUID `json:"configId"`
+	Code           string    `json:"code"`
+	Key            string    `json:"key"`
+}
+
+// GetOrganisationId returns __CreateApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__CreateApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __CreateApiKeyInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__CreateApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// GetConfigId returns __CreateApiKeyInput.ConfigId, and is useful for accessing the field via an interface.
+func (v *__CreateApiKeyInput) GetConfigId() uuid.UUID { return v.ConfigId }
+
+// GetCode returns __CreateApiKeyInput.Code, and is useful for accessing the field via an interface.
+func (v *__CreateApiKeyInput) GetCode() string { return v.Code }
+
+// GetKey returns __CreateApiKeyInput.Key, and is useful for accessing the field via an interface.
+func (v *__CreateApiKeyInput) GetKey() string { return v.Key }
 
 // __CreateContainerRepositoryInput is used internally by genqlient
 type __CreateContainerRepositoryInput struct {
@@ -600,6 +630,18 @@ func (v *__CreateContainerRepositoryInput) GetConfigId() uuid.UUID { return v.Co
 
 // GetCode returns __CreateContainerRepositoryInput.Code, and is useful for accessing the field via an interface.
 func (v *__CreateContainerRepositoryInput) GetCode() string { return v.Code }
+
+// __DeleteApiKeyInput is used internally by genqlient
+type __DeleteApiKeyInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+}
+
+// GetOrganisationId returns __DeleteApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__DeleteApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __DeleteApiKeyInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__DeleteApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
 // __DeleteContainerRepositoryInput is used internally by genqlient
 type __DeleteContainerRepositoryInput struct {
@@ -625,18 +667,6 @@ func (v *__GetConfigInput) GetOrganisationId() uuid.UUID { return v.Organisation
 // GetCode returns __GetConfigInput.Code, and is useful for accessing the field via an interface.
 func (v *__GetConfigInput) GetCode() string { return v.Code }
 
-// __GetConfigRevisionInput is used internally by genqlient
-type __GetConfigRevisionInput struct {
-	OrganisationId uuid.UUID `json:"organisationId"`
-	Code           string    `json:"code"`
-}
-
-// GetOrganisationId returns __GetConfigRevisionInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__GetConfigRevisionInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
-
-// GetCode returns __GetConfigRevisionInput.Code, and is useful for accessing the field via an interface.
-func (v *__GetConfigRevisionInput) GetCode() string { return v.Code }
-
 // __GetConfigsInput is used internally by genqlient
 type __GetConfigsInput struct {
 	OrganisationId uuid.UUID   `json:"organisationId"`
@@ -656,6 +686,18 @@ func (v *__GetConfigsInput) GetPage() int { return v.Page }
 
 // GetPageSize returns __GetConfigsInput.PageSize, and is useful for accessing the field via an interface.
 func (v *__GetConfigsInput) GetPageSize() int { return v.PageSize }
+
+// __GetContainerRegistryInput is used internally by genqlient
+type __GetContainerRegistryInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+}
+
+// GetOrganisationId returns __GetContainerRegistryInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__GetContainerRegistryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __GetContainerRegistryInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__GetContainerRegistryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
 // __GetEnvironmentsInput is used internally by genqlient
 type __GetEnvironmentsInput struct {
@@ -733,6 +775,67 @@ func (v *__NewDeploymentInput) GetConfigRevisionId() uuid.UUID { return v.Config
 // GetRevisionId returns __NewDeploymentInput.RevisionId, and is useful for accessing the field via an interface.
 func (v *__NewDeploymentInput) GetRevisionId() uuid.UUID { return v.RevisionId }
 
+// __UpdateApiKeyInput is used internally by genqlient
+type __UpdateApiKeyInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+	Code           string    `json:"code"`
+	Key            string    `json:"key"`
+}
+
+// GetOrganisationId returns __UpdateApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__UpdateApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __UpdateApiKeyInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__UpdateApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// GetCode returns __UpdateApiKeyInput.Code, and is useful for accessing the field via an interface.
+func (v *__UpdateApiKeyInput) GetCode() string { return v.Code }
+
+// GetKey returns __UpdateApiKeyInput.Key, and is useful for accessing the field via an interface.
+func (v *__UpdateApiKeyInput) GetKey() string { return v.Key }
+
+// The query or mutation executed by CreateApiKey.
+const CreateApiKey_Operation = `
+mutation CreateApiKey ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!, $key: String!) {
+	createApiKey(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,config_id:$configId,code:$code,key:$key})
+}
+`
+
+func CreateApiKey(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+	configId uuid.UUID,
+	code string,
+	key string,
+) (*CreateApiKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "CreateApiKey",
+		Query:  CreateApiKey_Operation,
+		Variables: &__CreateApiKeyInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+			ConfigId:       configId,
+			Code:           code,
+			Key:            key,
+		},
+	}
+	var err error
+
+	var data CreateApiKeyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by CreateContainerRepository.
 const CreateContainerRepository_Operation = `
 mutation CreateContainerRepository ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
@@ -761,6 +864,41 @@ func CreateContainerRepository(
 	var err error
 
 	var data CreateContainerRepositoryResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by DeleteApiKey.
+const DeleteApiKey_Operation = `
+mutation DeleteApiKey ($organisationId: UUID!, $aggregateId: UUID!) {
+	deleteApiKey(input: {organisation_id:$organisationId,id:$aggregateId})
+}
+`
+
+func DeleteApiKey(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+) (*DeleteApiKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "DeleteApiKey",
+		Query:  DeleteApiKey_Operation,
+		Variables: &__DeleteApiKeyInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+		},
+	}
+	var err error
+
+	var data DeleteApiKeyResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -833,10 +971,19 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 		}
 		containerRepositories {
 			id
+			code
+			state
+			created_at
+			updated_at
+		}
+		apiKeys {
+			id
 			state
 			code
 			created_at
 			updated_at
+			deleted_at
+			authed_at
 		}
 		created_at
 		updated_at
@@ -872,57 +1019,6 @@ func GetConfig(
 	return &data, err
 }
 
-// The query or mutation executed by GetConfigRevision.
-const GetConfigRevision_Operation = `
-query GetConfigRevision ($organisationId: UUID!, $code: String!) {
-	config(input: {organisation_id:$organisationId,code:$code}) {
-		id
-		code
-		class
-		name
-		resources {
-			code
-			type
-			data
-			references
-			allow_access
-		}
-		version_number
-		state
-		created_at
-		updated_at
-	}
-}
-`
-
-func GetConfigRevision(
-	ctx context.Context,
-	client graphql.Client,
-	organisationId uuid.UUID,
-	code string,
-) (*GetConfigRevisionResponse, error) {
-	req := &graphql.Request{
-		OpName: "GetConfigRevision",
-		Query:  GetConfigRevision_Operation,
-		Variables: &__GetConfigRevisionInput{
-			OrganisationId: organisationId,
-			Code:           code,
-		},
-	}
-	var err error
-
-	var data GetConfigRevisionResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
 // The query or mutation executed by GetConfigs.
 const GetConfigs_Operation = `
 query GetConfigs ($organisationId: UUID!, $class: ConfigClass!, $page: Int, $pageSize: Int) {
@@ -932,14 +1028,6 @@ query GetConfigs ($organisationId: UUID!, $class: ConfigClass!, $page: Int, $pag
 			code
 			class
 			name
-			resources {
-				code
-				type
-				data
-				references
-				allow_access
-			}
-			version_number
 			state
 			created_at
 			updated_at
@@ -973,6 +1061,55 @@ func GetConfigs(
 	var err error
 
 	var data GetConfigsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by GetContainerRegistry.
+const GetContainerRegistry_Operation = `
+query GetContainerRegistry ($organisationId: UUID!, $aggregateId: UUID!) {
+	containerRepository(input: {organisation_id:$organisationId,id:$aggregateId}) {
+		id
+		code
+		state
+		stack {
+			id
+			state
+			outputs {
+				output_key
+				output_value
+			}
+		}
+		created_at
+		updated_at
+	}
+}
+`
+
+func GetContainerRegistry(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+) (*GetContainerRegistryResponse, error) {
+	req := &graphql.Request{
+		OpName: "GetContainerRegistry",
+		Query:  GetContainerRegistry_Operation,
+		Variables: &__GetContainerRegistryInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+		},
+	}
+	var err error
+
+	var data GetContainerRegistryResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -1160,6 +1297,45 @@ func NewDeployment(
 	var err error
 
 	var data NewDeploymentResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by UpdateApiKey.
+const UpdateApiKey_Operation = `
+mutation UpdateApiKey ($organisationId: UUID!, $aggregateId: UUID!, $code: String!, $key: String!) {
+	updateApiKey(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,code:$code,key:$key})
+}
+`
+
+func UpdateApiKey(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+	code string,
+	key string,
+) (*UpdateApiKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "UpdateApiKey",
+		Query:  UpdateApiKey_Operation,
+		Variables: &__UpdateApiKeyInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+			Code:           code,
+			Key:            key,
+		},
+	}
+	var err error
+
+	var data UpdateApiKeyResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

@@ -72,10 +72,10 @@ func Get(ctx context.Context, class queries.ConfigClass, code string) error {
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
 			Headers("Code", "Name", "State", "Version", "Revisions", "Registries")
 
-		revisions := util.JoinStrings(config.Revisions, func(r queries.ConfigWithRevisionsRevisionsConfigRevision) string {
+		revisions := util.JoinStrings(config.Revisions, func(r queries.RevisionItem) string {
 			return r.Version_number
 		}, ", ")
-		registries := util.JoinStrings(config.ContainerRepositories, func(r queries.ConfigWithRevisionsContainerRepositoriesContainerRepository) string {
+		registries := util.JoinStrings(config.ContainerRepositories, func(r queries.ContainerRepositoryItem) string {
 			return r.Code
 		}, ", ")
 

@@ -1,41 +1,42 @@
-package containerrepository
+package keys
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+	"github.com/contextcloud/goutils/xstring"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
 
-type AuthConfig struct {
+type CreateConfig struct {
 }
 
-func AuthCommand() *cobra.Command {
+func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "auth [compute] [code]",
-		Short: "Will authenticate a container registry for a given compute repository",
+		Use:   "create [compute|storage|integration] [code]",
+		Short: "Will create an api key for a given compute, storage or integration",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
 			code := args[1]
 
 			ctx := cmd.Context()
-			return Auth(ctx, configCode, code)
+			return Create(ctx, configCode, code)
 		},
 		ValidArgs: []string{"compute", "code"},
 	}
 	return cmd
 }
 
-func Auth(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[AuthConfig](ctx, viper.GetViper())
+func Create(ctx context.Context, computeCode string, code string) error {
+	cfg, err := config.New[CreateConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -60,16 +61,26 @@ func Auth(ctx context.Context, computeCode string, code string) error {
 		return nil
 	}
 
-	repository, err := GetRepository(config.ContainerRepositories, code)
+	key, err := xstring.GenerateString(22, 4, 4, false, false)
 	if err != nil {
-		cfg.WriteStderr("failed to get container repository")
+		cfg.WriteStderr("failed to generate key")
 		return nil
 	}
 
-	out, err := q.LoginContainerRepository(ctx, organisation.Id, repository.Id)
+	out, err := q.CreateApiKey(ctx, organisation.Id, config.Id, code, key)
 	if err != nil {
-		cfg.WriteStderr("failed to authenticate container registry")
+		cfg.WriteStderr("failed to create api key")
 		return nil
+	}
+
+	result := struct {
+		Id   uuid.UUID `json:"id"`
+		Code string    `json:"code"`
+		Key  string    `json:"key"`
+	}{
+		Id:   out,
+		Code: code,
+		Key:  key,
 	}
 
 	switch cfg.Global.Format {
@@ -77,27 +88,17 @@ func Auth(ctx context.Context, computeCode string, code string) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Registry", "Repository", "Username", "Password")
+			Headers("Id", "Code", "Key")
 
-		t.Row(out.Registry_url, out.Repository_name, out.Username, out.Password)
+		t.Row(result.Id.String(), result.Code, result.Key)
 
 		cfg.WriteStdout(t.Render())
 	case "json":
-		out, _ := json.Marshal(out)
+		out, _ := json.Marshal(result)
 		cfg.WriteStdout(string(out))
 	case "yaml":
-		out, _ := yaml.Marshal(out)
+		out, _ := yaml.Marshal(result)
 		cfg.WriteStdout(string(out))
 	}
 	return nil
-}
-
-func GetRepository(repositories []queries.ConfigWithRevisionsContainerRepositoriesContainerRepository, code string) (*queries.ConfigWithRevisionsContainerRepositoriesContainerRepository, error) {
-	for _, repository := range repositories {
-		if repository.Code == code {
-			return &repository, nil
-		}
-	}
-
-	return nil, fmt.Errorf("repository not found")
 }

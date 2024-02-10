@@ -118,7 +118,7 @@ func GetEnvironment(ctx context.Context, q queries.Queries, organisationId uuid.
 	return nil, fmt.Errorf("environment not found")
 }
 
-func GetConfigRevision(revisions []queries.ConfigWithRevisionsRevisionsConfigRevision, versionNumber string) (*queries.ConfigWithRevisionsRevisionsConfigRevision, error) {
+func GetConfigRevision(revisions []queries.RevisionItem, versionNumber string) (*queries.RevisionItem, error) {
 	for _, revision := range revisions {
 		if revision.Version_number == versionNumber {
 			return &revision, nil

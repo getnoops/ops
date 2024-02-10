@@ -11,6 +11,7 @@ import (
 	"github.com/getnoops/ops/cmd/containerrepository"
 	"github.com/getnoops/ops/cmd/deploy"
 	"github.com/getnoops/ops/cmd/envs"
+	"github.com/getnoops/ops/cmd/keys"
 	"github.com/getnoops/ops/cmd/login"
 	"github.com/getnoops/ops/cmd/orgs"
 	"github.com/getnoops/ops/cmd/settings"
@@ -58,6 +59,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 		configs.New("Storage", queries.ConfigClassStorage),
 		configs.New("Integration", queries.ConfigClassIntegration),
 		containerrepository.New(),
+		keys.New(),
 		deploy.New(),
 	)
 	cmd.InitDefaultVersionFlag()

@@ -2,11 +2,13 @@ package containerrepository
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
@@ -56,15 +58,24 @@ func List(ctx context.Context, configCode string) error {
 		return err
 	}
 
-	t := table.New().
-		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-		Headers("Code", "State")
+	switch cfg.Global.Format {
+	case "table":
+		t := table.New().
+			Border(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+			Headers("Code", "State")
 
-	for _, item := range out.ContainerRepositories {
-		t.Row(item.Code, string(item.State))
+		for _, item := range out.ContainerRepositories {
+			t.Row(item.Code, string(item.State))
+		}
+
+		cfg.WriteStdout(t.Render())
+	case "json":
+		out, _ := json.Marshal(out.ContainerRepositories)
+		cfg.WriteStdout(string(out))
+	case "yaml":
+		out, _ := yaml.Marshal(out.ContainerRepositories)
+		cfg.WriteStdout(string(out))
 	}
-
-	cfg.WriteStdout(t.Render())
 	return nil
 }
