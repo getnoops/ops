@@ -23,9 +23,10 @@ type Queries interface {
 	DeleteContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error)
 	LoginContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*AuthContainerRepository, error)
 
-	CreateApiKey(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string, key string) (uuid.UUID, error)
-	UpdateApiKey(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, code string, key string) (uuid.UUID, error)
-	DeleteApiKey(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error)
+	GetApiKeys(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetApiKeysApiKeysPagedApiKeysOutput, error)
+	CreateApiKey(ctx context.Context, organisationId uuid.UUID) (*IdWithToken, error)
+	UpdateApiKey(ctx context.Context, id uuid.UUID) (*IdWithToken, error)
+	DeleteApiKey(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 }
 
 type queries struct {
@@ -70,7 +71,9 @@ func (q *queries) GetEnvironments(ctx context.Context, organisationId uuid.UUID,
 }
 
 func (q *queries) GetConfigs(ctx context.Context, organisationId uuid.UUID, class ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error) {
-	resp, err := GetConfigs(ctx, q.client, organisationId, class, page, pageSize)
+	classes := []ConfigClass{class}
+
+	resp, err := GetConfigs(ctx, q.client, organisationId, classes, page, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -127,25 +130,33 @@ func (q *queries) LoginContainerRepository(ctx context.Context, organisationId u
 	return &resp.LoginContainerRepository, nil
 }
 
-func (q *queries) CreateApiKey(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string, key string) (uuid.UUID, error) {
+func (q *queries) GetApiKeys(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetApiKeysApiKeysPagedApiKeysOutput, error) {
+	resp, err := GetApiKeys(ctx, q.client, organisationId, page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.ApiKeys, nil
+}
+
+func (q *queries) CreateApiKey(ctx context.Context, organisationId uuid.UUID) (*IdWithToken, error) {
 	id := uuid.New()
-	resp, err := CreateApiKey(ctx, q.client, organisationId, id, configId, code, key)
+	resp, err := CreateApiKey(ctx, q.client, id, organisationId)
 	if err != nil {
-		return uuid.Nil, err
+		return nil, err
 	}
-	return resp.CreateApiKey, nil
+	return &resp.CreateApiKey, nil
 }
 
-func (q *queries) UpdateApiKey(ctx context.Context, organisationId uuid.UUID, aggregateId uuid.UUID, code string, key string) (uuid.UUID, error) {
-	resp, err := UpdateApiKey(ctx, q.client, organisationId, aggregateId, code, key)
+func (q *queries) UpdateApiKey(ctx context.Context, id uuid.UUID) (*IdWithToken, error) {
+	resp, err := UpdateApiKey(ctx, q.client, id)
 	if err != nil {
-		return uuid.Nil, err
+		return nil, err
 	}
-	return resp.UpdateApiKey, nil
+	return &resp.UpdateApiKey, nil
 }
 
-func (q *queries) DeleteApiKey(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error) {
-	resp, err := DeleteApiKey(ctx, q.client, organisationId, id)
+func (q *queries) DeleteApiKey(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+	resp, err := DeleteApiKey(ctx, q.client, id)
 	if err != nil {
 		return uuid.Nil, err
 	}

@@ -19,9 +19,8 @@ scalar Any
 
 type ApiKey {
   id: UUID!
-  state: StackState!
-  config_id: UUID!
-  code: String!
+  state: ApiKeyState!
+  organisation_id: UUID!
   created_at: Time!
   updated_at: Time
   deleted_at: Time
@@ -30,10 +29,14 @@ type ApiKey {
 
 input ApiKeysInput {
   organisation_id: UUID!
-  states: [StackState!]
-  config_id: UUID
   page: Int
   page_size: Int
+}
+
+enum ApiKeyState {
+  new
+  created
+  deleted
 }
 
 type AuthContainerRepository {
@@ -61,7 +64,6 @@ type Config {
   id: UUID!
   code: String!
   class: ConfigClass!
-  sub_class: ConfigSubClass!
   name: String!
   folder: Folder
   resources: [Resource!]!
@@ -72,13 +74,13 @@ type Config {
   deployments: [Deployment!]!
   revisions: [ConfigRevision!]!
   containerRepositories: [ContainerRepository!]!
-  apiKeys: [ApiKey!]!
 }
 
 enum ConfigClass {
   compute
   storage
-  integration
+  queue
+  notification
 }
 
 type ConfigRevision {
@@ -92,7 +94,7 @@ type ConfigRevision {
 
 input ConfigsInput {
   organisation_id: UUID!
-  class: ConfigClass
+  classes: [ConfigClass!]
   codes: [String!]
   folder_id: UUID
   no_folder: Boolean
@@ -105,13 +107,6 @@ enum ConfigState {
   running
   failed
   deleted
-}
-
-enum ConfigSubClass {
-  service
-  database_cluster
-  queue
-  notification
 }
 
 enum ContainerInsightsMetricName {
@@ -155,9 +150,6 @@ type ContainerRepository {
 input CreateApiKeyInput {
   organisation_id: UUID!
   aggregate_id: UUID!
-  config_id: UUID!
-  code: String!
-  key: String!
 }
 
 input CreateAWSAccountInput {
@@ -180,7 +172,6 @@ input CreateConfigInput {
   aggregate_id: UUID!
   code: String!
   class: ConfigClass!
-  sub_class: ConfigSubClass!
   name: String!
   folder_id: UUID
 }
@@ -226,6 +217,7 @@ input CreateFolderInput {
 }
 
 input CreateMemberInput {
+  aggregate_id: UUID!
   organisation_id: UUID!
   user_id: UUID!
   role: MemberRole!
@@ -384,10 +376,15 @@ input IdWithOrgInput {
   id: UUID!
 }
 
+type IdWithToken {
+  id: UUID!
+  token: String!
+}
+
 input InviteMemberInput {
+  aggregate_id: UUID!
   email: String!
   organisation_id: UUID!
-  organisation_name: String!
 }
 
 scalar JSON
@@ -548,9 +545,9 @@ type Mutation {
   createContainerRepository(input: CreateContainerRepositoryInput!): UUID!
   deleteContainerRepository(input: IdWithOrgInput!): UUID!
   loginContainerRepository(input: IdWithOrgInput!): AuthContainerRepository!
-  createApiKey(input: CreateApiKeyInput!): UUID!
-  updateApiKey(input: UpdateApiKeyInput!): UUID!
-  deleteApiKey(input: IdWithOrgInput!): UUID!
+  createApiKey(input: CreateApiKeyInput!): IdWithToken!
+  updateApiKey(input: UpdateApiKeyInput!): IdWithToken!
+  deleteApiKey(input: IdInput!): UUID!
   newDeployment(input: NewDeploymentInput!): UUID!
   readNotifications(input: ReadNotificationsInput!): [UUID!]!
 }
@@ -689,7 +686,7 @@ input PagedInputWithOrg {
 
 type PagedMembersOutput {
   items: [Member!]!
-  limit: Int!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -697,7 +694,7 @@ type PagedMembersOutput {
 
 type PagedNotificationsOutput {
   items: [Notification!]!
-  limit: Int!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -705,7 +702,7 @@ type PagedNotificationsOutput {
 
 type PagedOrganisationsOutput {
   items: [Organisation!]!
-  limit: Int!
+  page_size: Int!
   page: Int!
   total_items: Int!
   total_pages: Int!
@@ -863,6 +860,7 @@ enum ResourceType {
   database
   bucket
   queue
+  notification
 }
 
 type Stack {
@@ -909,10 +907,7 @@ type Subscription {
 scalar Time
 
 input UpdateApiKeyInput {
-  organisation_id: UUID!
   aggregate_id: UUID!
-  code: String!
-  key: String!
 }
 
 input UpdateAWSAccountInput {

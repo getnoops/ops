@@ -6,7 +6,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/contextcloud/goutils/xstring"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/google/uuid"
@@ -20,22 +19,21 @@ type CreateConfig struct {
 
 func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [compute|storage|integration] [code]",
+		Use:   "create [compute|storage|integration]",
 		Short: "Will create an api key for a given compute, storage or integration",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
-			code := args[1]
 
 			ctx := cmd.Context()
-			return Create(ctx, configCode, code)
+			return Create(ctx, configCode)
 		},
-		ValidArgs: []string{"compute", "code"},
+		ValidArgs: []string{"compute"},
 	}
 	return cmd
 }
 
-func Create(ctx context.Context, computeCode string, code string) error {
+func Create(ctx context.Context, computeCode string) error {
 	cfg, err := config.New[CreateConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err
@@ -55,32 +53,18 @@ func Create(ctx context.Context, computeCode string, code string) error {
 		return err
 	}
 
-	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
-	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
-	}
-
-	key, err := xstring.GenerateString(22, 4, 4, false, false)
-	if err != nil {
-		cfg.WriteStderr("failed to generate key")
-		return nil
-	}
-
-	out, err := q.CreateApiKey(ctx, organisation.Id, config.Id, code, key)
+	out, err := q.CreateApiKey(ctx, organisation.Id)
 	if err != nil {
 		cfg.WriteStderr("failed to create api key")
 		return nil
 	}
 
 	result := struct {
-		Id   uuid.UUID `json:"id"`
-		Code string    `json:"code"`
-		Key  string    `json:"key"`
+		Id    uuid.UUID `json:"id"`
+		Token string    `json:"token"`
 	}{
-		Id:   out,
-		Code: code,
-		Key:  key,
+		Id:    out.Id,
+		Token: out.Token,
 	}
 
 	switch cfg.Global.Format {
@@ -88,9 +72,9 @@ func Create(ctx context.Context, computeCode string, code string) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Id", "Code", "Key")
+			Headers("Id", "Token")
 
-		t.Row(result.Id.String(), result.Code, result.Key)
+		t.Row(result.Id.String(), result.Token)
 
 		cfg.WriteStdout(t.Render())
 	case "json":

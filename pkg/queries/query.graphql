@@ -14,17 +14,17 @@ query GetMemberOrganisations($userId: UUID!, $page: Int, $pageSize: Int) {
       updated_at
       deleted_at
     }
-    limit
     page
+    page_size
     total_items
     total_pages
   }
 }
 
-query GetConfigs($organisationId: UUID!, $class: ConfigClass!, $page: Int, $pageSize: Int) {
+query GetConfigs($organisationId: UUID!, $classes: [ConfigClass!], $page: Int, $pageSize: Int) {
   configs(input: {
     organisation_id: $organisationId,
-    class: $class,
+    classes: $classes,
     page: $page,
     page_size: $pageSize
   }) {
@@ -81,16 +81,6 @@ query GetConfig($organisationId: UUID!, $code: String!) {
       created_at
       updated_at
     }
-    # @genqlient(typename: "ApiKeyItem")
-    apiKeys {
-      id
-      state
-      code
-      created_at
-      updated_at
-      deleted_at
-      authed_at
-    }
     created_at
     updated_at
   }
@@ -143,6 +133,29 @@ query GetContainerRegistry($organisationId: UUID!, $aggregateId: UUID!) {
   }
 }
 
+query GetApiKeys($organisationId: UUID!, $page: Int, $pageSize: Int) {
+  apiKeys(input: {
+    organisation_id: $organisationId,
+    page: $page,
+    page_size: $pageSize
+  }) {
+    # @genqlient(typename: "ApiKey")
+    items {
+      id
+      state
+      organisation_id
+      created_at
+      updated_at
+      deleted_at
+      authed_at
+    }
+    page_size
+    page
+    total_items
+    total_pages
+  }
+}
+
 mutation NewDeployment($organisationId: UUID!, $aggregateId: UUID!, $environmentId: UUID!, $configId: UUID!, $configRevisionId: UUID!, $revisionId: UUID!) {
   newDeployment(input: {
     organisation_id: $organisationId,
@@ -171,7 +184,7 @@ mutation DeleteContainerRepository($organisationId: UUID!, $id: UUID!) {
 }
 
 mutation LoginContainerRepository($organisationId: UUID!, $id: UUID!) {
-    # @genqlient(typename: "AuthContainerRepository")
+  # @genqlient(typename: "AuthContainerRepository")
   loginContainerRepository(input: {
     organisation_id: $organisationId,
     id: $id,
@@ -183,28 +196,29 @@ mutation LoginContainerRepository($organisationId: UUID!, $id: UUID!) {
   }
 }
 
-mutation CreateApiKey($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!, $key: String!) {
+mutation CreateApiKey($aggregateId: UUID!, $organisationId: UUID!) {
+  # @genqlient(typename: "IdWithToken")
   createApiKey(input: {
-    organisation_id: $organisationId,
     aggregate_id: $aggregateId,
-    config_id: $configId,
-    code: $code,
-    key: $key,
-  })
+    organisation_id: $organisationId,
+  }) {
+    id
+    token
+  }
 }
 
-mutation UpdateApiKey($organisationId: UUID!, $aggregateId: UUID!, $code: String!, $key: String!) {
+mutation UpdateApiKey($aggregateId: UUID!) {
+  # @genqlient(typename: "IdWithToken")
   updateApiKey(input: {
-    organisation_id: $organisationId,
     aggregate_id: $aggregateId,
-    code: $code,
-    key: $key,
-  })
+  }) {
+    id
+    token
+  }
 }
 
-mutation DeleteApiKey($organisationId: UUID!, $aggregateId: UUID!) {
+mutation DeleteApiKey($aggregateId: UUID!) {
   deleteApiKey(input: {
-    organisation_id: $organisationId,
     id: $aggregateId,
   })
 }

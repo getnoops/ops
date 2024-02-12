@@ -6,7 +6,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/contextcloud/goutils/xstring"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/google/uuid"
@@ -25,17 +24,22 @@ func UpdateCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
-			code := args[1]
+			idStr := args[1]
+
+			id, err := uuid.Parse(idStr)
+			if err != nil {
+				return err
+			}
 
 			ctx := cmd.Context()
-			return Update(ctx, configCode, code)
+			return Update(ctx, configCode, id)
 		},
 		ValidArgs: []string{"compute", "code"},
 	}
 	return cmd
 }
 
-func Update(ctx context.Context, computeCode string, code string) error {
+func Update(ctx context.Context, computeCode string, id uuid.UUID) error {
 	cfg, err := config.New[UpdateConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err
@@ -46,47 +50,27 @@ func Update(ctx context.Context, computeCode string, code string) error {
 		return err
 	}
 
-	organisation, err := q.GetCurrentOrganisation(ctx)
-	if err == config.ErrNoOrganisation {
+	_, orgErr := q.GetCurrentOrganisation(ctx)
+	if orgErr == config.ErrNoOrganisation {
 		cfg.WriteStderr("no organisation set")
 		return nil
 	}
-	if err != nil {
-		return err
+	if orgErr != nil {
+		return orgErr
 	}
 
-	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
-	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
-	}
-
-	apiKey, err := GetApiKey(config.ApiKeys, code)
-	if err != nil {
-		cfg.WriteStderr("failed to get api key")
-		return nil
-	}
-
-	key, err := xstring.GenerateString(22, 4, 4, false, false)
-	if err != nil {
-		cfg.WriteStderr("failed to generate key")
-		return nil
-	}
-
-	out, err := q.UpdateApiKey(ctx, organisation.Id, apiKey.Id, code, key)
+	out, err := q.UpdateApiKey(ctx, id)
 	if err != nil {
 		cfg.WriteStderr("failed to update api key")
 		return nil
 	}
 
 	result := struct {
-		Id   uuid.UUID `json:"id"`
-		Code string    `json:"code"`
-		Key  string    `json:"key"`
+		Id    uuid.UUID `json:"id"`
+		Token string    `json:"token"`
 	}{
-		Id:   out,
-		Code: code,
-		Key:  key,
+		Id:    out.Id,
+		Token: out.Token,
 	}
 
 	switch cfg.Global.Format {
@@ -94,9 +78,9 @@ func Update(ctx context.Context, computeCode string, code string) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Id", "Code", "Key")
+			Headers("Id", "Token")
 
-		t.Row(result.Id.String(), result.Code, result.Key)
+		t.Row(result.Id.String(), result.Token)
 
 		cfg.WriteStdout(t.Render())
 	case "json":

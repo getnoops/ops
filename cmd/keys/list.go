@@ -6,6 +6,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
@@ -15,6 +16,8 @@ import (
 )
 
 type ListConfig struct {
+	Page     int `mapstructure:"page" default:"1"`
+	PageSize int `mapstructure:"page-size" default:"10"`
 }
 
 func ListCommand() *cobra.Command {
@@ -29,6 +32,9 @@ func ListCommand() *cobra.Command {
 			return List(ctx, configCode)
 		},
 	}
+
+	util.BindIntFlag(cmd, "page", "The page to load", 1)
+	util.BindIntFlag(cmd, "page-size", "The number of items in the page", 10)
 	return cmd
 }
 
@@ -52,7 +58,7 @@ func List(ctx context.Context, configCode string) error {
 		return err
 	}
 
-	out, err := q.GetConfig(ctx, organisation.Id, configCode)
+	out, err := q.GetApiKeys(ctx, organisation.Id, cfg.Command.Page, cfg.Command.PageSize)
 	if err != nil {
 		cfg.WriteStderr("failed to get config")
 		return err
@@ -63,18 +69,18 @@ func List(ctx context.Context, configCode string) error {
 		t := table.New().
 			Border(lipgloss.NormalBorder()).
 			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Id", "State", "Code", "Created At", "Updated At", "Deleted At", "Authed At")
+			Headers("Id", "State", "Created At", "Updated At", "Deleted At", "Authed At")
 
-		for _, item := range out.ApiKeys {
-			t.Row(item.Id.String(), string(item.State), item.Code, item.Created_at.String(), item.Updated_at.String(), item.Deleted_at.String(), item.Authed_at.String())
+		for _, item := range out.Items {
+			t.Row(item.Id.String(), string(item.State), item.Created_at.String(), item.Updated_at.String(), item.Deleted_at.String(), item.Authed_at.String())
 		}
 
 		cfg.WriteStdout(t.Render())
 	case "json":
-		out, _ := json.Marshal(out.ApiKeys)
+		out, _ := json.Marshal(out.Items)
 		cfg.WriteStdout(string(out))
 	case "yaml":
-		out, _ := yaml.Marshal(out.ApiKeys)
+		out, _ := yaml.Marshal(out.Items)
 		cfg.WriteStdout(string(out))
 	}
 	return nil

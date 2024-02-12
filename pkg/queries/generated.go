@@ -10,37 +10,45 @@ import (
 	"github.com/google/uuid"
 )
 
-// ApiKeyItem includes the requested fields of the GraphQL type ApiKey.
-type ApiKeyItem struct {
-	Id         uuid.UUID  `json:"id"`
-	State      StackState `json:"state"`
-	Code       string     `json:"code"`
-	Created_at time.Time  `json:"created_at"`
-	Updated_at time.Time  `json:"updated_at"`
-	Deleted_at time.Time  `json:"deleted_at"`
-	Authed_at  time.Time  `json:"authed_at"`
+// ApiKey includes the requested fields of the GraphQL type ApiKey.
+type ApiKey struct {
+	Id              uuid.UUID   `json:"id"`
+	State           ApiKeyState `json:"state"`
+	Organisation_id uuid.UUID   `json:"organisation_id"`
+	Created_at      time.Time   `json:"created_at"`
+	Updated_at      time.Time   `json:"updated_at"`
+	Deleted_at      time.Time   `json:"deleted_at"`
+	Authed_at       time.Time   `json:"authed_at"`
 }
 
-// GetId returns ApiKeyItem.Id, and is useful for accessing the field via an interface.
-func (v *ApiKeyItem) GetId() uuid.UUID { return v.Id }
+// GetId returns ApiKey.Id, and is useful for accessing the field via an interface.
+func (v *ApiKey) GetId() uuid.UUID { return v.Id }
 
-// GetState returns ApiKeyItem.State, and is useful for accessing the field via an interface.
-func (v *ApiKeyItem) GetState() StackState { return v.State }
+// GetState returns ApiKey.State, and is useful for accessing the field via an interface.
+func (v *ApiKey) GetState() ApiKeyState { return v.State }
 
-// GetCode returns ApiKeyItem.Code, and is useful for accessing the field via an interface.
-func (v *ApiKeyItem) GetCode() string { return v.Code }
+// GetOrganisation_id returns ApiKey.Organisation_id, and is useful for accessing the field via an interface.
+func (v *ApiKey) GetOrganisation_id() uuid.UUID { return v.Organisation_id }
 
-// GetCreated_at returns ApiKeyItem.Created_at, and is useful for accessing the field via an interface.
-func (v *ApiKeyItem) GetCreated_at() time.Time { return v.Created_at }
+// GetCreated_at returns ApiKey.Created_at, and is useful for accessing the field via an interface.
+func (v *ApiKey) GetCreated_at() time.Time { return v.Created_at }
 
-// GetUpdated_at returns ApiKeyItem.Updated_at, and is useful for accessing the field via an interface.
-func (v *ApiKeyItem) GetUpdated_at() time.Time { return v.Updated_at }
+// GetUpdated_at returns ApiKey.Updated_at, and is useful for accessing the field via an interface.
+func (v *ApiKey) GetUpdated_at() time.Time { return v.Updated_at }
 
-// GetDeleted_at returns ApiKeyItem.Deleted_at, and is useful for accessing the field via an interface.
-func (v *ApiKeyItem) GetDeleted_at() time.Time { return v.Deleted_at }
+// GetDeleted_at returns ApiKey.Deleted_at, and is useful for accessing the field via an interface.
+func (v *ApiKey) GetDeleted_at() time.Time { return v.Deleted_at }
 
-// GetAuthed_at returns ApiKeyItem.Authed_at, and is useful for accessing the field via an interface.
-func (v *ApiKeyItem) GetAuthed_at() time.Time { return v.Authed_at }
+// GetAuthed_at returns ApiKey.Authed_at, and is useful for accessing the field via an interface.
+func (v *ApiKey) GetAuthed_at() time.Time { return v.Authed_at }
+
+type ApiKeyState string
+
+const (
+	ApiKeyStateNew     ApiKeyState = "new"
+	ApiKeyStateCreated ApiKeyState = "created"
+	ApiKeyStateDeleted ApiKeyState = "deleted"
+)
 
 // AuthContainerRepository includes the requested fields of the GraphQL type AuthContainerRepository.
 type AuthContainerRepository struct {
@@ -73,7 +81,6 @@ type Config struct {
 	State                 ConfigState               `json:"state"`
 	Revisions             []RevisionItem            `json:"revisions"`
 	ContainerRepositories []ContainerRepositoryItem `json:"containerRepositories"`
-	ApiKeys               []ApiKeyItem              `json:"apiKeys"`
 	Created_at            time.Time                 `json:"created_at"`
 	Updated_at            time.Time                 `json:"updated_at"`
 }
@@ -105,9 +112,6 @@ func (v *Config) GetRevisions() []RevisionItem { return v.Revisions }
 // GetContainerRepositories returns Config.ContainerRepositories, and is useful for accessing the field via an interface.
 func (v *Config) GetContainerRepositories() []ContainerRepositoryItem { return v.ContainerRepositories }
 
-// GetApiKeys returns Config.ApiKeys, and is useful for accessing the field via an interface.
-func (v *Config) GetApiKeys() []ApiKeyItem { return v.ApiKeys }
-
 // GetCreated_at returns Config.Created_at, and is useful for accessing the field via an interface.
 func (v *Config) GetCreated_at() time.Time { return v.Created_at }
 
@@ -117,9 +121,10 @@ func (v *Config) GetUpdated_at() time.Time { return v.Updated_at }
 type ConfigClass string
 
 const (
-	ConfigClassCompute     ConfigClass = "compute"
-	ConfigClassStorage     ConfigClass = "storage"
-	ConfigClassIntegration ConfigClass = "integration"
+	ConfigClassCompute      ConfigClass = "compute"
+	ConfigClassStorage      ConfigClass = "storage"
+	ConfigClassQueue        ConfigClass = "queue"
+	ConfigClassNotification ConfigClass = "notification"
 )
 
 // ConfigItem includes the requested fields of the GraphQL type Config.
@@ -233,11 +238,11 @@ func (v *ContainerRepositoryStack) GetOutputs() []StackOutputItem { return v.Out
 
 // CreateApiKeyResponse is returned by CreateApiKey on success.
 type CreateApiKeyResponse struct {
-	CreateApiKey uuid.UUID `json:"createApiKey"`
+	CreateApiKey IdWithToken `json:"createApiKey"`
 }
 
 // GetCreateApiKey returns CreateApiKeyResponse.CreateApiKey, and is useful for accessing the field via an interface.
-func (v *CreateApiKeyResponse) GetCreateApiKey() uuid.UUID { return v.CreateApiKey }
+func (v *CreateApiKeyResponse) GetCreateApiKey() IdWithToken { return v.CreateApiKey }
 
 // CreateContainerRepositoryResponse is returned by CreateContainerRepository on success.
 type CreateContainerRepositoryResponse struct {
@@ -306,6 +311,38 @@ const (
 	EnvironmentTypeEmphemeral EnvironmentType = "emphemeral"
 	EnvironmentTypeStatic     EnvironmentType = "static"
 )
+
+// GetApiKeysApiKeysPagedApiKeysOutput includes the requested fields of the GraphQL type PagedApiKeysOutput.
+type GetApiKeysApiKeysPagedApiKeysOutput struct {
+	Items       []ApiKey `json:"items"`
+	Page_size   int      `json:"page_size"`
+	Page        int      `json:"page"`
+	Total_items int      `json:"total_items"`
+	Total_pages int      `json:"total_pages"`
+}
+
+// GetItems returns GetApiKeysApiKeysPagedApiKeysOutput.Items, and is useful for accessing the field via an interface.
+func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetItems() []ApiKey { return v.Items }
+
+// GetPage_size returns GetApiKeysApiKeysPagedApiKeysOutput.Page_size, and is useful for accessing the field via an interface.
+func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetPage_size() int { return v.Page_size }
+
+// GetPage returns GetApiKeysApiKeysPagedApiKeysOutput.Page, and is useful for accessing the field via an interface.
+func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetPage() int { return v.Page }
+
+// GetTotal_items returns GetApiKeysApiKeysPagedApiKeysOutput.Total_items, and is useful for accessing the field via an interface.
+func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetTotal_items() int { return v.Total_items }
+
+// GetTotal_pages returns GetApiKeysApiKeysPagedApiKeysOutput.Total_pages, and is useful for accessing the field via an interface.
+func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetTotal_pages() int { return v.Total_pages }
+
+// GetApiKeysResponse is returned by GetApiKeys on success.
+type GetApiKeysResponse struct {
+	ApiKeys GetApiKeysApiKeysPagedApiKeysOutput `json:"apiKeys"`
+}
+
+// GetApiKeys returns GetApiKeysResponse.ApiKeys, and is useful for accessing the field via an interface.
+func (v *GetApiKeysResponse) GetApiKeys() GetApiKeysApiKeysPagedApiKeysOutput { return v.ApiKeys }
 
 // GetConfigResponse is returned by GetConfig on success.
 type GetConfigResponse struct {
@@ -398,8 +435,8 @@ func (v *GetEnvironmentsResponse) GetEnvironments() GetEnvironmentsEnvironmentsP
 // GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput includes the requested fields of the GraphQL type PagedOrganisationsOutput.
 type GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput struct {
 	Items       []Organisation `json:"items"`
-	Limit       int            `json:"limit"`
 	Page        int            `json:"page"`
+	Page_size   int            `json:"page_size"`
 	Total_items int            `json:"total_items"`
 	Total_pages int            `json:"total_pages"`
 }
@@ -409,14 +446,14 @@ func (v *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput) GetI
 	return v.Items
 }
 
-// GetLimit returns GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput.Limit, and is useful for accessing the field via an interface.
-func (v *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput) GetLimit() int {
-	return v.Limit
-}
-
 // GetPage returns GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput.Page, and is useful for accessing the field via an interface.
 func (v *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput) GetPage() int {
 	return v.Page
+}
+
+// GetPage_size returns GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput.Page_size, and is useful for accessing the field via an interface.
+func (v *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput) GetPage_size() int {
+	return v.Page_size
 }
 
 // GetTotal_items returns GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput.Total_items, and is useful for accessing the field via an interface.
@@ -438,6 +475,18 @@ type GetMemberOrganisationsResponse struct {
 func (v *GetMemberOrganisationsResponse) GetMemberOrganisations() GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput {
 	return v.MemberOrganisations
 }
+
+// IdWithToken includes the requested fields of the GraphQL type IdWithToken.
+type IdWithToken struct {
+	Id    uuid.UUID `json:"id"`
+	Token string    `json:"token"`
+}
+
+// GetId returns IdWithToken.Id, and is useful for accessing the field via an interface.
+func (v *IdWithToken) GetId() uuid.UUID { return v.Id }
+
+// GetToken returns IdWithToken.Token, and is useful for accessing the field via an interface.
+func (v *IdWithToken) GetToken() string { return v.Token }
 
 // LoginContainerRepositoryResponse is returned by LoginContainerRepository on success.
 type LoginContainerRepositoryResponse struct {
@@ -500,10 +549,11 @@ const (
 type ResourceType string
 
 const (
-	ResourceTypeContainer ResourceType = "container"
-	ResourceTypeDatabase  ResourceType = "database"
-	ResourceTypeBucket    ResourceType = "bucket"
-	ResourceTypeQueue     ResourceType = "queue"
+	ResourceTypeContainer    ResourceType = "container"
+	ResourceTypeDatabase     ResourceType = "database"
+	ResourceTypeBucket       ResourceType = "bucket"
+	ResourceTypeQueue        ResourceType = "queue"
+	ResourceTypeNotification ResourceType = "notification"
 )
 
 // Resources includes the requested fields of the GraphQL type Resource.
@@ -581,35 +631,23 @@ const (
 
 // UpdateApiKeyResponse is returned by UpdateApiKey on success.
 type UpdateApiKeyResponse struct {
-	UpdateApiKey uuid.UUID `json:"updateApiKey"`
+	UpdateApiKey IdWithToken `json:"updateApiKey"`
 }
 
 // GetUpdateApiKey returns UpdateApiKeyResponse.UpdateApiKey, and is useful for accessing the field via an interface.
-func (v *UpdateApiKeyResponse) GetUpdateApiKey() uuid.UUID { return v.UpdateApiKey }
+func (v *UpdateApiKeyResponse) GetUpdateApiKey() IdWithToken { return v.UpdateApiKey }
 
 // __CreateApiKeyInput is used internally by genqlient
 type __CreateApiKeyInput struct {
-	OrganisationId uuid.UUID `json:"organisationId"`
 	AggregateId    uuid.UUID `json:"aggregateId"`
-	ConfigId       uuid.UUID `json:"configId"`
-	Code           string    `json:"code"`
-	Key            string    `json:"key"`
+	OrganisationId uuid.UUID `json:"organisationId"`
 }
-
-// GetOrganisationId returns __CreateApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__CreateApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
 // GetAggregateId returns __CreateApiKeyInput.AggregateId, and is useful for accessing the field via an interface.
 func (v *__CreateApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
-// GetConfigId returns __CreateApiKeyInput.ConfigId, and is useful for accessing the field via an interface.
-func (v *__CreateApiKeyInput) GetConfigId() uuid.UUID { return v.ConfigId }
-
-// GetCode returns __CreateApiKeyInput.Code, and is useful for accessing the field via an interface.
-func (v *__CreateApiKeyInput) GetCode() string { return v.Code }
-
-// GetKey returns __CreateApiKeyInput.Key, and is useful for accessing the field via an interface.
-func (v *__CreateApiKeyInput) GetKey() string { return v.Key }
+// GetOrganisationId returns __CreateApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__CreateApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
 // __CreateContainerRepositoryInput is used internally by genqlient
 type __CreateContainerRepositoryInput struct {
@@ -633,12 +671,8 @@ func (v *__CreateContainerRepositoryInput) GetCode() string { return v.Code }
 
 // __DeleteApiKeyInput is used internally by genqlient
 type __DeleteApiKeyInput struct {
-	OrganisationId uuid.UUID `json:"organisationId"`
-	AggregateId    uuid.UUID `json:"aggregateId"`
+	AggregateId uuid.UUID `json:"aggregateId"`
 }
-
-// GetOrganisationId returns __DeleteApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__DeleteApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
 // GetAggregateId returns __DeleteApiKeyInput.AggregateId, and is useful for accessing the field via an interface.
 func (v *__DeleteApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId }
@@ -655,6 +689,22 @@ func (v *__DeleteContainerRepositoryInput) GetOrganisationId() uuid.UUID { retur
 // GetId returns __DeleteContainerRepositoryInput.Id, and is useful for accessing the field via an interface.
 func (v *__DeleteContainerRepositoryInput) GetId() uuid.UUID { return v.Id }
 
+// __GetApiKeysInput is used internally by genqlient
+type __GetApiKeysInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	Page           int       `json:"page"`
+	PageSize       int       `json:"pageSize"`
+}
+
+// GetOrganisationId returns __GetApiKeysInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__GetApiKeysInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetPage returns __GetApiKeysInput.Page, and is useful for accessing the field via an interface.
+func (v *__GetApiKeysInput) GetPage() int { return v.Page }
+
+// GetPageSize returns __GetApiKeysInput.PageSize, and is useful for accessing the field via an interface.
+func (v *__GetApiKeysInput) GetPageSize() int { return v.PageSize }
+
 // __GetConfigInput is used internally by genqlient
 type __GetConfigInput struct {
 	OrganisationId uuid.UUID `json:"organisationId"`
@@ -669,17 +719,17 @@ func (v *__GetConfigInput) GetCode() string { return v.Code }
 
 // __GetConfigsInput is used internally by genqlient
 type __GetConfigsInput struct {
-	OrganisationId uuid.UUID   `json:"organisationId"`
-	Class          ConfigClass `json:"class"`
-	Page           int         `json:"page"`
-	PageSize       int         `json:"pageSize"`
+	OrganisationId uuid.UUID     `json:"organisationId"`
+	Classes        []ConfigClass `json:"classes"`
+	Page           int           `json:"page"`
+	PageSize       int           `json:"pageSize"`
 }
 
 // GetOrganisationId returns __GetConfigsInput.OrganisationId, and is useful for accessing the field via an interface.
 func (v *__GetConfigsInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
-// GetClass returns __GetConfigsInput.Class, and is useful for accessing the field via an interface.
-func (v *__GetConfigsInput) GetClass() ConfigClass { return v.Class }
+// GetClasses returns __GetConfigsInput.Classes, and is useful for accessing the field via an interface.
+func (v *__GetConfigsInput) GetClasses() []ConfigClass { return v.Classes }
 
 // GetPage returns __GetConfigsInput.Page, and is useful for accessing the field via an interface.
 func (v *__GetConfigsInput) GetPage() int { return v.Page }
@@ -777,49 +827,34 @@ func (v *__NewDeploymentInput) GetRevisionId() uuid.UUID { return v.RevisionId }
 
 // __UpdateApiKeyInput is used internally by genqlient
 type __UpdateApiKeyInput struct {
-	OrganisationId uuid.UUID `json:"organisationId"`
-	AggregateId    uuid.UUID `json:"aggregateId"`
-	Code           string    `json:"code"`
-	Key            string    `json:"key"`
+	AggregateId uuid.UUID `json:"aggregateId"`
 }
-
-// GetOrganisationId returns __UpdateApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__UpdateApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
 // GetAggregateId returns __UpdateApiKeyInput.AggregateId, and is useful for accessing the field via an interface.
 func (v *__UpdateApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
-// GetCode returns __UpdateApiKeyInput.Code, and is useful for accessing the field via an interface.
-func (v *__UpdateApiKeyInput) GetCode() string { return v.Code }
-
-// GetKey returns __UpdateApiKeyInput.Key, and is useful for accessing the field via an interface.
-func (v *__UpdateApiKeyInput) GetKey() string { return v.Key }
-
 // The query or mutation executed by CreateApiKey.
 const CreateApiKey_Operation = `
-mutation CreateApiKey ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!, $key: String!) {
-	createApiKey(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,config_id:$configId,code:$code,key:$key})
+mutation CreateApiKey ($aggregateId: UUID!, $organisationId: UUID!) {
+	createApiKey(input: {aggregate_id:$aggregateId,organisation_id:$organisationId}) {
+		id
+		token
+	}
 }
 `
 
 func CreateApiKey(
 	ctx context.Context,
 	client graphql.Client,
-	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
-	configId uuid.UUID,
-	code string,
-	key string,
+	organisationId uuid.UUID,
 ) (*CreateApiKeyResponse, error) {
 	req := &graphql.Request{
 		OpName: "CreateApiKey",
 		Query:  CreateApiKey_Operation,
 		Variables: &__CreateApiKeyInput{
-			OrganisationId: organisationId,
 			AggregateId:    aggregateId,
-			ConfigId:       configId,
-			Code:           code,
-			Key:            key,
+			OrganisationId: organisationId,
 		},
 	}
 	var err error
@@ -877,23 +912,21 @@ func CreateContainerRepository(
 
 // The query or mutation executed by DeleteApiKey.
 const DeleteApiKey_Operation = `
-mutation DeleteApiKey ($organisationId: UUID!, $aggregateId: UUID!) {
-	deleteApiKey(input: {organisation_id:$organisationId,id:$aggregateId})
+mutation DeleteApiKey ($aggregateId: UUID!) {
+	deleteApiKey(input: {id:$aggregateId})
 }
 `
 
 func DeleteApiKey(
 	ctx context.Context,
 	client graphql.Client,
-	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
 ) (*DeleteApiKeyResponse, error) {
 	req := &graphql.Request{
 		OpName: "DeleteApiKey",
 		Query:  DeleteApiKey_Operation,
 		Variables: &__DeleteApiKeyInput{
-			OrganisationId: organisationId,
-			AggregateId:    aggregateId,
+			AggregateId: aggregateId,
 		},
 	}
 	var err error
@@ -945,6 +978,57 @@ func DeleteContainerRepository(
 	return &data, err
 }
 
+// The query or mutation executed by GetApiKeys.
+const GetApiKeys_Operation = `
+query GetApiKeys ($organisationId: UUID!, $page: Int, $pageSize: Int) {
+	apiKeys(input: {organisation_id:$organisationId,page:$page,page_size:$pageSize}) {
+		items {
+			id
+			state
+			organisation_id
+			created_at
+			updated_at
+			deleted_at
+			authed_at
+		}
+		page_size
+		page
+		total_items
+		total_pages
+	}
+}
+`
+
+func GetApiKeys(
+	ctx context.Context,
+	client graphql.Client,
+	organisationId uuid.UUID,
+	page int,
+	pageSize int,
+) (*GetApiKeysResponse, error) {
+	req := &graphql.Request{
+		OpName: "GetApiKeys",
+		Query:  GetApiKeys_Operation,
+		Variables: &__GetApiKeysInput{
+			OrganisationId: organisationId,
+			Page:           page,
+			PageSize:       pageSize,
+		},
+	}
+	var err error
+
+	var data GetApiKeysResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by GetConfig.
 const GetConfig_Operation = `
 query GetConfig ($organisationId: UUID!, $code: String!) {
@@ -975,15 +1059,6 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 			state
 			created_at
 			updated_at
-		}
-		apiKeys {
-			id
-			state
-			code
-			created_at
-			updated_at
-			deleted_at
-			authed_at
 		}
 		created_at
 		updated_at
@@ -1021,8 +1096,8 @@ func GetConfig(
 
 // The query or mutation executed by GetConfigs.
 const GetConfigs_Operation = `
-query GetConfigs ($organisationId: UUID!, $class: ConfigClass!, $page: Int, $pageSize: Int) {
-	configs(input: {organisation_id:$organisationId,class:$class,page:$page,page_size:$pageSize}) {
+query GetConfigs ($organisationId: UUID!, $classes: [ConfigClass!], $page: Int, $pageSize: Int) {
+	configs(input: {organisation_id:$organisationId,classes:$classes,page:$page,page_size:$pageSize}) {
 		items {
 			id
 			code
@@ -1044,7 +1119,7 @@ func GetConfigs(
 	ctx context.Context,
 	client graphql.Client,
 	organisationId uuid.UUID,
-	class ConfigClass,
+	classes []ConfigClass,
 	page int,
 	pageSize int,
 ) (*GetConfigsResponse, error) {
@@ -1053,7 +1128,7 @@ func GetConfigs(
 		Query:  GetConfigs_Operation,
 		Variables: &__GetConfigsInput{
 			OrganisationId: organisationId,
-			Class:          class,
+			Classes:        classes,
 			Page:           page,
 			PageSize:       pageSize,
 		},
@@ -1187,8 +1262,8 @@ query GetMemberOrganisations ($userId: UUID!, $page: Int, $pageSize: Int) {
 			updated_at
 			deleted_at
 		}
-		limit
 		page
+		page_size
 		total_items
 		total_pages
 	}
@@ -1310,27 +1385,24 @@ func NewDeployment(
 
 // The query or mutation executed by UpdateApiKey.
 const UpdateApiKey_Operation = `
-mutation UpdateApiKey ($organisationId: UUID!, $aggregateId: UUID!, $code: String!, $key: String!) {
-	updateApiKey(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,code:$code,key:$key})
+mutation UpdateApiKey ($aggregateId: UUID!) {
+	updateApiKey(input: {aggregate_id:$aggregateId}) {
+		id
+		token
+	}
 }
 `
 
 func UpdateApiKey(
 	ctx context.Context,
 	client graphql.Client,
-	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
-	code string,
-	key string,
 ) (*UpdateApiKeyResponse, error) {
 	req := &graphql.Request{
 		OpName: "UpdateApiKey",
 		Query:  UpdateApiKey_Operation,
 		Variables: &__UpdateApiKeyInput{
-			OrganisationId: organisationId,
-			AggregateId:    aggregateId,
-			Code:           code,
-			Key:            key,
+			AggregateId: aggregateId,
 		},
 	}
 	var err error
