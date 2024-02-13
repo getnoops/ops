@@ -19,12 +19,11 @@ type UpdateConfig struct {
 
 func UpdateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update [compute|storage|integration] [code]",
-		Short: "Will update an api key for a given compute, storage or integration",
-		Args:  cobra.ExactArgs(2),
+		Use:   "update [id]",
+		Short: "Will update an api key",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configCode := args[0]
-			idStr := args[1]
+			idStr := args[0]
 
 			id, err := uuid.Parse(idStr)
 			if err != nil {
@@ -32,14 +31,14 @@ func UpdateCommand() *cobra.Command {
 			}
 
 			ctx := cmd.Context()
-			return Update(ctx, configCode, id)
+			return Update(ctx, id)
 		},
-		ValidArgs: []string{"compute", "code"},
+		ValidArgs: []string{"id"},
 	}
 	return cmd
 }
 
-func Update(ctx context.Context, computeCode string, id uuid.UUID) error {
+func Update(ctx context.Context, id uuid.UUID) error {
 	cfg, err := config.New[UpdateConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err

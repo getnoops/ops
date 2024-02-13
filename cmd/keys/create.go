@@ -19,21 +19,17 @@ type CreateConfig struct {
 
 func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [compute|storage|integration]",
+		Use:   "create",
 		Short: "Will create an api key for a given compute, storage or integration",
-		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configCode := args[0]
-
 			ctx := cmd.Context()
-			return Create(ctx, configCode)
+			return Create(ctx)
 		},
-		ValidArgs: []string{"compute"},
 	}
 	return cmd
 }
 
-func Create(ctx context.Context, computeCode string) error {
+func Create(ctx context.Context) error {
 	cfg, err := config.New[CreateConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err

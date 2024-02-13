@@ -22,14 +22,11 @@ type ListConfig struct {
 
 func ListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list [compute|storage|integration]",
-		Short: "list api keys for a given compute, storage or integration",
-		Args:  cobra.ExactArgs(1),
+		Use:   "list",
+		Short: "list api keys",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configCode := args[0]
-
 			ctx := cmd.Context()
-			return List(ctx, configCode)
+			return List(ctx)
 		},
 	}
 
@@ -38,7 +35,7 @@ func ListCommand() *cobra.Command {
 	return cmd
 }
 
-func List(ctx context.Context, configCode string) error {
+func List(ctx context.Context) error {
 	cfg, err := config.New[ListConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err

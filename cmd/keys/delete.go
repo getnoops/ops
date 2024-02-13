@@ -19,12 +19,11 @@ type DeleteConfig struct {
 
 func DeleteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete [compute|storage|integration] [id]",
+		Use:   "delete [id]",
 		Short: "Will delete an api key for a given compute, storage or integration",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configCode := args[0]
-			idStr := args[1]
+			idStr := args[0]
 
 			id, err := uuid.Parse(idStr)
 			if err != nil {
@@ -32,14 +31,14 @@ func DeleteCommand() *cobra.Command {
 			}
 
 			ctx := cmd.Context()
-			return Delete(ctx, configCode, id)
+			return Delete(ctx, id)
 		},
-		ValidArgs: []string{"compute", "id"},
+		ValidArgs: []string{"id"},
 	}
 	return cmd
 }
 
-func Delete(ctx context.Context, computeCode string, id uuid.UUID) error {
+func Delete(ctx context.Context, id uuid.UUID) error {
 	cfg, err := config.New[DeleteConfig](ctx, viper.GetViper())
 	if err != nil {
 		return err
