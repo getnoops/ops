@@ -2,13 +2,13 @@ Home:
   Path: ~/.config/no_ops
 
 Log:
-  Level: debug
+  Level: info
 
 Api:
-  GraphQL: http://localhost:8200/api/graphql
+  GraphQL: https://portal.getnoops.com/api/graphql
 
 Auth: 
-  Issuer: http://localhost:8080
+  Issuer: https://account.getnoops.com/
   ClientId: ops
   Scopes: 
     - openid

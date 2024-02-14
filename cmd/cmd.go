@@ -11,6 +11,7 @@ import (
 	"github.com/getnoops/ops/cmd/containerrepository"
 	"github.com/getnoops/ops/cmd/deploy"
 	"github.com/getnoops/ops/cmd/envs"
+	"github.com/getnoops/ops/cmd/info"
 	"github.com/getnoops/ops/cmd/keys"
 	"github.com/getnoops/ops/cmd/login"
 	"github.com/getnoops/ops/cmd/orgs"
@@ -18,7 +19,6 @@ import (
 	"github.com/getnoops/ops/cmd/upgrade"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/getnoops/ops/pkg/util"
-	"github.com/getnoops/ops/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,9 +32,8 @@ var (
 
 func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "ops",
-		Short:   "The No_Ops cli used to manage deployments",
-		Version: version.Version(),
+		Use:   "ops",
+		Short: "The No_Ops cli used to manage deployments",
 	}
 
 	viper.AutomaticEnv()
@@ -50,6 +49,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	util.BindStringPersistentFlag(cmd, "format", "The format for printing output", "table")
 
 	cmd.AddCommand(
+		info.New(),
 		login.New(),
 		upgrade.New(),
 		settings.New(),

@@ -23,11 +23,11 @@ jobs:
         goarch: [amd64]
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release Binaries
-        uses: wangyoucao577/go-release-action@v1.38
+        uses: wangyoucao577/go-release-action@v1.48
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
@@ -49,11 +49,11 @@ jobs:
         goarch: [amd64, arm64]
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Add SHORT_SHA env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Go Release
-        uses: wangyoucao577/go-release-action@v1.38
+        uses: wangyoucao577/go-release-action@v1.48
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
