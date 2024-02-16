@@ -15,7 +15,7 @@ type TableColumn struct {
 	Resolver func(interface{}) string
 }
 
-func GetColumns(t reflect.Type) []TableColumn {
+func GetTableColumns(t reflect.Type) []TableColumn {
 	var columns []TableColumn
 	for i := 0; i < t.NumField(); i++ {
 		name := t.Field(i).Name
@@ -35,7 +35,7 @@ func ToTableFromList[T any](data []T) *TableData {
 	var a T
 	t := reflect.TypeOf(a)
 
-	columns := GetColumns(t)
+	columns := GetTableColumns(t)
 	headers := make([]string, len(columns))
 	for i, column := range columns {
 		headers[i] = column.Name

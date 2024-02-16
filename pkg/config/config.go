@@ -205,6 +205,9 @@ func (c *NoOps[C, T]) WriteList(data []T) {
 	case "json":
 		out, _ := json.Marshal(data)
 		c.WriteStdout(string(out))
+
+	case "env":
+		c.WriteStderr("env format not supported for lists")
 	case "yaml":
 		out, _ := yaml.Marshal(data)
 		c.WriteStdout(string(out))
@@ -220,16 +223,19 @@ func (c *NoOps[C, T]) WriteObject(data T) {
 			Headers("Code", "State")
 
 		tableData := ToTableFromObject(data)
-
 		t.Headers(tableData.Headers...)
 		for _, row := range tableData.Rows {
 			t.Row(row...)
 		}
-
 		c.WriteStdout(t.Render())
 	case "json":
 		out, _ := json.Marshal(data)
 		c.WriteStdout(string(out))
+	case "env":
+		envList := ToEnvFromObject(data)
+		for _, env := range envList {
+			c.WriteStdout(fmt.Sprintf("%s=%s\n", env.Name, env.Value))
+		}
 	case "yaml":
 		out, _ := yaml.Marshal(data)
 		c.WriteStdout(string(out))
