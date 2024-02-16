@@ -31,6 +31,7 @@ type Styles struct {
 }
 
 type GlobalConfig struct {
+	Token        string `mapstructure:"token"`
 	Organisation string `mapstructure:"organisation"`
 	Format       string `mapstructure:"format" default:"table"`
 }

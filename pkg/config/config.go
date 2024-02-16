@@ -58,10 +58,15 @@ type NoOps[C any, T any] struct {
 }
 
 func (c *NoOps[C, T]) getToken(ctx context.Context) (*oauth2.Token, error) {
+	token := c.Global.Token
 	if len(c.Api.Token) > 0 {
+		token = c.Api.Token
+	}
+
+	if len(token) > 0 {
 		return &oauth2.Token{
 			TokenType:   "Bearer",
-			AccessToken: c.Api.Token,
+			AccessToken: token,
 		}, nil
 	}
 

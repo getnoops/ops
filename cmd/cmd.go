@@ -46,6 +46,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	}
 
 	util.BindStringPersistentFlag(cmd, "organisation", "The organisation to use", "")
+	util.BindStringPersistentFlag(cmd, "token", "The token to use", "")
 	util.BindStringPersistentFlag(cmd, "format", "The format for printing output", "table")
 
 	cmd.AddCommand(
