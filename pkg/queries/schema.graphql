@@ -431,7 +431,7 @@ enum MemberRole {
 
 input MembersInput {
   user_id: UUID
-  organisation_id: UUID
+  organisation_id: UUID!
   page: Int
   page_size: Int
 }
@@ -602,7 +602,6 @@ input OrganisationSettingsInput {
 }
 
 input OrganisationsInput {
-  user_id: UUID!
   page: Int
   page_size: Int
 }
@@ -858,6 +857,7 @@ input ResourceInput {
 enum ResourceType {
   container
   database
+  cluster
   bucket
   queue
   notification

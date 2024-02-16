@@ -30,13 +30,12 @@ type Queries interface {
 }
 
 type queries struct {
-	organisation string
-	userId       uuid.UUID
-	client       graphql.Client
+	organisationCode string
+	client           graphql.Client
 }
 
 func (q *queries) GetMemberOrganisations(ctx context.Context, page int, pageSize int) (*GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput, error) {
-	resp, err := GetMemberOrganisations(ctx, q.client, q.userId, page, pageSize)
+	resp, err := GetMemberOrganisations(ctx, q.client, page, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -44,17 +43,17 @@ func (q *queries) GetMemberOrganisations(ctx context.Context, page int, pageSize
 }
 
 func (q *queries) GetCurrentOrganisation(ctx context.Context) (*Organisation, error) {
-	if q.organisation == "" {
-		return nil, config.ErrNoOrganisation
-	}
-
 	orgs, err := q.GetMemberOrganisations(ctx, 1, 999)
 	if err != nil {
 		return nil, err
 	}
 
+	if len(q.organisationCode) == 0 && len(orgs.Items) == 1 {
+		return &orgs.Items[0], nil
+	}
+
 	for _, org := range orgs.Items {
-		if strings.EqualFold(org.Name, q.organisation) {
+		if strings.EqualFold(org.Code, q.organisationCode) {
 			return &org, nil
 		}
 	}
@@ -168,20 +167,11 @@ func New[C any, T any](ctx context.Context, cfg *config.NoOps[C, T]) (Queries, e
 		return nil, err
 	}
 
-	userId, err := cfg.GetUserId()
-	if err != nil {
-		return nil, err
-	}
-
-	orgCode, err := cfg.GetOrganisationCode()
-	if err != nil {
-		return nil, err
-	}
+	organisationCode := cfg.GetOrganisationCode()
 
 	client := graphql.NewClient(cfg.Api.GraphQL, httpClient)
 	return &queries{
-		organisation: orgCode,
-		userId:       userId,
-		client:       client,
+		organisationCode: organisationCode,
+		client:           client,
 	}, nil
 }

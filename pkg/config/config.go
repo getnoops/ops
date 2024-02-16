@@ -18,7 +18,6 @@ import (
 	"github.com/99designs/keyring"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/google/uuid"
 	"github.com/mcuadros/go-defaults"
 	"github.com/zitadel/oidc/v2/pkg/client/rp"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
@@ -167,38 +166,16 @@ func (c *NoOps[C, T]) NewHttpClient(ctx context.Context) (*http.Client, error) {
 	return oauth2.NewClient(ctx, oauth2.StaticTokenSource(token)), nil
 }
 
-func (c *NoOps[C, T]) GetUserId() (uuid.UUID, error) {
-	if c.Token == nil {
-		return uuid.Nil, fmt.Errorf("no token found, please login")
-	}
-
-	if c.Token.IDTokenClaims == nil {
-		return uuid.Nil, fmt.Errorf("no id token claims found")
-	}
-
-	subject := c.Token.IDTokenClaims.Subject
-	if subject == "" {
-		return uuid.Nil, fmt.Errorf("no subject found in token")
-	}
-
-	id, err := uuid.Parse(subject)
-	if err != nil {
-		return uuid.Nil, err
-	}
-
-	return id, nil
-}
-
-func (c *NoOps[C, T]) GetOrganisationCode() (string, error) {
+func (c *NoOps[C, T]) GetOrganisationCode() string {
 	if len(c.Global.Organisation) > 0 {
-		return c.Global.Organisation, nil
+		return c.Global.Organisation
 	}
 
 	if len(c.Organisation) > 0 {
-		return c.Organisation, nil
+		return c.Organisation
 	}
 
-	return "", fmt.Errorf("no organisation set")
+	return ""
 }
 
 func (c *NoOps[C, T]) WriteStderr(out string) {

@@ -551,6 +551,7 @@ type ResourceType string
 const (
 	ResourceTypeContainer    ResourceType = "container"
 	ResourceTypeDatabase     ResourceType = "database"
+	ResourceTypeCluster      ResourceType = "cluster"
 	ResourceTypeBucket       ResourceType = "bucket"
 	ResourceTypeQueue        ResourceType = "queue"
 	ResourceTypeNotification ResourceType = "notification"
@@ -771,13 +772,9 @@ func (v *__GetEnvironmentsInput) GetPageSize() int { return v.PageSize }
 
 // __GetMemberOrganisationsInput is used internally by genqlient
 type __GetMemberOrganisationsInput struct {
-	UserId   uuid.UUID `json:"userId"`
-	Page     int       `json:"page"`
-	PageSize int       `json:"pageSize"`
+	Page     int `json:"page"`
+	PageSize int `json:"pageSize"`
 }
-
-// GetUserId returns __GetMemberOrganisationsInput.UserId, and is useful for accessing the field via an interface.
-func (v *__GetMemberOrganisationsInput) GetUserId() uuid.UUID { return v.UserId }
 
 // GetPage returns __GetMemberOrganisationsInput.Page, and is useful for accessing the field via an interface.
 func (v *__GetMemberOrganisationsInput) GetPage() int { return v.Page }
@@ -1251,8 +1248,8 @@ func GetEnvironments(
 
 // The query or mutation executed by GetMemberOrganisations.
 const GetMemberOrganisations_Operation = `
-query GetMemberOrganisations ($userId: UUID!, $page: Int, $pageSize: Int) {
-	memberOrganisations(input: {user_id:$userId,page:$page,page_size:$pageSize}) {
+query GetMemberOrganisations ($page: Int, $pageSize: Int) {
+	memberOrganisations(input: {page:$page,page_size:$pageSize}) {
 		items {
 			id
 			code
@@ -1273,7 +1270,6 @@ query GetMemberOrganisations ($userId: UUID!, $page: Int, $pageSize: Int) {
 func GetMemberOrganisations(
 	ctx context.Context,
 	client graphql.Client,
-	userId uuid.UUID,
 	page int,
 	pageSize int,
 ) (*GetMemberOrganisationsResponse, error) {
@@ -1281,7 +1277,6 @@ func GetMemberOrganisations(
 		OpName: "GetMemberOrganisations",
 		Query:  GetMemberOrganisations_Operation,
 		Variables: &__GetMemberOrganisationsInput{
-			UserId:   userId,
 			Page:     page,
 			PageSize: pageSize,
 		},
