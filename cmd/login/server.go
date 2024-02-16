@@ -61,7 +61,7 @@ type Server interface {
 	Shutdown(ctx context.Context) error
 }
 
-func NewServer(ctx context.Context, cfg *config.NoOps[Config], tokenChan chan *oidc.Tokens[*oidc.IDTokenClaims]) (Server, error) {
+func NewServer(ctx context.Context, cfg *config.NoOps[Config, string], tokenChan chan *oidc.Tokens[*oidc.IDTokenClaims]) (Server, error) {
 	l, err := net.Listen("tcp", ":0")
 	if err != nil {
 		cfg.WriteStderr("failed to listen on port")

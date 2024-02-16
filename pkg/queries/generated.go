@@ -384,13 +384,13 @@ type GetConfigsResponse struct {
 // GetConfigs returns GetConfigsResponse.Configs, and is useful for accessing the field via an interface.
 func (v *GetConfigsResponse) GetConfigs() GetConfigsConfigsPagedConfigsOutput { return v.Configs }
 
-// GetContainerRegistryResponse is returned by GetContainerRegistry on success.
-type GetContainerRegistryResponse struct {
+// GetContainerRepositoryResponse is returned by GetContainerRepository on success.
+type GetContainerRepositoryResponse struct {
 	ContainerRepository ContainerRepository `json:"containerRepository"`
 }
 
-// GetContainerRepository returns GetContainerRegistryResponse.ContainerRepository, and is useful for accessing the field via an interface.
-func (v *GetContainerRegistryResponse) GetContainerRepository() ContainerRepository {
+// GetContainerRepository returns GetContainerRepositoryResponse.ContainerRepository, and is useful for accessing the field via an interface.
+func (v *GetContainerRepositoryResponse) GetContainerRepository() ContainerRepository {
 	return v.ContainerRepository
 }
 
@@ -737,17 +737,17 @@ func (v *__GetConfigsInput) GetPage() int { return v.Page }
 // GetPageSize returns __GetConfigsInput.PageSize, and is useful for accessing the field via an interface.
 func (v *__GetConfigsInput) GetPageSize() int { return v.PageSize }
 
-// __GetContainerRegistryInput is used internally by genqlient
-type __GetContainerRegistryInput struct {
+// __GetContainerRepositoryInput is used internally by genqlient
+type __GetContainerRepositoryInput struct {
 	OrganisationId uuid.UUID `json:"organisationId"`
 	AggregateId    uuid.UUID `json:"aggregateId"`
 }
 
-// GetOrganisationId returns __GetContainerRegistryInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__GetContainerRegistryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+// GetOrganisationId returns __GetContainerRepositoryInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__GetContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
-// GetAggregateId returns __GetContainerRegistryInput.AggregateId, and is useful for accessing the field via an interface.
-func (v *__GetContainerRegistryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+// GetAggregateId returns __GetContainerRepositoryInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__GetContainerRepositoryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
 // __GetEnvironmentsInput is used internally by genqlient
 type __GetEnvironmentsInput struct {
@@ -1147,9 +1147,9 @@ func GetConfigs(
 	return &data, err
 }
 
-// The query or mutation executed by GetContainerRegistry.
-const GetContainerRegistry_Operation = `
-query GetContainerRegistry ($organisationId: UUID!, $aggregateId: UUID!) {
+// The query or mutation executed by GetContainerRepository.
+const GetContainerRepository_Operation = `
+query GetContainerRepository ($organisationId: UUID!, $aggregateId: UUID!) {
 	containerRepository(input: {organisation_id:$organisationId,id:$aggregateId}) {
 		id
 		code
@@ -1168,23 +1168,23 @@ query GetContainerRegistry ($organisationId: UUID!, $aggregateId: UUID!) {
 }
 `
 
-func GetContainerRegistry(
+func GetContainerRepository(
 	ctx context.Context,
 	client graphql.Client,
 	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
-) (*GetContainerRegistryResponse, error) {
+) (*GetContainerRepositoryResponse, error) {
 	req := &graphql.Request{
-		OpName: "GetContainerRegistry",
-		Query:  GetContainerRegistry_Operation,
-		Variables: &__GetContainerRegistryInput{
+		OpName: "GetContainerRepository",
+		Query:  GetContainerRepository_Operation,
+		Variables: &__GetContainerRepositoryInput{
 			OrganisationId: organisationId,
 			AggregateId:    aggregateId,
 		},
 	}
 	var err error
 
-	var data GetContainerRegistryResponse
+	var data GetContainerRepositoryResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

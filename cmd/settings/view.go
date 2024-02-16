@@ -6,9 +6,6 @@ import (
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 )
 
 type ViewConfig struct {
@@ -28,7 +25,7 @@ func ViewCommand() *cobra.Command {
 }
 
 func View(ctx context.Context) error {
-	cfg, err := config.New[ViewConfig](ctx, viper.GetViper())
+	cfg, err := config.New[ViewConfig, map[string]string](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -38,13 +35,6 @@ func View(ctx context.Context) error {
 		return err
 	}
 
-	t := table.New().
-		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-		Headers("Name", "Value")
-
-	t.Row("Organisation", settings["organisation"])
-
-	cfg.WriteStdout(t.Render())
+	cfg.WriteObject(settings)
 	return nil
 }

@@ -10,28 +10,28 @@ import (
 	"github.com/spf13/viper"
 )
 
-type DeleteConfig struct {
+type UpdateConfig struct {
 }
 
-func DeleteCommand() *cobra.Command {
+func UpdateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete [compute] [code]",
-		Short: "Will delete a container repository for a given compute",
+		Use:   "update [compute] [code]",
+		Short: "Will update a container repository for a given compute",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
 			code := args[1]
 
 			ctx := cmd.Context()
-			return Delete(ctx, configCode, code)
+			return Update(ctx, configCode, code)
 		},
 		ValidArgs: []string{"compute", "code"},
 	}
 	return cmd
 }
 
-func Delete(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[DeleteConfig, uuid.UUID](ctx, viper.GetViper())
+func Update(ctx context.Context, computeCode string, code string) error {
+	cfg, err := config.New[UpdateConfig, uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -62,13 +62,11 @@ func Delete(ctx context.Context, computeCode string, code string) error {
 		return nil
 	}
 
-	out, err := q.DeleteContainerRepository(ctx, organisation.Id, containerRepository.Id)
+	out, err := q.CreateContainerRepository(ctx, organisation.Id, containerRepository.Id, config.Id, code)
 	if err != nil {
-		cfg.WriteStderr("failed to delete container repository")
+		cfg.WriteStderr("failed to create container repository")
 		return nil
 	}
-
-	//		t.Row(out.String(), config.Code, config.Name, code)
 
 	cfg.WriteObject(out)
 	return nil

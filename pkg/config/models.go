@@ -11,6 +11,7 @@ type HomeConfig struct {
 
 type ApiConfig struct {
 	GraphQL string `default:"https://api.getnoops.com/graphql"`
+	Token   string `default:""`
 }
 
 type AuthConfig struct {

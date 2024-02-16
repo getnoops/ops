@@ -110,7 +110,7 @@ query GetEnvironments($organisationId: UUID!, $codes: [String!], $page: Int, $pa
   }
 }
 
-query GetContainerRegistry($organisationId: UUID!, $aggregateId: UUID!) {
+query GetContainerRepository($organisationId: UUID!, $aggregateId: UUID!) {
   # @genqlient(typename: "ContainerRepository")
   containerRepository(input: {
     organisation_id: $organisationId,

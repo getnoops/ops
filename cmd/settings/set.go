@@ -20,20 +20,19 @@ func SetCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-
-			config, err := config.New[SetConfig](ctx, viper.GetViper())
-			if err != nil {
-				return err
-			}
-
-			return Set(ctx, config, args[0], args[1])
+			return Set(ctx, args[0], args[1])
 		},
 	}
 
 	return cmd
 }
 
-func Set(ctx context.Context, config *config.NoOps[SetConfig], key string, val string) error {
+func Set(ctx context.Context, key string, val string) error {
+	config, err := config.New[SetConfig, string](ctx, viper.GetViper())
+	if err != nil {
+		return err
+	}
+
 	settings, err := config.GetSettings()
 	if err != nil {
 		return err

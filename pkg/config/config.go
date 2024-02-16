@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,10 +11,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
+
+	"github.com/getnoops/ops/pkg/util"
 
 	"github.com/99designs/keyring"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/getnoops/ops/pkg/util"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/google/uuid"
 	"github.com/mcuadros/go-defaults"
 	"github.com/zitadel/oidc/v2/pkg/client/rp"
@@ -43,7 +47,7 @@ func openSettings(homePath string) (*os.File, error) {
 	return os.OpenFile(settingsPath, os.O_RDWR|os.O_CREATE, 0600)
 }
 
-type NoOps[C any] struct {
+type NoOps[C any, T any] struct {
 	Config[C]
 
 	writerStderr *os.File
@@ -53,67 +57,14 @@ type NoOps[C any] struct {
 	Styles Styles
 }
 
-func (c *NoOps[C]) StoreToken(token *oidc.Tokens[*oidc.IDTokenClaims]) error {
-	wrap := struct {
-		Token *oidc.Tokens[*oidc.IDTokenClaims]
-	}{
-		Token: token,
+func (c *NoOps[C, T]) getToken(ctx context.Context) (*oauth2.Token, error) {
+	if len(c.Api.Token) > 0 {
+		return &oauth2.Token{
+			TokenType:   "Bearer",
+			AccessToken: c.Api.Token,
+		}, nil
 	}
 
-	raw, err := yaml.Marshal(wrap)
-	if err != nil {
-		return err
-	}
-
-	return c.keyring.Set(keyring.Item{
-		Key:  TokenKey,
-		Data: raw,
-	})
-}
-
-func (c *NoOps[C]) StoreSettings(settings map[string]string) error {
-	file, err := openSettings(c.Home.Path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	file.Truncate(0)
-	file.Seek(0, 0)
-
-	raw, err := yaml.Marshal(settings)
-	if err != nil {
-		return err
-	}
-
-	if _, err := file.Write(raw); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *NoOps[C]) GetSettings() (map[string]string, error) {
-	file, err := openSettings(c.Home.Path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	raw, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
-	out := map[string]string{}
-	yaml.Unmarshal(raw, &out)
-	return out, nil
-}
-
-func (c *NoOps[C]) NewRelyingPartyOIDC(ctx context.Context, redirectUri string) (rp.RelyingParty, error) {
-	return rp.NewRelyingPartyOIDC(c.Auth.Issuer, c.Auth.ClientId, "", redirectUri, c.Auth.Scopes, rp.WithPKCE(nil))
-}
-
-func (c *NoOps[C]) NewHttpClient(ctx context.Context) (*http.Client, error) {
 	if c.Token == nil {
 		return nil, fmt.Errorf("no token found, please login")
 	}
@@ -140,10 +91,78 @@ func (c *NoOps[C]) NewHttpClient(ctx context.Context) (*http.Client, error) {
 		}
 	}
 
-	return oauth2.NewClient(ctx, oauth2.StaticTokenSource(c.Token.Token)), nil
+	return c.Token.Token, nil
 }
 
-func (c *NoOps[C]) GetUserId() (uuid.UUID, error) {
+func (c *NoOps[C, T]) StoreToken(token *oidc.Tokens[*oidc.IDTokenClaims]) error {
+	wrap := struct {
+		Token *oidc.Tokens[*oidc.IDTokenClaims]
+	}{
+		Token: token,
+	}
+
+	raw, err := yaml.Marshal(wrap)
+	if err != nil {
+		return err
+	}
+
+	return c.keyring.Set(keyring.Item{
+		Key:  TokenKey,
+		Data: raw,
+	})
+}
+
+func (c *NoOps[C, T]) StoreSettings(settings map[string]string) error {
+	file, err := openSettings(c.Home.Path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	file.Truncate(0)
+	file.Seek(0, 0)
+
+	raw, err := yaml.Marshal(settings)
+	if err != nil {
+		return err
+	}
+
+	if _, err := file.Write(raw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *NoOps[C, T]) GetSettings() (map[string]string, error) {
+	file, err := openSettings(c.Home.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	raw, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	out := map[string]string{}
+	yaml.Unmarshal(raw, &out)
+	return out, nil
+}
+
+func (c *NoOps[C, T]) NewRelyingPartyOIDC(ctx context.Context, redirectUri string) (rp.RelyingParty, error) {
+	return rp.NewRelyingPartyOIDC(c.Auth.Issuer, c.Auth.ClientId, "", redirectUri, c.Auth.Scopes, rp.WithPKCE(nil))
+}
+
+func (c *NoOps[C, T]) NewHttpClient(ctx context.Context) (*http.Client, error) {
+	token, err := c.getToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return oauth2.NewClient(ctx, oauth2.StaticTokenSource(token)), nil
+}
+
+func (c *NoOps[C, T]) GetUserId() (uuid.UUID, error) {
 	if c.Token == nil {
 		return uuid.Nil, fmt.Errorf("no token found, please login")
 	}
@@ -165,7 +184,7 @@ func (c *NoOps[C]) GetUserId() (uuid.UUID, error) {
 	return id, nil
 }
 
-func (c *NoOps[C]) GetOrganisationCode() (string, error) {
+func (c *NoOps[C, T]) GetOrganisationCode() (string, error) {
 	if len(c.Global.Organisation) > 0 {
 		return c.Global.Organisation, nil
 	}
@@ -177,15 +196,65 @@ func (c *NoOps[C]) GetOrganisationCode() (string, error) {
 	return "", fmt.Errorf("no organisation set")
 }
 
-func (c *NoOps[C]) WriteStderr(out string) {
+func (c *NoOps[C, T]) WriteStderr(out string) {
 	c.writerStderr.Write([]byte(out))
 }
 
-func (c *NoOps[C]) WriteStdout(out string) {
+func (c *NoOps[C, T]) WriteStdout(out string) {
 	c.writerStdout.Write([]byte(out))
 }
 
-func New[C any](ctx context.Context, v *viper.Viper) (*NoOps[C], error) {
+func (c *NoOps[C, T]) WriteList(data []T) {
+	switch strings.ToLower(c.Global.Format) {
+	case "table":
+		t := table.New().
+			Border(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+			Headers("Code", "State")
+
+		tableData := ToTableFromList(data)
+
+		t.Headers(tableData.Headers...)
+		for _, row := range tableData.Rows {
+			t.Row(row...)
+		}
+
+		c.WriteStdout(t.Render())
+	case "json":
+		out, _ := json.Marshal(data)
+		c.WriteStdout(string(out))
+	case "yaml":
+		out, _ := yaml.Marshal(data)
+		c.WriteStdout(string(out))
+	}
+}
+
+func (c *NoOps[C, T]) WriteObject(data T) {
+	switch strings.ToLower(c.Global.Format) {
+	case "table":
+		t := table.New().
+			Border(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+			Headers("Code", "State")
+
+		tableData := ToTableFromObject(data)
+
+		t.Headers(tableData.Headers...)
+		for _, row := range tableData.Rows {
+			t.Row(row...)
+		}
+
+		c.WriteStdout(t.Render())
+	case "json":
+		out, _ := json.Marshal(data)
+		c.WriteStdout(string(out))
+	case "yaml":
+		out, _ := yaml.Marshal(data)
+		c.WriteStdout(string(out))
+	}
+}
+
+func New[C any, T any](ctx context.Context, v *viper.Viper) (*NoOps[C, T], error) {
 	var config Config[C]
 	defaults.SetDefaults(&config)
 	if err := v.Unmarshal(&config); err != nil {
@@ -235,7 +304,7 @@ func New[C any](ctx context.Context, v *viper.Viper) (*NoOps[C], error) {
 		Italic(true).
 		Foreground(lipgloss.Color("#FFF7DB"))
 
-	return &NoOps[C]{
+	return &NoOps[C, T]{
 		Config:       config,
 		writerStderr: os.Stderr,
 		writerStdout: os.Stdout,

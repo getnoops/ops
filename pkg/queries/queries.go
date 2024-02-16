@@ -19,7 +19,7 @@ type Queries interface {
 	GetContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*ContainerRepository, error)
 
 	NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (uuid.UUID, error)
-	CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error)
+	CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error)
 	DeleteContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (uuid.UUID, error)
 	LoginContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*AuthContainerRepository, error)
 
@@ -89,7 +89,7 @@ func (q *queries) GetConfig(ctx context.Context, organisationId uuid.UUID, code 
 }
 
 func (q *queries) GetContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*ContainerRepository, error) {
-	resp, err := GetContainerRegistry(ctx, q.client, organisationId, id)
+	resp, err := GetContainerRepository(ctx, q.client, organisationId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +105,7 @@ func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, e
 	return resp.NewDeployment, nil
 }
 
-func (q *queries) CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error) {
-	id := uuid.New()
+func (q *queries) CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, code string) (uuid.UUID, error) {
 	resp, err := CreateContainerRepository(ctx, q.client, organisationId, id, configId, code)
 	if err != nil {
 		return uuid.Nil, err
@@ -163,7 +162,7 @@ func (q *queries) DeleteApiKey(ctx context.Context, id uuid.UUID) (uuid.UUID, er
 	return resp.DeleteApiKey, nil
 }
 
-func New[T any](ctx context.Context, cfg *config.NoOps[T]) (Queries, error) {
+func New[C any, T any](ctx context.Context, cfg *config.NoOps[C, T]) (Queries, error) {
 	httpClient, err := cfg.NewHttpClient(ctx)
 	if err != nil {
 		return nil, err

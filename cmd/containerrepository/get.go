@@ -2,18 +2,20 @@ package containerrepository
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 	"github.com/contextcloud/goutils/xmap"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 )
+
+type Repository struct {
+	RepositoryUri  string `json:"repository_uri"`
+	RepositoryName string `json:"repository_name"`
+	Username       string `json:"username"`
+}
 
 type GetConfig struct {
 }
@@ -21,7 +23,7 @@ type GetConfig struct {
 func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get [compute] [code]",
-		Short: "Will get a container registry for a given compute repository",
+		Short: "Will get a container repository for a given compute repository",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
@@ -36,7 +38,7 @@ func GetCommand() *cobra.Command {
 }
 
 func Get(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[GetConfig](ctx, viper.GetViper())
+	cfg, err := config.New[GetConfig, Repository](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -78,11 +80,7 @@ func Get(ctx context.Context, computeCode string, code string) error {
 		outputs[output.Output_key] = output.Output_value
 	}
 
-	result := struct {
-		RepositoryUri  string `json:"repository_uri"`
-		RepositoryName string `json:"repository_name"`
-		Username       string `json:"username"`
-	}{
+	result := Repository{
 		Username: "AWS",
 	}
 	if err := xmap.Decode(outputs, &result); err != nil {
@@ -90,23 +88,7 @@ func Get(ctx context.Context, computeCode string, code string) error {
 		return nil
 	}
 
-	switch cfg.Global.Format {
-	case "table":
-		t := table.New().
-			Border(lipgloss.NormalBorder()).
-			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Registry", "Repository", "Username")
-
-		t.Row(result.RepositoryUri, result.RepositoryName, result.Username)
-
-		cfg.WriteStdout(t.Render())
-	case "json":
-		out, _ := json.Marshal(result)
-		cfg.WriteStdout(string(out))
-	case "yaml":
-		out, _ := yaml.Marshal(result)
-		cfg.WriteStdout(string(out))
-	}
+	cfg.WriteObject(result)
 	return nil
 }
 

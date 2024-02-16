@@ -2,17 +2,13 @@ package deploy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 )
 
 type ApplyConfig struct {
@@ -37,7 +33,7 @@ func ApplyCommand() *cobra.Command {
 }
 
 func Apply(ctx context.Context, env string, code string, versionNumber string) error {
-	cfg, err := config.New[ApplyConfig](ctx, viper.GetViper())
+	cfg, err := config.New[ApplyConfig, uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -83,23 +79,7 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 		return nil
 	}
 
-	switch cfg.Global.Format {
-	case "table":
-		t := table.New().
-			Border(lipgloss.NormalBorder()).
-			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Environment Code", "Environment Name", "Config Code", "Config Name", "Config Version", "Deployment Id", "Deployment Revision Id")
-
-		t.Row(environment.Code, environment.Name, config.Code, config.Name, config.Version_number, out.String(), deploymentRevisionId.String())
-
-		cfg.WriteStdout(t.Render())
-	case "json":
-		out, _ := json.Marshal(config)
-		cfg.WriteStdout(string(out))
-	case "yaml":
-		out, _ := yaml.Marshal(config)
-		cfg.WriteStdout(string(out))
-	}
+	cfg.WriteObject(out)
 	return nil
 }
 

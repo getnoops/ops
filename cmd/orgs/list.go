@@ -8,9 +8,6 @@ import (
 	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 )
 
 type ListConfig struct {
@@ -34,7 +31,7 @@ func ListCommand() *cobra.Command {
 }
 
 func List(ctx context.Context) error {
-	cfg, err := config.New[ListConfig](ctx, viper.GetViper())
+	cfg, err := config.New[ListConfig, queries.Organisation](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -50,15 +47,6 @@ func List(ctx context.Context) error {
 		return err
 	}
 
-	t := table.New().
-		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-		Headers("Code", "Name", "State")
-
-	for _, item := range out.Items {
-		t.Row(item.Code, item.Name, string(item.State))
-	}
-
-	cfg.WriteStdout(t.Render())
+	cfg.WriteList(out.Items)
 	return nil
 }

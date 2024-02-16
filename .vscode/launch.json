@@ -13,9 +13,13 @@
       "args": [
         "compute",
         "list",
-        "--organisation=playground",
         "--format=json"
       ],
+      "env": {
+        "NOOPS_API_GRAPHQL": "http://localhost:8200/api/graphql",
+        "NOOPS_API_TOKEN": "ops_2x8dyEwpfVofP6ujcd8i8MSDF9poWmRMQ4Zdv8pz9WVzpTZkvfHygf2CbDt2BJNutBDyTZES8FNna1KX6dC69WjZNGMPhaxjHCBWVg",
+        "NOOPS_ORGANISATION": "noops"
+      }
     }
   ]
 }

@@ -2,17 +2,18 @@ package keys
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 )
+
+type KeyResult struct {
+	Id    uuid.UUID `json:"id"`
+	Token string    `json:"token"`
+}
 
 type CreateConfig struct {
 }
@@ -30,7 +31,7 @@ func CreateCommand() *cobra.Command {
 }
 
 func Create(ctx context.Context) error {
-	cfg, err := config.New[CreateConfig](ctx, viper.GetViper())
+	cfg, err := config.New[CreateConfig, KeyResult](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -55,30 +56,11 @@ func Create(ctx context.Context) error {
 		return nil
 	}
 
-	result := struct {
-		Id    uuid.UUID `json:"id"`
-		Token string    `json:"token"`
-	}{
+	result := KeyResult{
 		Id:    out.Id,
 		Token: out.Token,
 	}
 
-	switch cfg.Global.Format {
-	case "table":
-		t := table.New().
-			Border(lipgloss.NormalBorder()).
-			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Id", "Token")
-
-		t.Row(result.Id.String(), result.Token)
-
-		cfg.WriteStdout(t.Render())
-	case "json":
-		out, _ := json.Marshal(result)
-		cfg.WriteStdout(string(out))
-	case "yaml":
-		out, _ := yaml.Marshal(result)
-		cfg.WriteStdout(string(out))
-	}
+	cfg.WriteObject(result)
 	return nil
 }

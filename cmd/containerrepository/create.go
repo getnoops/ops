@@ -2,15 +2,12 @@ package containerrepository
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 )
 
 type CreateConfig struct {
@@ -19,7 +16,7 @@ type CreateConfig struct {
 func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create [compute] [code]",
-		Short: "Will create a container registry for a given compute",
+		Short: "Will create a container repository for a given compute",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
@@ -34,7 +31,7 @@ func CreateCommand() *cobra.Command {
 }
 
 func Create(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[CreateConfig](ctx, viper.GetViper())
+	cfg, err := config.New[CreateConfig, uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -59,28 +56,13 @@ func Create(ctx context.Context, computeCode string, code string) error {
 		return nil
 	}
 
-	out, err := q.CreateContainerRepository(ctx, organisation.Id, config.Id, code)
+	id := uuid.New()
+	out, err := q.CreateContainerRepository(ctx, organisation.Id, id, config.Id, code)
 	if err != nil {
-		cfg.WriteStderr("failed to create container registry")
+		cfg.WriteStderr("failed to create container repository")
 		return nil
 	}
 
-	switch cfg.Global.Format {
-	case "table":
-		t := table.New().
-			Border(lipgloss.NormalBorder()).
-			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Id", "Config Code", "Config Name", "Code")
-
-		t.Row(out.String(), config.Code, config.Name, code)
-
-		cfg.WriteStdout(t.Render())
-	case "json":
-		out, _ := json.Marshal(out)
-		cfg.WriteStdout(string(out))
-	case "yaml":
-		out, _ := yaml.Marshal(out)
-		cfg.WriteStdout(string(out))
-	}
+	cfg.WriteObject(out)
 	return nil
 }

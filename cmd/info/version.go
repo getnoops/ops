@@ -20,18 +20,19 @@ func New() *cobra.Command {
 		Long:  `Will show information about the current version of ops.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			cfg, err := config.New[Config](ctx, viper.GetViper())
-			if err != nil {
-				return err
-			}
-			return Info(ctx, cfg)
+			return Info(ctx)
 		},
 	}
 
 	return cmd
 }
 
-func Info(ctx context.Context, cfg *config.NoOps[Config]) error {
+func Info(ctx context.Context) error {
+	cfg, err := config.New[Config, string](ctx, viper.GetViper())
+	if err != nil {
+		return err
+	}
+
 	cfg.WriteStdout("Ops Version " + version.Version() + "\n\n")
 	cfg.WriteStdout("Ops API " + cfg.Api.GraphQL)
 	return nil

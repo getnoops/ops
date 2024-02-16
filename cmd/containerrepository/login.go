@@ -30,7 +30,7 @@ func LoginCommand() *cobra.Command {
 }
 
 func Login(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[LoginConfig](ctx, viper.GetViper())
+	cfg, err := config.New[LoginConfig, string](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func Login(ctx context.Context, computeCode string, code string) error {
 
 	out, err := q.LoginContainerRepository(ctx, organisation.Id, repository.Id)
 	if err != nil {
-		cfg.WriteStderr("failed to authenticate container registry")
+		cfg.WriteStderr("failed to authenticate container repository")
 		return nil
 	}
 

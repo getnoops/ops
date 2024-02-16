@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -27,12 +26,7 @@ func New() *cobra.Command {
 		Long:  `Upgrade will check for the latest version and upgrade if necessary.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-
-			config, err := config.New[Config](ctx, viper.GetViper())
-			if err != nil {
-				return err
-			}
-			return Update(config)
+			return Update(ctx)
 		},
 	}
 
@@ -40,10 +34,13 @@ func New() *cobra.Command {
 	return cmd
 }
 
-func Update(config *config.NoOps[Config]) error {
-	ctx := context.Background()
+func Update(ctx context.Context) error {
+	cfg, err := config.New[Config, string](ctx, viper.GetViper())
+	if err != nil {
+		return err
+	}
 
-	updater, err := selfupdate.NewUpdater("getnoops/ops", config.Command.Prerelease, config.Command.Draft)
+	updater, err := selfupdate.NewUpdater("getnoops/ops", cfg.Command.Prerelease, cfg.Command.Draft)
 	if err != nil {
 		return fmt.Errorf("error occurred while creating updater: %w", err)
 	}
@@ -60,7 +57,7 @@ func Update(config *config.NoOps[Config]) error {
 	}
 
 	if !diff {
-		log.Println("You already have the latest")
+		cfg.WriteStdout("You already have the latest")
 		return nil
 	}
 
@@ -71,6 +68,7 @@ func Update(config *config.NoOps[Config]) error {
 	if err := updater.UpdateTo(ctx, latest, exePath); err != nil {
 		return fmt.Errorf("error occurred while updating binary: %w", err)
 	}
-	log.Println("Successfully updated ops")
+
+	cfg.WriteStdout("Successfully updated ops")
 	return nil
 }

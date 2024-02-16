@@ -6,6 +6,7 @@ Log:
 
 Api:
   GraphQL: https://portal.getnoops.com/api/graphql
+  Token: 
 
 Auth: 
   Issuer: https://account.getnoops.com/

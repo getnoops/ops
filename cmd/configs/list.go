@@ -2,17 +2,12 @@ package configs
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
-
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 )
 
 type ListConfig struct {
@@ -36,7 +31,7 @@ func ListCommand(class queries.ConfigClass) *cobra.Command {
 }
 
 func List(ctx context.Context, class queries.ConfigClass) error {
-	cfg, err := config.New[ListConfig](ctx, viper.GetViper())
+	cfg, err := config.New[ListConfig, queries.ConfigItem](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -61,24 +56,6 @@ func List(ctx context.Context, class queries.ConfigClass) error {
 		return nil
 	}
 
-	switch cfg.Global.Format {
-	case "table":
-		t := table.New().
-			Border(lipgloss.NormalBorder()).
-			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-			Headers("Class", "Name", "Code", "State")
-
-		for _, item := range configs.Items {
-			t.Row(string(item.Class), item.Name, item.Code, string(item.State))
-		}
-
-		cfg.WriteStdout(t.Render())
-	case "json":
-		out, _ := json.Marshal(configs)
-		cfg.WriteStdout(string(out))
-	case "yaml":
-		out, _ := yaml.Marshal(configs)
-		cfg.WriteStdout(string(out))
-	}
+	cfg.WriteList(configs.Items)
 	return nil
 }

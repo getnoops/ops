@@ -22,20 +22,19 @@ func UnsetCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-
-			config, err := config.New[UnsetConfig](ctx, viper.GetViper())
-			if err != nil {
-				return err
-			}
-
-			return Unset(ctx, config, args[0])
+			return Unset(ctx, args[0])
 		},
 	}
 
 	return cmd
 }
 
-func Unset[T any](ctx context.Context, config *config.NoOps[T], key string) error {
+func Unset(ctx context.Context, key string) error {
+	config, err := config.New[UnsetConfig, string](ctx, viper.GetViper())
+	if err != nil {
+		return err
+	}
+
 	settings, err := config.GetSettings()
 	if err != nil {
 		return err

@@ -31,7 +31,7 @@ func New() *cobra.Command {
 }
 
 func Login(ctx context.Context) error {
-	cfg, err := config.New[Config](ctx, viper.GetViper())
+	cfg, err := config.New[Config, string](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
