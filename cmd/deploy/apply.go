@@ -6,6 +6,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,9 +17,10 @@ type ApplyConfig struct {
 
 func ApplyCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "apply [env] [compute|storage|integration] [version_number]",
-		Short: "Will deploy either a compute, storage or integration to an environment",
-		Args:  cobra.ExactArgs(3),
+		Use:    "apply [env] [compute|storage|integration] [version_number]",
+		Short:  "Will deploy either a compute, storage or integration to an environment",
+		Args:   cobra.ExactArgs(3),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env := args[0]
 			code := args[1]
@@ -33,7 +35,7 @@ func ApplyCommand() *cobra.Command {
 }
 
 func Apply(ctx context.Context, env string, code string, versionNumber string) error {
-	cfg, err := config.New[ApplyConfig, uuid.UUID](ctx, viper.GetViper())
+	cfg, err := config.New[ApplyConfig, *uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -91,17 +93,17 @@ func GetEnvironment(ctx context.Context, q queries.Queries, organisationId uuid.
 
 	for _, env := range paged.Items {
 		if env.Code == code {
-			return &env, nil
+			return env, nil
 		}
 	}
 
 	return nil, fmt.Errorf("environment not found")
 }
 
-func GetConfigRevision(revisions []queries.RevisionItem, versionNumber string) (*queries.RevisionItem, error) {
+func GetConfigRevision(revisions []*queries.RevisionItem, versionNumber string) (*queries.RevisionItem, error) {
 	for _, revision := range revisions {
 		if revision.Version_number == versionNumber {
-			return &revision, nil
+			return revision, nil
 		}
 	}
 

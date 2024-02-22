@@ -52,10 +52,9 @@ const (
 
 // AuthContainerRepository includes the requested fields of the GraphQL type AuthContainerRepository.
 type AuthContainerRepository struct {
-	Username        string `json:"username"`
-	Password        string `json:"password"`
-	Registry_url    string `json:"registry_url"`
-	Repository_name string `json:"repository_name"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	Registry_url string `json:"registry_url"`
 }
 
 // GetUsername returns AuthContainerRepository.Username, and is useful for accessing the field via an interface.
@@ -67,22 +66,19 @@ func (v *AuthContainerRepository) GetPassword() string { return v.Password }
 // GetRegistry_url returns AuthContainerRepository.Registry_url, and is useful for accessing the field via an interface.
 func (v *AuthContainerRepository) GetRegistry_url() string { return v.Registry_url }
 
-// GetRepository_name returns AuthContainerRepository.Repository_name, and is useful for accessing the field via an interface.
-func (v *AuthContainerRepository) GetRepository_name() string { return v.Repository_name }
-
 // Config includes the requested fields of the GraphQL type Config.
 type Config struct {
-	Id                    uuid.UUID                 `json:"id"`
-	Code                  string                    `json:"code"`
-	Class                 ConfigClass               `json:"class"`
-	Name                  string                    `json:"name"`
-	Resources             []Resources               `json:"resources"`
-	Version_number        string                    `json:"version_number"`
-	State                 ConfigState               `json:"state"`
-	Revisions             []RevisionItem            `json:"revisions"`
-	ContainerRepositories []ContainerRepositoryItem `json:"containerRepositories"`
-	Created_at            time.Time                 `json:"created_at"`
-	Updated_at            time.Time                 `json:"updated_at"`
+	Id                    uuid.UUID                  `json:"id"`
+	Code                  string                     `json:"code"`
+	Class                 ConfigClass                `json:"class"`
+	Name                  string                     `json:"name"`
+	Resources             []*Resources               `json:"resources"`
+	Version_number        string                     `json:"version_number"`
+	State                 ConfigState                `json:"state"`
+	Revisions             []*RevisionItem            `json:"revisions"`
+	ContainerRepositories []*ContainerRepositoryItem `json:"containerRepositories"`
+	Created_at            time.Time                  `json:"created_at"`
+	Updated_at            time.Time                  `json:"updated_at"`
 }
 
 // GetId returns Config.Id, and is useful for accessing the field via an interface.
@@ -98,7 +94,7 @@ func (v *Config) GetClass() ConfigClass { return v.Class }
 func (v *Config) GetName() string { return v.Name }
 
 // GetResources returns Config.Resources, and is useful for accessing the field via an interface.
-func (v *Config) GetResources() []Resources { return v.Resources }
+func (v *Config) GetResources() []*Resources { return v.Resources }
 
 // GetVersion_number returns Config.Version_number, and is useful for accessing the field via an interface.
 func (v *Config) GetVersion_number() string { return v.Version_number }
@@ -107,10 +103,12 @@ func (v *Config) GetVersion_number() string { return v.Version_number }
 func (v *Config) GetState() ConfigState { return v.State }
 
 // GetRevisions returns Config.Revisions, and is useful for accessing the field via an interface.
-func (v *Config) GetRevisions() []RevisionItem { return v.Revisions }
+func (v *Config) GetRevisions() []*RevisionItem { return v.Revisions }
 
 // GetContainerRepositories returns Config.ContainerRepositories, and is useful for accessing the field via an interface.
-func (v *Config) GetContainerRepositories() []ContainerRepositoryItem { return v.ContainerRepositories }
+func (v *Config) GetContainerRepositories() []*ContainerRepositoryItem {
+	return v.ContainerRepositories
+}
 
 // GetCreated_at returns Config.Created_at, and is useful for accessing the field via an interface.
 func (v *Config) GetCreated_at() time.Time { return v.Created_at }
@@ -170,12 +168,12 @@ const (
 
 // ContainerRepository includes the requested fields of the GraphQL type ContainerRepository.
 type ContainerRepository struct {
-	Id         uuid.UUID                `json:"id"`
-	Code       string                   `json:"code"`
-	State      StackState               `json:"state"`
-	Stack      ContainerRepositoryStack `json:"stack"`
-	Created_at time.Time                `json:"created_at"`
-	Updated_at time.Time                `json:"updated_at"`
+	Id         uuid.UUID                 `json:"id"`
+	Code       string                    `json:"code"`
+	State      StackState                `json:"state"`
+	Stack      *ContainerRepositoryStack `json:"stack"`
+	Created_at time.Time                 `json:"created_at"`
+	Updated_at time.Time                 `json:"updated_at"`
 }
 
 // GetId returns ContainerRepository.Id, and is useful for accessing the field via an interface.
@@ -188,7 +186,7 @@ func (v *ContainerRepository) GetCode() string { return v.Code }
 func (v *ContainerRepository) GetState() StackState { return v.State }
 
 // GetStack returns ContainerRepository.Stack, and is useful for accessing the field via an interface.
-func (v *ContainerRepository) GetStack() ContainerRepositoryStack { return v.Stack }
+func (v *ContainerRepository) GetStack() *ContainerRepositoryStack { return v.Stack }
 
 // GetCreated_at returns ContainerRepository.Created_at, and is useful for accessing the field via an interface.
 func (v *ContainerRepository) GetCreated_at() time.Time { return v.Created_at }
@@ -198,11 +196,12 @@ func (v *ContainerRepository) GetUpdated_at() time.Time { return v.Updated_at }
 
 // ContainerRepositoryItem includes the requested fields of the GraphQL type ContainerRepository.
 type ContainerRepositoryItem struct {
-	Id         uuid.UUID  `json:"id"`
-	Code       string     `json:"code"`
-	State      StackState `json:"state"`
-	Created_at time.Time  `json:"created_at"`
-	Updated_at time.Time  `json:"updated_at"`
+	Id         uuid.UUID                     `json:"id"`
+	Code       string                        `json:"code"`
+	Stack      *ContainerRepositoryItemStack `json:"stack"`
+	State      StackState                    `json:"state"`
+	Created_at time.Time                     `json:"created_at"`
+	Updated_at time.Time                     `json:"updated_at"`
 }
 
 // GetId returns ContainerRepositoryItem.Id, and is useful for accessing the field via an interface.
@@ -210,6 +209,9 @@ func (v *ContainerRepositoryItem) GetId() uuid.UUID { return v.Id }
 
 // GetCode returns ContainerRepositoryItem.Code, and is useful for accessing the field via an interface.
 func (v *ContainerRepositoryItem) GetCode() string { return v.Code }
+
+// GetStack returns ContainerRepositoryItem.Stack, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItem) GetStack() *ContainerRepositoryItemStack { return v.Stack }
 
 // GetState returns ContainerRepositoryItem.State, and is useful for accessing the field via an interface.
 func (v *ContainerRepositoryItem) GetState() StackState { return v.State }
@@ -220,11 +222,35 @@ func (v *ContainerRepositoryItem) GetCreated_at() time.Time { return v.Created_a
 // GetUpdated_at returns ContainerRepositoryItem.Updated_at, and is useful for accessing the field via an interface.
 func (v *ContainerRepositoryItem) GetUpdated_at() time.Time { return v.Updated_at }
 
+// ContainerRepositoryItemStack includes the requested fields of the GraphQL type Stack.
+type ContainerRepositoryItemStack struct {
+	Outputs []*ContainerRepositoryItemStackOutputsStackOutput `json:"outputs"`
+}
+
+// GetOutputs returns ContainerRepositoryItemStack.Outputs, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItemStack) GetOutputs() []*ContainerRepositoryItemStackOutputsStackOutput {
+	return v.Outputs
+}
+
+// ContainerRepositoryItemStackOutputsStackOutput includes the requested fields of the GraphQL type StackOutput.
+type ContainerRepositoryItemStackOutputsStackOutput struct {
+	Output_key   string `json:"output_key"`
+	Output_value string `json:"output_value"`
+}
+
+// GetOutput_key returns ContainerRepositoryItemStackOutputsStackOutput.Output_key, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItemStackOutputsStackOutput) GetOutput_key() string { return v.Output_key }
+
+// GetOutput_value returns ContainerRepositoryItemStackOutputsStackOutput.Output_value, and is useful for accessing the field via an interface.
+func (v *ContainerRepositoryItemStackOutputsStackOutput) GetOutput_value() string {
+	return v.Output_value
+}
+
 // ContainerRepositoryStack includes the requested fields of the GraphQL type Stack.
 type ContainerRepositoryStack struct {
-	Id      uuid.UUID         `json:"id"`
-	State   StackState        `json:"state"`
-	Outputs []StackOutputItem `json:"outputs"`
+	Id      uuid.UUID          `json:"id"`
+	State   StackState         `json:"state"`
+	Outputs []*StackOutputItem `json:"outputs"`
 }
 
 // GetId returns ContainerRepositoryStack.Id, and is useful for accessing the field via an interface.
@@ -234,15 +260,15 @@ func (v *ContainerRepositoryStack) GetId() uuid.UUID { return v.Id }
 func (v *ContainerRepositoryStack) GetState() StackState { return v.State }
 
 // GetOutputs returns ContainerRepositoryStack.Outputs, and is useful for accessing the field via an interface.
-func (v *ContainerRepositoryStack) GetOutputs() []StackOutputItem { return v.Outputs }
+func (v *ContainerRepositoryStack) GetOutputs() []*StackOutputItem { return v.Outputs }
 
 // CreateApiKeyResponse is returned by CreateApiKey on success.
 type CreateApiKeyResponse struct {
-	CreateApiKey IdWithToken `json:"createApiKey"`
+	CreateApiKey *IdWithToken `json:"createApiKey"`
 }
 
 // GetCreateApiKey returns CreateApiKeyResponse.CreateApiKey, and is useful for accessing the field via an interface.
-func (v *CreateApiKeyResponse) GetCreateApiKey() IdWithToken { return v.CreateApiKey }
+func (v *CreateApiKeyResponse) GetCreateApiKey() *IdWithToken { return v.CreateApiKey }
 
 // CreateContainerRepositoryResponse is returned by CreateContainerRepository on success.
 type CreateContainerRepositoryResponse struct {
@@ -314,15 +340,15 @@ const (
 
 // GetApiKeysApiKeysPagedApiKeysOutput includes the requested fields of the GraphQL type PagedApiKeysOutput.
 type GetApiKeysApiKeysPagedApiKeysOutput struct {
-	Items       []ApiKey `json:"items"`
-	Page_size   int      `json:"page_size"`
-	Page        int      `json:"page"`
-	Total_items int      `json:"total_items"`
-	Total_pages int      `json:"total_pages"`
+	Items       []*ApiKey `json:"items"`
+	Page_size   int       `json:"page_size"`
+	Page        int       `json:"page"`
+	Total_items int       `json:"total_items"`
+	Total_pages int       `json:"total_pages"`
 }
 
 // GetItems returns GetApiKeysApiKeysPagedApiKeysOutput.Items, and is useful for accessing the field via an interface.
-func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetItems() []ApiKey { return v.Items }
+func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetItems() []*ApiKey { return v.Items }
 
 // GetPage_size returns GetApiKeysApiKeysPagedApiKeysOutput.Page_size, and is useful for accessing the field via an interface.
 func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetPage_size() int { return v.Page_size }
@@ -338,31 +364,31 @@ func (v *GetApiKeysApiKeysPagedApiKeysOutput) GetTotal_pages() int { return v.To
 
 // GetApiKeysResponse is returned by GetApiKeys on success.
 type GetApiKeysResponse struct {
-	ApiKeys GetApiKeysApiKeysPagedApiKeysOutput `json:"apiKeys"`
+	ApiKeys *GetApiKeysApiKeysPagedApiKeysOutput `json:"apiKeys"`
 }
 
 // GetApiKeys returns GetApiKeysResponse.ApiKeys, and is useful for accessing the field via an interface.
-func (v *GetApiKeysResponse) GetApiKeys() GetApiKeysApiKeysPagedApiKeysOutput { return v.ApiKeys }
+func (v *GetApiKeysResponse) GetApiKeys() *GetApiKeysApiKeysPagedApiKeysOutput { return v.ApiKeys }
 
 // GetConfigResponse is returned by GetConfig on success.
 type GetConfigResponse struct {
-	Config Config `json:"config"`
+	Config *Config `json:"config"`
 }
 
 // GetConfig returns GetConfigResponse.Config, and is useful for accessing the field via an interface.
-func (v *GetConfigResponse) GetConfig() Config { return v.Config }
+func (v *GetConfigResponse) GetConfig() *Config { return v.Config }
 
 // GetConfigsConfigsPagedConfigsOutput includes the requested fields of the GraphQL type PagedConfigsOutput.
 type GetConfigsConfigsPagedConfigsOutput struct {
-	Items       []ConfigItem `json:"items"`
-	Page_size   int          `json:"page_size"`
-	Page        int          `json:"page"`
-	Total_items int          `json:"total_items"`
-	Total_pages int          `json:"total_pages"`
+	Items       []*ConfigItem `json:"items"`
+	Page_size   int           `json:"page_size"`
+	Page        int           `json:"page"`
+	Total_items int           `json:"total_items"`
+	Total_pages int           `json:"total_pages"`
 }
 
 // GetItems returns GetConfigsConfigsPagedConfigsOutput.Items, and is useful for accessing the field via an interface.
-func (v *GetConfigsConfigsPagedConfigsOutput) GetItems() []ConfigItem { return v.Items }
+func (v *GetConfigsConfigsPagedConfigsOutput) GetItems() []*ConfigItem { return v.Items }
 
 // GetPage_size returns GetConfigsConfigsPagedConfigsOutput.Page_size, and is useful for accessing the field via an interface.
 func (v *GetConfigsConfigsPagedConfigsOutput) GetPage_size() int { return v.Page_size }
@@ -378,33 +404,35 @@ func (v *GetConfigsConfigsPagedConfigsOutput) GetTotal_pages() int { return v.To
 
 // GetConfigsResponse is returned by GetConfigs on success.
 type GetConfigsResponse struct {
-	Configs GetConfigsConfigsPagedConfigsOutput `json:"configs"`
+	Configs *GetConfigsConfigsPagedConfigsOutput `json:"configs"`
 }
 
 // GetConfigs returns GetConfigsResponse.Configs, and is useful for accessing the field via an interface.
-func (v *GetConfigsResponse) GetConfigs() GetConfigsConfigsPagedConfigsOutput { return v.Configs }
+func (v *GetConfigsResponse) GetConfigs() *GetConfigsConfigsPagedConfigsOutput { return v.Configs }
 
 // GetContainerRepositoryResponse is returned by GetContainerRepository on success.
 type GetContainerRepositoryResponse struct {
-	ContainerRepository ContainerRepository `json:"containerRepository"`
+	ContainerRepository *ContainerRepository `json:"containerRepository"`
 }
 
 // GetContainerRepository returns GetContainerRepositoryResponse.ContainerRepository, and is useful for accessing the field via an interface.
-func (v *GetContainerRepositoryResponse) GetContainerRepository() ContainerRepository {
+func (v *GetContainerRepositoryResponse) GetContainerRepository() *ContainerRepository {
 	return v.ContainerRepository
 }
 
 // GetEnvironmentsEnvironmentsPagedEnvironmentsOutput includes the requested fields of the GraphQL type PagedEnvironmentsOutput.
 type GetEnvironmentsEnvironmentsPagedEnvironmentsOutput struct {
-	Items       []Environment `json:"items"`
-	Page_size   int           `json:"page_size"`
-	Page        int           `json:"page"`
-	Total_items int           `json:"total_items"`
-	Total_pages int           `json:"total_pages"`
+	Items       []*Environment `json:"items"`
+	Page_size   int            `json:"page_size"`
+	Page        int            `json:"page"`
+	Total_items int            `json:"total_items"`
+	Total_pages int            `json:"total_pages"`
 }
 
 // GetItems returns GetEnvironmentsEnvironmentsPagedEnvironmentsOutput.Items, and is useful for accessing the field via an interface.
-func (v *GetEnvironmentsEnvironmentsPagedEnvironmentsOutput) GetItems() []Environment { return v.Items }
+func (v *GetEnvironmentsEnvironmentsPagedEnvironmentsOutput) GetItems() []*Environment {
+	return v.Items
+}
 
 // GetPage_size returns GetEnvironmentsEnvironmentsPagedEnvironmentsOutput.Page_size, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentsEnvironmentsPagedEnvironmentsOutput) GetPage_size() int { return v.Page_size }
@@ -424,25 +452,25 @@ func (v *GetEnvironmentsEnvironmentsPagedEnvironmentsOutput) GetTotal_pages() in
 
 // GetEnvironmentsResponse is returned by GetEnvironments on success.
 type GetEnvironmentsResponse struct {
-	Environments GetEnvironmentsEnvironmentsPagedEnvironmentsOutput `json:"environments"`
+	Environments *GetEnvironmentsEnvironmentsPagedEnvironmentsOutput `json:"environments"`
 }
 
 // GetEnvironments returns GetEnvironmentsResponse.Environments, and is useful for accessing the field via an interface.
-func (v *GetEnvironmentsResponse) GetEnvironments() GetEnvironmentsEnvironmentsPagedEnvironmentsOutput {
+func (v *GetEnvironmentsResponse) GetEnvironments() *GetEnvironmentsEnvironmentsPagedEnvironmentsOutput {
 	return v.Environments
 }
 
 // GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput includes the requested fields of the GraphQL type PagedOrganisationsOutput.
 type GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput struct {
-	Items       []Organisation `json:"items"`
-	Page        int            `json:"page"`
-	Page_size   int            `json:"page_size"`
-	Total_items int            `json:"total_items"`
-	Total_pages int            `json:"total_pages"`
+	Items       []*Organisation `json:"items"`
+	Page        int             `json:"page"`
+	Page_size   int             `json:"page_size"`
+	Total_items int             `json:"total_items"`
+	Total_pages int             `json:"total_pages"`
 }
 
 // GetItems returns GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput.Items, and is useful for accessing the field via an interface.
-func (v *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput) GetItems() []Organisation {
+func (v *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput) GetItems() []*Organisation {
 	return v.Items
 }
 
@@ -468,11 +496,11 @@ func (v *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput) GetT
 
 // GetMemberOrganisationsResponse is returned by GetMemberOrganisations on success.
 type GetMemberOrganisationsResponse struct {
-	MemberOrganisations GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput `json:"memberOrganisations"`
+	MemberOrganisations *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput `json:"memberOrganisations"`
 }
 
 // GetMemberOrganisations returns GetMemberOrganisationsResponse.MemberOrganisations, and is useful for accessing the field via an interface.
-func (v *GetMemberOrganisationsResponse) GetMemberOrganisations() GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput {
+func (v *GetMemberOrganisationsResponse) GetMemberOrganisations() *GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput {
 	return v.MemberOrganisations
 }
 
@@ -490,11 +518,11 @@ func (v *IdWithToken) GetToken() string { return v.Token }
 
 // LoginContainerRepositoryResponse is returned by LoginContainerRepository on success.
 type LoginContainerRepositoryResponse struct {
-	LoginContainerRepository AuthContainerRepository `json:"loginContainerRepository"`
+	LoginContainerRepository *AuthContainerRepository `json:"loginContainerRepository"`
 }
 
 // GetLoginContainerRepository returns LoginContainerRepositoryResponse.LoginContainerRepository, and is useful for accessing the field via an interface.
-func (v *LoginContainerRepositoryResponse) GetLoginContainerRepository() AuthContainerRepository {
+func (v *LoginContainerRepositoryResponse) GetLoginContainerRepository() *AuthContainerRepository {
 	return v.LoginContainerRepository
 }
 
@@ -545,6 +573,29 @@ const (
 	OrganisationStateCreated OrganisationState = "created"
 	OrganisationStateDeleted OrganisationState = "deleted"
 )
+
+type ResourceInput struct {
+	Code         string                 `json:"code"`
+	Type         ResourceType           `json:"type"`
+	Data         map[string]interface{} `json:"data"`
+	References   []string               `json:"references"`
+	Allow_access []string               `json:"allow_access"`
+}
+
+// GetCode returns ResourceInput.Code, and is useful for accessing the field via an interface.
+func (v *ResourceInput) GetCode() string { return v.Code }
+
+// GetType returns ResourceInput.Type, and is useful for accessing the field via an interface.
+func (v *ResourceInput) GetType() ResourceType { return v.Type }
+
+// GetData returns ResourceInput.Data, and is useful for accessing the field via an interface.
+func (v *ResourceInput) GetData() map[string]interface{} { return v.Data }
+
+// GetReferences returns ResourceInput.References, and is useful for accessing the field via an interface.
+func (v *ResourceInput) GetReferences() []string { return v.References }
+
+// GetAllow_access returns ResourceInput.Allow_access, and is useful for accessing the field via an interface.
+func (v *ResourceInput) GetAllow_access() []string { return v.Allow_access }
 
 type ResourceType string
 
@@ -632,11 +683,46 @@ const (
 
 // UpdateApiKeyResponse is returned by UpdateApiKey on success.
 type UpdateApiKeyResponse struct {
-	UpdateApiKey IdWithToken `json:"updateApiKey"`
+	UpdateApiKey *IdWithToken `json:"updateApiKey"`
 }
 
 // GetUpdateApiKey returns UpdateApiKeyResponse.UpdateApiKey, and is useful for accessing the field via an interface.
-func (v *UpdateApiKeyResponse) GetUpdateApiKey() IdWithToken { return v.UpdateApiKey }
+func (v *UpdateApiKeyResponse) GetUpdateApiKey() *IdWithToken { return v.UpdateApiKey }
+
+type UpdateConfigInput struct {
+	Organisation_id uuid.UUID        `json:"organisation_id"`
+	Aggregate_id    uuid.UUID        `json:"aggregate_id"`
+	Name            string           `json:"name"`
+	Resources       []*ResourceInput `json:"resources,omitempty"`
+	Version_number  string           `json:"version_number"`
+	Revision_id     uuid.UUID        `json:"revision_id"`
+}
+
+// GetOrganisation_id returns UpdateConfigInput.Organisation_id, and is useful for accessing the field via an interface.
+func (v *UpdateConfigInput) GetOrganisation_id() uuid.UUID { return v.Organisation_id }
+
+// GetAggregate_id returns UpdateConfigInput.Aggregate_id, and is useful for accessing the field via an interface.
+func (v *UpdateConfigInput) GetAggregate_id() uuid.UUID { return v.Aggregate_id }
+
+// GetName returns UpdateConfigInput.Name, and is useful for accessing the field via an interface.
+func (v *UpdateConfigInput) GetName() string { return v.Name }
+
+// GetResources returns UpdateConfigInput.Resources, and is useful for accessing the field via an interface.
+func (v *UpdateConfigInput) GetResources() []*ResourceInput { return v.Resources }
+
+// GetVersion_number returns UpdateConfigInput.Version_number, and is useful for accessing the field via an interface.
+func (v *UpdateConfigInput) GetVersion_number() string { return v.Version_number }
+
+// GetRevision_id returns UpdateConfigInput.Revision_id, and is useful for accessing the field via an interface.
+func (v *UpdateConfigInput) GetRevision_id() uuid.UUID { return v.Revision_id }
+
+// UpdateConfigResponse is returned by UpdateConfig on success.
+type UpdateConfigResponse struct {
+	UpdateConfig uuid.UUID `json:"updateConfig"`
+}
+
+// GetUpdateConfig returns UpdateConfigResponse.UpdateConfig, and is useful for accessing the field via an interface.
+func (v *UpdateConfigResponse) GetUpdateConfig() uuid.UUID { return v.UpdateConfig }
 
 // __CreateApiKeyInput is used internally by genqlient
 type __CreateApiKeyInput struct {
@@ -785,14 +871,10 @@ func (v *__GetMemberOrganisationsInput) GetPageSize() int { return v.PageSize }
 // __LoginContainerRepositoryInput is used internally by genqlient
 type __LoginContainerRepositoryInput struct {
 	OrganisationId uuid.UUID `json:"organisationId"`
-	Id             uuid.UUID `json:"id"`
 }
 
 // GetOrganisationId returns __LoginContainerRepositoryInput.OrganisationId, and is useful for accessing the field via an interface.
 func (v *__LoginContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
-
-// GetId returns __LoginContainerRepositoryInput.Id, and is useful for accessing the field via an interface.
-func (v *__LoginContainerRepositoryInput) GetId() uuid.UUID { return v.Id }
 
 // __NewDeploymentInput is used internally by genqlient
 type __NewDeploymentInput struct {
@@ -830,6 +912,14 @@ type __UpdateApiKeyInput struct {
 // GetAggregateId returns __UpdateApiKeyInput.AggregateId, and is useful for accessing the field via an interface.
 func (v *__UpdateApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
+// __UpdateConfigInput is used internally by genqlient
+type __UpdateConfigInput struct {
+	Input *UpdateConfigInput `json:"input,omitempty"`
+}
+
+// GetInput returns __UpdateConfigInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateConfigInput) GetInput() *UpdateConfigInput { return v.Input }
+
 // The query or mutation executed by CreateApiKey.
 const CreateApiKey_Operation = `
 mutation CreateApiKey ($aggregateId: UUID!, $organisationId: UUID!) {
@@ -841,12 +931,12 @@ mutation CreateApiKey ($aggregateId: UUID!, $organisationId: UUID!) {
 `
 
 func CreateApiKey(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	aggregateId uuid.UUID,
 	organisationId uuid.UUID,
 ) (*CreateApiKeyResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "CreateApiKey",
 		Query:  CreateApiKey_Operation,
 		Variables: &__CreateApiKeyInput{
@@ -854,18 +944,18 @@ func CreateApiKey(
 			OrganisationId: organisationId,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data CreateApiKeyResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ CreateApiKeyResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by CreateContainerRepository.
@@ -876,14 +966,14 @@ mutation CreateContainerRepository ($organisationId: UUID!, $aggregateId: UUID!,
 `
 
 func CreateContainerRepository(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
 	configId uuid.UUID,
 	code string,
 ) (*CreateContainerRepositoryResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "CreateContainerRepository",
 		Query:  CreateContainerRepository_Operation,
 		Variables: &__CreateContainerRepositoryInput{
@@ -893,18 +983,18 @@ func CreateContainerRepository(
 			Code:           code,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data CreateContainerRepositoryResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ CreateContainerRepositoryResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by DeleteApiKey.
@@ -915,29 +1005,29 @@ mutation DeleteApiKey ($aggregateId: UUID!) {
 `
 
 func DeleteApiKey(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	aggregateId uuid.UUID,
 ) (*DeleteApiKeyResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "DeleteApiKey",
 		Query:  DeleteApiKey_Operation,
 		Variables: &__DeleteApiKeyInput{
 			AggregateId: aggregateId,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data DeleteApiKeyResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ DeleteApiKeyResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by DeleteContainerRepository.
@@ -948,12 +1038,12 @@ mutation DeleteContainerRepository ($organisationId: UUID!, $id: UUID!) {
 `
 
 func DeleteContainerRepository(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	id uuid.UUID,
 ) (*DeleteContainerRepositoryResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "DeleteContainerRepository",
 		Query:  DeleteContainerRepository_Operation,
 		Variables: &__DeleteContainerRepositoryInput{
@@ -961,18 +1051,18 @@ func DeleteContainerRepository(
 			Id:             id,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data DeleteContainerRepositoryResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ DeleteContainerRepositoryResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by GetApiKeys.
@@ -997,13 +1087,13 @@ query GetApiKeys ($organisationId: UUID!, $page: Int, $pageSize: Int) {
 `
 
 func GetApiKeys(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	page int,
 	pageSize int,
 ) (*GetApiKeysResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "GetApiKeys",
 		Query:  GetApiKeys_Operation,
 		Variables: &__GetApiKeysInput{
@@ -1012,18 +1102,18 @@ func GetApiKeys(
 			PageSize:       pageSize,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data GetApiKeysResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ GetApiKeysResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by GetConfig.
@@ -1053,6 +1143,12 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 		containerRepositories {
 			id
 			code
+			stack {
+				outputs {
+					output_key
+					output_value
+				}
+			}
 			state
 			created_at
 			updated_at
@@ -1064,12 +1160,12 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 `
 
 func GetConfig(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	code string,
 ) (*GetConfigResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "GetConfig",
 		Query:  GetConfig_Operation,
 		Variables: &__GetConfigInput{
@@ -1077,18 +1173,18 @@ func GetConfig(
 			Code:           code,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data GetConfigResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ GetConfigResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by GetConfigs.
@@ -1113,14 +1209,14 @@ query GetConfigs ($organisationId: UUID!, $classes: [ConfigClass!], $page: Int, 
 `
 
 func GetConfigs(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	classes []ConfigClass,
 	page int,
 	pageSize int,
 ) (*GetConfigsResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "GetConfigs",
 		Query:  GetConfigs_Operation,
 		Variables: &__GetConfigsInput{
@@ -1130,18 +1226,18 @@ func GetConfigs(
 			PageSize:       pageSize,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data GetConfigsResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ GetConfigsResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by GetContainerRepository.
@@ -1166,12 +1262,12 @@ query GetContainerRepository ($organisationId: UUID!, $aggregateId: UUID!) {
 `
 
 func GetContainerRepository(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
 ) (*GetContainerRepositoryResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "GetContainerRepository",
 		Query:  GetContainerRepository_Operation,
 		Variables: &__GetContainerRepositoryInput{
@@ -1179,18 +1275,18 @@ func GetContainerRepository(
 			AggregateId:    aggregateId,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data GetContainerRepositoryResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ GetContainerRepositoryResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by GetEnvironments.
@@ -1215,14 +1311,14 @@ query GetEnvironments ($organisationId: UUID!, $codes: [String!], $page: Int, $p
 `
 
 func GetEnvironments(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	codes []string,
 	page int,
 	pageSize int,
 ) (*GetEnvironmentsResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "GetEnvironments",
 		Query:  GetEnvironments_Operation,
 		Variables: &__GetEnvironmentsInput{
@@ -1232,18 +1328,18 @@ func GetEnvironments(
 			PageSize:       pageSize,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data GetEnvironmentsResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ GetEnvironmentsResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by GetMemberOrganisations.
@@ -1268,12 +1364,12 @@ query GetMemberOrganisations ($page: Int, $pageSize: Int) {
 `
 
 func GetMemberOrganisations(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	page int,
 	pageSize int,
 ) (*GetMemberOrganisationsResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "GetMemberOrganisations",
 		Query:  GetMemberOrganisations_Operation,
 		Variables: &__GetMemberOrganisationsInput{
@@ -1281,58 +1377,55 @@ func GetMemberOrganisations(
 			PageSize: pageSize,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data GetMemberOrganisationsResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ GetMemberOrganisationsResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by LoginContainerRepository.
 const LoginContainerRepository_Operation = `
-mutation LoginContainerRepository ($organisationId: UUID!, $id: UUID!) {
-	loginContainerRepository(input: {organisation_id:$organisationId,id:$id}) {
+mutation LoginContainerRepository ($organisationId: UUID!) {
+	loginContainerRepository(input: {id:$organisationId}) {
 		username
 		password
 		registry_url
-		repository_name
 	}
 }
 `
 
 func LoginContainerRepository(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
-	id uuid.UUID,
 ) (*LoginContainerRepositoryResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "LoginContainerRepository",
 		Query:  LoginContainerRepository_Operation,
 		Variables: &__LoginContainerRepositoryInput{
 			OrganisationId: organisationId,
-			Id:             id,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data LoginContainerRepositoryResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ LoginContainerRepositoryResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by NewDeployment.
@@ -1343,8 +1436,8 @@ mutation NewDeployment ($organisationId: UUID!, $aggregateId: UUID!, $environmen
 `
 
 func NewDeployment(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	organisationId uuid.UUID,
 	aggregateId uuid.UUID,
 	environmentId uuid.UUID,
@@ -1352,7 +1445,7 @@ func NewDeployment(
 	configRevisionId uuid.UUID,
 	revisionId uuid.UUID,
 ) (*NewDeploymentResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "NewDeployment",
 		Query:  NewDeployment_Operation,
 		Variables: &__NewDeploymentInput{
@@ -1364,18 +1457,18 @@ func NewDeployment(
 			RevisionId:       revisionId,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data NewDeploymentResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ NewDeploymentResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }
 
 // The query or mutation executed by UpdateApiKey.
@@ -1389,27 +1482,60 @@ mutation UpdateApiKey ($aggregateId: UUID!) {
 `
 
 func UpdateApiKey(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	aggregateId uuid.UUID,
 ) (*UpdateApiKeyResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "UpdateApiKey",
 		Query:  UpdateApiKey_Operation,
 		Variables: &__UpdateApiKeyInput{
 			AggregateId: aggregateId,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data UpdateApiKeyResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ UpdateApiKeyResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
+}
+
+// The query or mutation executed by UpdateConfig.
+const UpdateConfig_Operation = `
+mutation UpdateConfig ($input: UpdateConfigInput!) {
+	updateConfig(input: $input)
+}
+`
+
+func UpdateConfig(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	input *UpdateConfigInput,
+) (*UpdateConfigResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateConfig",
+		Query:  UpdateConfig_Operation,
+		Variables: &__UpdateConfigInput{
+			Input: input,
+		},
+	}
+	var err_ error
+
+	var data_ UpdateConfigResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
 }

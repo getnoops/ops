@@ -5,6 +5,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,9 +16,10 @@ type DeleteConfig struct {
 
 func DeleteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete [id]",
-		Short: "Will delete an api key for a given compute, storage or integration",
-		Args:  cobra.ExactArgs(1),
+		Use:    "delete [id]",
+		Short:  "Will delete an api key for a given compute, storage or integration",
+		Args:   cobra.ExactArgs(1),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			idStr := args[0]
 
@@ -35,7 +37,7 @@ func DeleteCommand() *cobra.Command {
 }
 
 func Delete(ctx context.Context, id uuid.UUID) error {
-	cfg, err := config.New[DeleteConfig, uuid.UUID](ctx, viper.GetViper())
+	cfg, err := config.New[DeleteConfig, *uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}

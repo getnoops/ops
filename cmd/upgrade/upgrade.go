@@ -11,6 +11,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/selfupdate"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/getnoops/ops/pkg/version"
 )
 
@@ -21,16 +22,18 @@ type Config struct {
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "upgrade",
-		Short: "Upgrades ops tool to the latest version",
-		Long:  `Upgrade will check for the latest version and upgrade if necessary.`,
+		Use:    "upgrade",
+		Short:  "Upgrades ops tool to the latest version",
+		Long:   `Upgrade will check for the latest version and upgrade if necessary.`,
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return Update(ctx)
 		},
 	}
 
-	addFlags(cmd)
+	util.BindBoolFlag(cmd, "prerelease", "Include prerelease versions", false)
+	util.BindBoolFlag(cmd, "draft", "Include draft versions", false)
 	return cmd
 }
 

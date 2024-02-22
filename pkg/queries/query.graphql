@@ -76,6 +76,12 @@ query GetConfig($organisationId: UUID!, $code: String!) {
     containerRepositories {
       id
       code
+      stack {
+        outputs {
+          output_key
+          output_value
+        }
+      }
       state
       created_at
       updated_at
@@ -182,16 +188,14 @@ mutation DeleteContainerRepository($organisationId: UUID!, $id: UUID!) {
   })
 }
 
-mutation LoginContainerRepository($organisationId: UUID!, $id: UUID!) {
+mutation LoginContainerRepository($organisationId: UUID!) {
   # @genqlient(typename: "AuthContainerRepository")
   loginContainerRepository(input: {
-    organisation_id: $organisationId,
-    id: $id,
+    id: $organisationId,
   }) {
     username,
     password,
     registry_url,
-    repository_name,
   }
 }
 
@@ -220,4 +224,8 @@ mutation DeleteApiKey($aggregateId: UUID!) {
   deleteApiKey(input: {
     id: $aggregateId,
   })
+}
+
+mutation UpdateConfig($input: UpdateConfigInput!) {
+  updateConfig(input: $input)
 }

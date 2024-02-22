@@ -11,13 +11,18 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "compute",
-        "list",
-        "--format=json"
+        "this",
+        "update",
+        "--next",
+        "--deploy=dev",
+        "--file=../../landing/noops.yaml",
+        "--var-file=MyVars.env"
       ],
       "env": {
         "NOOPS_API_GRAPHQL": "http://localhost:8200/api/graphql",
-        "NOOPS_ORGANISATION": "noops"
+        "NOOPS_API_TOKEN": "ops_2x8dyEwpfVofP6ujcd8i8MSDF9poWmRMQ4Zdv8pz9WVzpTZkvfHygf2CbDt2BJNutBDyTZES8FNna1KX6dC69WjZNGMPhaxjHCBWVg",
+        "Image_Tag": "latest",
+        "Repositories_Website_RepositoryUri": "nooo"
       }
     }
   ]

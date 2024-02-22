@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/getnoops/ops/pkg/config"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
@@ -17,16 +18,15 @@ type Config struct {
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "login",
-		Short: "Login to NoOps",
-		Long:  `Using SSO login to NoOps`,
+		Use:    "login",
+		Short:  "Login to NoOps",
+		Long:   `Using SSO login to NoOps`,
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return Login(ctx)
 		},
 	}
-
-	addFlags(cmd)
 	return cmd
 }
 

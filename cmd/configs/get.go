@@ -5,6 +5,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,9 +15,10 @@ type GetConfig struct {
 
 func GetCommand(class queries.ConfigClass) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get [code]",
-		Short: "Get a config",
-		Args:  cobra.ExactArgs(1),
+		Use:    "get [code]",
+		Short:  "Get a config",
+		Args:   cobra.ExactArgs(1),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			code := args[0]
 

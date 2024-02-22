@@ -16,10 +16,12 @@ import (
 	"github.com/getnoops/ops/cmd/login"
 	"github.com/getnoops/ops/cmd/orgs"
 	"github.com/getnoops/ops/cmd/settings"
+	"github.com/getnoops/ops/cmd/this"
 	"github.com/getnoops/ops/cmd/upgrade"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -34,6 +36,11 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ops",
 		Short: "The No_Ops cli used to manage deployments",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+				viper.BindPFlag("command."+flag.Name, flag)
+			})
+		},
 	}
 
 	viper.AutomaticEnv()
@@ -62,6 +69,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 		containerrepository.New(),
 		keys.New(),
 		deploy.New(),
+		this.New(),
 	)
 	cmd.InitDefaultVersionFlag()
 	return cmd

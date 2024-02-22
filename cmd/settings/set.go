@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/getnoops/ops/pkg/config"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -15,9 +16,10 @@ type SetConfig struct {
 
 func SetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set",
-		Short: "set a No_Ops cli property",
-		Args:  cobra.ExactArgs(2),
+		Use:    "set",
+		Short:  "set a No_Ops cli property",
+		Args:   cobra.ExactArgs(2),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return Set(ctx, args[0], args[1])

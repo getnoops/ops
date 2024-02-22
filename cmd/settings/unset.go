@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/getnoops/ops/pkg/config"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -17,9 +18,10 @@ type UnsetConfig struct {
 
 func UnsetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unset",
-		Short: "unset a No_Ops cli property",
-		Args:  cobra.ExactArgs(1),
+		Use:    "unset",
+		Short:  "unset a No_Ops cli property",
+		Args:   cobra.ExactArgs(1),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return Unset(ctx, args[0])

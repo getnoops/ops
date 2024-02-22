@@ -1,8 +1,9 @@
 package config
 
 import (
-	"fmt"
 	"reflect"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type TableData struct {
@@ -23,8 +24,13 @@ func GetTableColumns(t reflect.Type) []TableColumn {
 		columns = append(columns, TableColumn{
 			Name: name,
 			Resolver: func(item interface{}) string {
-				val := reflect.ValueOf(item).FieldByName(name).Interface()
-				return fmt.Sprintf("%v", val)
+				v := reflect.ValueOf(item)
+				if v.Kind() == reflect.Ptr {
+					v = v.Elem()
+				}
+
+				val := v.FieldByName(name).Interface()
+				return spew.Sprint(val)
 			},
 		})
 	}
@@ -34,6 +40,9 @@ func GetTableColumns(t reflect.Type) []TableColumn {
 func ToTableFromList[T any](data []T) *TableData {
 	var a T
 	t := reflect.TypeOf(a)
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
 
 	columns := GetTableColumns(t)
 	headers := make([]string, len(columns))

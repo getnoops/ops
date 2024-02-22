@@ -5,6 +5,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,9 +15,10 @@ type ListConfig struct {
 
 func ListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list [compute]",
-		Short: "list container registries",
-		Args:  cobra.ExactArgs(1),
+		Use:    "list [compute]",
+		Short:  "list container registries",
+		Args:   cobra.ExactArgs(1),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
 
@@ -28,7 +30,7 @@ func ListCommand() *cobra.Command {
 }
 
 func List(ctx context.Context, configCode string) error {
-	cfg, err := config.New[ListConfig, queries.ContainerRepositoryItem](ctx, viper.GetViper())
+	cfg, err := config.New[ListConfig, *queries.ContainerRepositoryItem](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}

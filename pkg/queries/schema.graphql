@@ -43,7 +43,6 @@ type AuthContainerRepository {
   username: String!
   password: String!
   registry_url: String!
-  repository_name: String!
 }
 
 type AWSAccount {
@@ -234,8 +233,9 @@ scalar Date
 
 type Deployment {
   id: UUID!
-  state: StackState!
+  state: DeploymentState!
   environment: Environment!
+  stack: Stack
   config_revision: ConfigRevision!
   created_at: Time
   updated_at: Time
@@ -250,12 +250,26 @@ type DeploymentEnvironment {
 }
 
 type DeploymentItem {
+  deployment_id: UUID!
   version_number: String!
+  deployment_revision_id: UUID
   config_revision_id: UUID!
   environment: Environment!
   exists: Boolean!
   latest: Boolean!
+  previous: Boolean!
   state: StackState
+  updated_at: Time
+}
+
+type DeploymentRevision {
+  id: UUID!
+  deployment: Deployment!
+  environment: Environment!
+  config: Config!
+  config_revision: ConfigRevision!
+  created_at: Time!
+  state: StackState!
   updated_at: Time
 }
 
@@ -269,6 +283,11 @@ input DeploymentsInput {
   page: Int
   page_size: Int
   config_id: UUID!
+}
+
+enum DeploymentState {
+  created
+  deleted
 }
 
 type DeploymentVersion {
@@ -462,6 +481,8 @@ input MetricDimension {
 }
 
 input MetricQueryInput {
+  id: String!
+  label: String!
   metric_statistic: String!
   metric_name: String!
   period: Int!
@@ -544,11 +565,12 @@ type Mutation {
   deleteConfig(input: IdWithOrgInput!): UUID!
   createContainerRepository(input: CreateContainerRepositoryInput!): UUID!
   deleteContainerRepository(input: IdWithOrgInput!): UUID!
-  loginContainerRepository(input: IdWithOrgInput!): AuthContainerRepository!
+  loginContainerRepository(input: IdInput!): AuthContainerRepository!
   createApiKey(input: CreateApiKeyInput!): IdWithToken!
   updateApiKey(input: UpdateApiKeyInput!): IdWithToken!
   deleteApiKey(input: IdInput!): UUID!
   newDeployment(input: NewDeploymentInput!): UUID!
+  deleteDeployment(input: IdWithOrgInput!): UUID!
   readNotifications(input: ReadNotificationsInput!): [UUID!]!
 }
 
@@ -774,6 +796,7 @@ type Query {
   configs(input: ConfigsInput!): PagedConfigsOutput!
   folders(input: FoldersInput!): [Folder!]!
   deployments(input: DeploymentsInput!): Deployments!
+  deploymentRevision(input: IdWithOrgInput!): DeploymentRevision
   awsAccount(input: IdWithOrgInput!): AWSAccount
   awsAccounts(input: PagedInputWithOrg!): PagedAWSAccountsOutput!
   environment(input: CodeWithOrgInput!): Environment
@@ -789,6 +812,7 @@ type Query {
   apiKey(input: IdWithOrgInput!): ApiKey
   apiKeys(input: ApiKeysInput!): PagedApiKeysOutput!
   unreadNotifications(input: PagedInputWithOrg): PagedNotificationsOutput!
+  stackInfo(input: StackSetInstanceInput!): StackDetails!
   metrics(input: MetricsInput!): MetricsOutput!
 }
 
@@ -863,11 +887,47 @@ enum ResourceType {
   notification
 }
 
+enum SNSMetricName {
+  NumberOfMessagesPublished
+  NumberOfNotificationsDelivered
+  NumberOfNotificationsFailed
+  NumberOfNotificationsFilteredOut
+  NumberOfNotificationsFilteredOutMessageAttributes
+  NumberOfNotificationsFilteredOutMessageBody
+  NumberOfNotificationsFilteredOutInvalidAttributes
+  NumberOfNotificationsFilteredOutNoMessageAttributes
+  NumberOfNotificationsFilteredOutInvalidMessageBody
+  NumberOfNotificationsRedrivenToDlq
+  NumberOfNotificationsFailedToRedriveToDlq
+  PublishSize
+  SMSMonthToDateSpentUSD
+  SMSSuccessRate
+}
+
+enum SQSMetricName {
+  ApproximateAgeOfOldestMessage
+  ApproximateNumberOfMessagesDelayed
+  ApproximateNumberOfMessagesNotVisible
+  ApproximateNumberOfMessagesVisible
+  NumberOfEmptyReceives
+  NumberOfMessagesDeleted
+  NumberOfMessagesReceived
+  NumberOfMessagesSent
+  SentMessageSize
+}
+
 type Stack {
   id: UUID!
   state: StackState!
   name: String!
   status: String
+  resources: [StackResource!]
+  outputs: [StackOutput!]
+}
+
+type StackDetails {
+  status: String
+  status_reason: String
   resources: [StackResource!]
   outputs: [StackOutput!]
 }
@@ -886,6 +946,13 @@ type StackResource {
   description: String!
   resource_status_reason: String!
   timestamp: Time!
+}
+
+input StackSetInstanceInput {
+  organisation_id: UUID!
+  environment_id: UUID!
+  aws_region: String!
+  stack_set_name: String!
 }
 
 enum StackState {

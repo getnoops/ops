@@ -5,6 +5,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,9 +16,10 @@ type CreateConfig struct {
 
 func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [compute] [code]",
-		Short: "Will create a container repository for a given compute",
-		Args:  cobra.ExactArgs(2),
+		Use:    "create [compute] [code]",
+		Short:  "Will create a container repository for a given compute",
+		Args:   cobra.ExactArgs(2),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
 			code := args[1]
@@ -31,7 +33,7 @@ func CreateCommand() *cobra.Command {
 }
 
 func Create(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[CreateConfig, uuid.UUID](ctx, viper.GetViper())
+	cfg, err := config.New[CreateConfig, *uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}

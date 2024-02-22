@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/getnoops/ops/pkg/config"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -13,8 +14,9 @@ type ViewConfig struct {
 
 func ViewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view",
-		Short: "view all settings",
+		Use:    "view",
+		Short:  "view all settings",
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return View(ctx)

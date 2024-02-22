@@ -17,8 +17,9 @@ type ListConfig struct {
 
 func ListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list environments",
+		Use:    "list",
+		Short:  "list environments",
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return List(ctx)
@@ -31,7 +32,7 @@ func ListCommand() *cobra.Command {
 }
 
 func List(ctx context.Context) error {
-	cfg, err := config.New[ListConfig, queries.Environment](ctx, viper.GetViper())
+	cfg, err := config.New[ListConfig, *queries.Environment](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}

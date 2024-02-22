@@ -1,38 +1,37 @@
-package configs
+package this
 
 import (
 	"context"
 
 	"github.com/getnoops/ops/pkg/config"
+	"github.com/getnoops/ops/pkg/models"
 	"github.com/getnoops/ops/pkg/queries"
 	"github.com/getnoops/ops/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-type ListConfig struct {
-	Page     int `mapstructure:"page" default:"1"`
-	PageSize int `mapstructure:"page-size" default:"10"`
+type InfoConfig struct {
+	File string `mapstructure:"file" default:"noops.yaml"`
 }
 
-func ListCommand(class queries.ConfigClass) *cobra.Command {
+func InfoCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "list",
-		Short:  "list projects accessible by the active account",
+		Use:    "info",
+		Short:  "Use the noops file to get the information",
 		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return List(ctx, class)
+			return Info(ctx)
 		},
 	}
 
-	util.BindIntFlag(cmd, "page", "The page to load", 1)
-	util.BindIntFlag(cmd, "page-size", "The number of items in the page", 10)
+	util.BindStringPFlag(cmd, "file", "f", "The yaml file with the configuration", "")
 	return cmd
 }
 
-func List(ctx context.Context, class queries.ConfigClass) error {
-	cfg, err := config.New[ListConfig, *queries.ConfigItem](ctx, viper.GetViper())
+func Info(ctx context.Context) error {
+	cfg, err := config.New[InfoConfig, *models.Config](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
@@ -51,12 +50,19 @@ func List(ctx context.Context, class queries.ConfigClass) error {
 		return err
 	}
 
-	configs, err := q.GetConfigs(ctx, organisation.Id, class, cfg.Command.Page, cfg.Command.PageSize)
+	rev, err := models.LoadFile[models.NoOpsCode](cfg.Command.File)
+	if err != nil {
+		cfg.WriteStderr("failed to read file")
+		return err
+	}
+
+	config, err := q.GetConfig(ctx, organisation.Id, rev.Code)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
 		return nil
 	}
 
-	cfg.WriteList(configs.Items)
+	out := models.ToConfig(config)
+	cfg.WriteObject(out)
 	return nil
 }

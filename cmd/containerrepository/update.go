@@ -5,6 +5,7 @@ import (
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
+	"github.com/getnoops/ops/pkg/util"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,9 +16,10 @@ type UpdateConfig struct {
 
 func UpdateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update [compute] [code]",
-		Short: "Will update a container repository for a given compute",
-		Args:  cobra.ExactArgs(2),
+		Use:    "update [compute] [code]",
+		Short:  "Will update a container repository for a given compute",
+		Args:   cobra.ExactArgs(2),
+		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configCode := args[0]
 			code := args[1]
@@ -31,7 +33,7 @@ func UpdateCommand() *cobra.Command {
 }
 
 func Update(ctx context.Context, computeCode string, code string) error {
-	cfg, err := config.New[UpdateConfig, uuid.UUID](ctx, viper.GetViper())
+	cfg, err := config.New[UpdateConfig, *uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err
 	}
