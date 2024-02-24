@@ -30,6 +30,7 @@ type Queries interface {
 	DeleteApiKey(ctx context.Context, id uuid.UUID) (*uuid.UUID, error)
 
 	NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (*uuid.UUID, error)
+	GetDeploymentRevision(ctx context.Context, organisationId uuid.UUID, deploymentRevisionId uuid.UUID) (*DeploymentRevision, error)
 }
 
 type queries struct {
@@ -170,6 +171,14 @@ func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, e
 		return nil, err
 	}
 	return &resp.NewDeployment, nil
+}
+
+func (q *queries) GetDeploymentRevision(ctx context.Context, organisationId uuid.UUID, deploymentRevisionId uuid.UUID) (*DeploymentRevision, error) {
+	resp, err := GetDeploymentRevision(ctx, q.client, organisationId, deploymentRevisionId)
+	if err != nil {
+		return nil, err
+	}
+	return resp.DeploymentRevision, nil
 }
 
 func New[C any, T any](ctx context.Context, cfg *config.NoOps[C, T]) (Queries, error) {

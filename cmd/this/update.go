@@ -3,7 +3,10 @@ package this
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/models"
 	"github.com/getnoops/ops/pkg/queries"
@@ -40,6 +43,80 @@ func UpdateCommand() *cobra.Command {
 	return cmd
 }
 
+func GetEnvironment(ctx context.Context, q queries.Queries, organisation *queries.Organisation, code string) (*queries.Environment, error) {
+	if len(code) == 0 {
+		return nil, nil
+	}
+
+	codes := []string{code}
+	paged, err := q.GetEnvironments(ctx, organisation.Id, codes, 1, 1)
+	if err != nil {
+		return nil, err
+	}
+	if len(paged.Items) == 0 {
+		return nil, fmt.Errorf("environment not found")
+	}
+	return paged.Items[0], nil
+}
+
+func GetVersion(versionNumber string, next bool) (string, error) {
+	v, err := semver.NewVersion(versionNumber)
+	if err != nil {
+		return "", err
+	}
+
+	if next {
+		return v.IncMinor().String(), nil
+	}
+	return v.String(), nil
+}
+
+func Watch(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config], q queries.Queries, organisation *queries.Organisation, deploymentRevisionId uuid.UUID, count int) error {
+	if count > 10 {
+		cfg.WriteStderr("deployment state unknown")
+		return fmt.Errorf("deployment state unknown")
+	}
+
+	revision, err := q.GetDeploymentRevision(ctx, organisation.Id, deploymentRevisionId)
+	if err != nil {
+		cfg.WriteStderr("failed to get deployment")
+		return err
+	}
+
+	asString := string(revision.State)
+	if strings.HasSuffix(asString, "ing") {
+		cfg.WriteStdout(fmt.Sprintf("Deployment still %s, waiting 30s\n", asString))
+		time.Sleep(30 * time.Second)
+		return Watch(ctx, cfg, q, organisation, deploymentRevisionId, count+1)
+	}
+
+	cfg.WriteStdout(fmt.Sprintf("Deployment %s\n", asString))
+
+	if revision.State == queries.StackStateFailed {
+		return fmt.Errorf("deployment failed")
+	}
+	return nil
+}
+
+func Deploy(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config], q queries.Queries, organisation *queries.Organisation, environment *queries.Environment, config *queries.Config, configRevisionId uuid.UUID, watch bool) error {
+	if environment == nil {
+		return nil
+	}
+
+	deploymentRevisionId := uuid.New()
+	_, err := q.NewDeployment(ctx, organisation.Id, environment.Id, config.Id, configRevisionId, deploymentRevisionId)
+	if err != nil {
+		return err
+	}
+
+	cfg.WriteStdout(fmt.Sprintf("Deploying %s to %s\n", config.Code, environment.Code))
+
+	if watch {
+		return Watch(ctx, cfg, q, organisation, deploymentRevisionId, 1)
+	}
+	return nil
+}
+
 func Upgrade(ctx context.Context) error {
 	cfg, err := config.New[UpdateConfig, *models.Config](ctx, viper.GetViper())
 	if err != nil {
@@ -60,23 +137,6 @@ func Upgrade(ctx context.Context) error {
 		return err
 	}
 
-	hasDeploy := cfg.Command.Deploy != ""
-	var environmentId uuid.UUID
-
-	if hasDeploy {
-		codes := []string{cfg.Command.Deploy}
-		paged, err := q.GetEnvironments(ctx, organisation.Id, codes, 1, 1)
-		if err != nil {
-			cfg.WriteStderr("failed to find environment")
-			return err
-		}
-		if len(paged.Items) == 0 {
-			cfg.WriteStderr("environment not found")
-			return nil
-		}
-		environmentId = paged.Items[0].Id
-	}
-
 	rev, err := models.LoadFile[models.NoOpsConfig](cfg.Command.File, models.WithOsEnv(), models.WithVarFiles(cfg.Command.VarFiles))
 	if err != nil {
 		cfg.WriteStderr("failed to read file")
@@ -87,6 +147,12 @@ func Upgrade(ctx context.Context) error {
 		return err
 	}
 
+	config, err := q.GetConfig(ctx, organisation.Id, rev.Code)
+	if err != nil {
+		cfg.WriteStderr("failed to get configs")
+		return nil
+	}
+
 	resourceInput := []*queries.ResourceInput{}
 	for _, resource := range rev.Resources {
 		resourceInput = append(resourceInput, &queries.ResourceInput{
@@ -95,42 +161,34 @@ func Upgrade(ctx context.Context) error {
 			Data: resource.Data,
 		})
 	}
-	revId := uuid.New()
 
-	config, err := q.GetConfig(ctx, organisation.Id, rev.Code)
+	versionNumber, err := GetVersion(config.Version_number, cfg.Command.Next)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		cfg.WriteStderr("failed to get version")
+		return err
 	}
 
-	updateConfig, err := q.UpdateConfig(ctx, &queries.UpdateConfigInput{
+	environment, err := GetEnvironment(ctx, q, organisation, cfg.Command.Deploy)
+	if err != nil {
+		cfg.WriteStderr("failed to get environment")
+		return err
+	}
+
+	revId := uuid.New()
+	if _, err := q.UpdateConfig(ctx, &queries.UpdateConfigInput{
 		Organisation_id: organisation.Id,
 		Aggregate_id:    config.Id,
 		Name:            config.Name,
 		Resources:       resourceInput,
-		Version_number:  config.Version_number,
+		Version_number:  versionNumber,
 		Revision_id:     revId,
 		Access:          rev.Access,
-	})
-	if err != nil {
+	}); err != nil {
 		cfg.WriteStderr("failed to update config")
 		return err
 	}
 
-	cfg.WriteStdout(fmt.Sprintf("Updated config %s", updateConfig.String()))
+	cfg.WriteStdout(fmt.Sprintf("Updated config %s %s\n", config.Code, versionNumber))
 
-	if hasDeploy {
-		deploymentRevId := uuid.New()
-		deployResult, err := q.NewDeployment(ctx, organisation.Id, environmentId, config.Id, revId, deploymentRevId)
-		if err != nil {
-			cfg.WriteStderr("failed to deploy")
-			return err
-		}
-
-		cfg.WriteStdout(fmt.Sprintf("Deployed %s", deployResult.String()))
-	}
-
-	out := models.ToConfig(config)
-	cfg.WriteObject(out)
-	return nil
+	return Deploy(ctx, cfg, q, organisation, environment, config, revId, cfg.Command.Watch)
 }

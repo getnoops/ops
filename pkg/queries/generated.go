@@ -325,6 +325,58 @@ func (v *DeleteContainerRepositoryResponse) GetDeleteContainerRepository() uuid.
 	return v.DeleteContainerRepository
 }
 
+// Deployment includes the requested fields of the GraphQL type Deployment.
+type Deployment struct {
+	Id         uuid.UUID  `json:"id"`
+	State      StackState `json:"state"`
+	Created_at time.Time  `json:"created_at"`
+	Updated_at time.Time  `json:"updated_at"`
+}
+
+// GetId returns Deployment.Id, and is useful for accessing the field via an interface.
+func (v *Deployment) GetId() uuid.UUID { return v.Id }
+
+// GetState returns Deployment.State, and is useful for accessing the field via an interface.
+func (v *Deployment) GetState() StackState { return v.State }
+
+// GetCreated_at returns Deployment.Created_at, and is useful for accessing the field via an interface.
+func (v *Deployment) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns Deployment.Updated_at, and is useful for accessing the field via an interface.
+func (v *Deployment) GetUpdated_at() time.Time { return v.Updated_at }
+
+// DeploymentRevision includes the requested fields of the GraphQL type DeploymentRevision.
+type DeploymentRevision struct {
+	Id          uuid.UUID    `json:"id"`
+	State       StackState   `json:"state"`
+	Deployment  *Deployment  `json:"deployment"`
+	Environment *Environment `json:"environment"`
+	Config      *ConfigItem  `json:"config"`
+	Created_at  time.Time    `json:"created_at"`
+	Updated_at  time.Time    `json:"updated_at"`
+}
+
+// GetId returns DeploymentRevision.Id, and is useful for accessing the field via an interface.
+func (v *DeploymentRevision) GetId() uuid.UUID { return v.Id }
+
+// GetState returns DeploymentRevision.State, and is useful for accessing the field via an interface.
+func (v *DeploymentRevision) GetState() StackState { return v.State }
+
+// GetDeployment returns DeploymentRevision.Deployment, and is useful for accessing the field via an interface.
+func (v *DeploymentRevision) GetDeployment() *Deployment { return v.Deployment }
+
+// GetEnvironment returns DeploymentRevision.Environment, and is useful for accessing the field via an interface.
+func (v *DeploymentRevision) GetEnvironment() *Environment { return v.Environment }
+
+// GetConfig returns DeploymentRevision.Config, and is useful for accessing the field via an interface.
+func (v *DeploymentRevision) GetConfig() *ConfigItem { return v.Config }
+
+// GetCreated_at returns DeploymentRevision.Created_at, and is useful for accessing the field via an interface.
+func (v *DeploymentRevision) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns DeploymentRevision.Updated_at, and is useful for accessing the field via an interface.
+func (v *DeploymentRevision) GetUpdated_at() time.Time { return v.Updated_at }
+
 // Environment includes the requested fields of the GraphQL type Environment.
 type Environment struct {
 	Id         uuid.UUID       `json:"id"`
@@ -445,6 +497,16 @@ type GetContainerRepositoryResponse struct {
 // GetContainerRepository returns GetContainerRepositoryResponse.ContainerRepository, and is useful for accessing the field via an interface.
 func (v *GetContainerRepositoryResponse) GetContainerRepository() *ContainerRepository {
 	return v.ContainerRepository
+}
+
+// GetDeploymentRevisionResponse is returned by GetDeploymentRevision on success.
+type GetDeploymentRevisionResponse struct {
+	DeploymentRevision *DeploymentRevision `json:"deploymentRevision"`
+}
+
+// GetDeploymentRevision returns GetDeploymentRevisionResponse.DeploymentRevision, and is useful for accessing the field via an interface.
+func (v *GetDeploymentRevisionResponse) GetDeploymentRevision() *DeploymentRevision {
+	return v.DeploymentRevision
 }
 
 // GetEnvironmentsEnvironmentsPagedEnvironmentsOutput includes the requested fields of the GraphQL type PagedEnvironmentsOutput.
@@ -850,6 +912,18 @@ func (v *__GetContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v
 
 // GetAggregateId returns __GetContainerRepositoryInput.AggregateId, and is useful for accessing the field via an interface.
 func (v *__GetContainerRepositoryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// __GetDeploymentRevisionInput is used internally by genqlient
+type __GetDeploymentRevisionInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+}
+
+// GetOrganisationId returns __GetDeploymentRevisionInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__GetDeploymentRevisionInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __GetDeploymentRevisionInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__GetDeploymentRevisionInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
 // __GetEnvironmentsInput is used internally by genqlient
 type __GetEnvironmentsInput struct {
@@ -1295,6 +1369,70 @@ func GetContainerRepository(
 	var err_ error
 
 	var data_ GetContainerRepositoryResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
+// The query or mutation executed by GetDeploymentRevision.
+const GetDeploymentRevision_Operation = `
+query GetDeploymentRevision ($organisationId: UUID!, $aggregateId: UUID!) {
+	deploymentRevision(input: {organisation_id:$organisationId,id:$aggregateId}) {
+		id
+		state
+		deployment {
+			id
+			state
+			created_at
+			updated_at
+		}
+		environment {
+			id
+			type
+			state
+			code
+			name
+			created_at
+			updated_at
+		}
+		config {
+			id
+			code
+			class
+			name
+			state
+			created_at
+			updated_at
+		}
+		created_at
+		updated_at
+	}
+}
+`
+
+func GetDeploymentRevision(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+) (*GetDeploymentRevisionResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "GetDeploymentRevision",
+		Query:  GetDeploymentRevision_Operation,
+		Variables: &__GetDeploymentRevisionInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+		},
+	}
+	var err_ error
+
+	var data_ GetDeploymentRevisionResponse
 	resp_ := &graphql.Response{Data: &data_}
 
 	err_ = client_.MakeRequest(

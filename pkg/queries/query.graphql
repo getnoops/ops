@@ -164,6 +164,46 @@ query GetApiKeys($organisationId: UUID!, $page: Int, $pageSize: Int) {
   }
 }
 
+query GetDeploymentRevision($organisationId: UUID!, $aggregateId: UUID!) {
+  # @genqlient(typename: "DeploymentRevision")
+  deploymentRevision(input: {
+    organisation_id: $organisationId,
+    id: $aggregateId
+  }) {
+    id
+    state
+    # @genqlient(typename: "Deployment")
+    deployment {
+      id
+      state
+      created_at
+      updated_at
+    }
+    # @genqlient(typename: "Environment")
+    environment {
+      id
+      type
+      state
+      code
+      name
+      created_at
+      updated_at
+    }
+    # @genqlient(typename: "ConfigItem")
+    config {
+      id
+      code
+      class
+      name
+      state
+      created_at
+      updated_at
+    }
+    created_at
+    updated_at
+  }
+}
+
 mutation NewDeployment($organisationId: UUID!, $aggregateId: UUID!, $environmentId: UUID!, $configId: UUID!, $configRevisionId: UUID!, $revisionId: UUID!) {
   newDeployment(input: {
     organisation_id: $organisationId,

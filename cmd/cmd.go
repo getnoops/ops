@@ -41,6 +41,8 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 				viper.BindPFlag("command."+flag.Name, flag)
 			})
 		},
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 
 	viper.AutomaticEnv()
