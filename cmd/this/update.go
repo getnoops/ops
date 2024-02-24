@@ -18,6 +18,7 @@ type UpdateConfig struct {
 	File     string   `mapstructure:"file" default:"noops.yaml"`
 	VarFiles []string `mapstructure:"var-file" default:"noops.yaml"`
 	Deploy   string   `mapstructure:"deploy" default:""`
+	Watch    bool     `mapstructure:"watch" default:"false"`
 }
 
 func UpdateCommand() *cobra.Command {
@@ -35,6 +36,7 @@ func UpdateCommand() *cobra.Command {
 	util.BindBoolFlag(cmd, "next", "Use the next minor version", false)
 	util.BindStringFlag(cmd, "deploy", "Deploy the configuration to environment", "")
 	util.BindStringSliceFlag(cmd, "var-file", "Environment like files to update the noops file", []string{})
+	util.BindBoolFlag(cmd, "watch", "Watch deployment for success", false)
 	return cmd
 }
 
@@ -108,6 +110,7 @@ func Upgrade(ctx context.Context) error {
 		Resources:       resourceInput,
 		Version_number:  config.Version_number,
 		Revision_id:     revId,
+		Access:          rev.Access,
 	})
 	if err != nil {
 		cfg.WriteStderr("failed to update config")

@@ -66,6 +66,7 @@ type Config {
   name: String!
   folder: Folder
   resources: [Resource!]!
+  access: ConfigAccess
   version_number: String
   state: ConfigState!
   created_at: Time
@@ -73,6 +74,16 @@ type Config {
   deployments: [Deployment!]!
   revisions: [ConfigRevision!]!
   containerRepositories: [ContainerRepository!]!
+}
+
+type ConfigAccess {
+  inbound: [String!]!
+  outbound: [String!]!
+}
+
+input ConfigAccessInput {
+  inbound: [String!]!
+  outbound: [String!]!
 }
 
 enum ConfigClass {
@@ -84,6 +95,7 @@ enum ConfigClass {
 
 type ConfigRevision {
   id: UUID!
+  access: ConfigAccess!
   resources: [Resource!]!
   version_number: String!
   state: ConfigState!
@@ -233,7 +245,7 @@ scalar Date
 
 type Deployment {
   id: UUID!
-  state: DeploymentState!
+  state: StackState!
   environment: Environment!
   stack: Stack
   config_revision: ConfigRevision!
@@ -283,11 +295,6 @@ input DeploymentsInput {
   page: Int
   page_size: Int
   config_id: UUID!
-}
-
-enum DeploymentState {
-  created
-  deleted
 }
 
 type DeploymentVersion {
@@ -426,6 +433,7 @@ input LogsSubscriptionInput {
   organisation_id: UUID!
   deployment_id: UUID!
   region: String!
+  log_group: String!
   start_time: Int
   end_time: Int
   next_token: String
@@ -614,12 +622,10 @@ type Organisation {
 }
 
 type OrganisationSettings {
-  bond_url: String
   registry_id: UUID
 }
 
 input OrganisationSettingsInput {
-  bond_url: String
   registry_id: UUID
 }
 
@@ -866,16 +872,12 @@ type Resource {
   code: String!
   type: ResourceType!
   data: JSON
-  references: [String!]!
-  allow_access: [String!]!
 }
 
 input ResourceInput {
   code: String!
   type: ResourceType!
   data: JSON
-  references: [String!]!
-  allow_access: [String!]!
 }
 
 enum ResourceType {
@@ -988,6 +990,7 @@ input UpdateConfigInput {
   aggregate_id: UUID!
   name: String!
   resources: [ResourceInput!]!
+  access: ConfigAccessInput
   version_number: String!
   revision_id: UUID!
 }

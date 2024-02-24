@@ -59,8 +59,11 @@ query GetConfig($organisationId: UUID!, $code: String!) {
       code
       type
       data
-      references
-      allow_access
+    }
+    # @genqlient(typename: "Access")
+    access {
+      inbound
+      outbound
     }
     version_number
     state

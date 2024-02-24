@@ -10,6 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
+// Access includes the requested fields of the GraphQL type ConfigAccess.
+type Access struct {
+	Inbound  []string `json:"inbound"`
+	Outbound []string `json:"outbound"`
+}
+
+// GetInbound returns Access.Inbound, and is useful for accessing the field via an interface.
+func (v *Access) GetInbound() []string { return v.Inbound }
+
+// GetOutbound returns Access.Outbound, and is useful for accessing the field via an interface.
+func (v *Access) GetOutbound() []string { return v.Outbound }
+
 // ApiKey includes the requested fields of the GraphQL type ApiKey.
 type ApiKey struct {
 	Id              uuid.UUID   `json:"id"`
@@ -73,6 +85,7 @@ type Config struct {
 	Class                 ConfigClass                `json:"class"`
 	Name                  string                     `json:"name"`
 	Resources             []*Resources               `json:"resources"`
+	Access                *Access                    `json:"access"`
 	Version_number        string                     `json:"version_number"`
 	State                 ConfigState                `json:"state"`
 	Revisions             []*RevisionItem            `json:"revisions"`
@@ -96,6 +109,9 @@ func (v *Config) GetName() string { return v.Name }
 // GetResources returns Config.Resources, and is useful for accessing the field via an interface.
 func (v *Config) GetResources() []*Resources { return v.Resources }
 
+// GetAccess returns Config.Access, and is useful for accessing the field via an interface.
+func (v *Config) GetAccess() *Access { return v.Access }
+
 // GetVersion_number returns Config.Version_number, and is useful for accessing the field via an interface.
 func (v *Config) GetVersion_number() string { return v.Version_number }
 
@@ -115,6 +131,17 @@ func (v *Config) GetCreated_at() time.Time { return v.Created_at }
 
 // GetUpdated_at returns Config.Updated_at, and is useful for accessing the field via an interface.
 func (v *Config) GetUpdated_at() time.Time { return v.Updated_at }
+
+type ConfigAccessInput struct {
+	Inbound  []string `json:"inbound"`
+	Outbound []string `json:"outbound"`
+}
+
+// GetInbound returns ConfigAccessInput.Inbound, and is useful for accessing the field via an interface.
+func (v *ConfigAccessInput) GetInbound() []string { return v.Inbound }
+
+// GetOutbound returns ConfigAccessInput.Outbound, and is useful for accessing the field via an interface.
+func (v *ConfigAccessInput) GetOutbound() []string { return v.Outbound }
 
 type ConfigClass string
 
@@ -575,11 +602,9 @@ const (
 )
 
 type ResourceInput struct {
-	Code         string                 `json:"code"`
-	Type         ResourceType           `json:"type"`
-	Data         map[string]interface{} `json:"data"`
-	References   []string               `json:"references"`
-	Allow_access []string               `json:"allow_access"`
+	Code string                 `json:"code"`
+	Type ResourceType           `json:"type"`
+	Data map[string]interface{} `json:"data"`
 }
 
 // GetCode returns ResourceInput.Code, and is useful for accessing the field via an interface.
@@ -590,12 +615,6 @@ func (v *ResourceInput) GetType() ResourceType { return v.Type }
 
 // GetData returns ResourceInput.Data, and is useful for accessing the field via an interface.
 func (v *ResourceInput) GetData() map[string]interface{} { return v.Data }
-
-// GetReferences returns ResourceInput.References, and is useful for accessing the field via an interface.
-func (v *ResourceInput) GetReferences() []string { return v.References }
-
-// GetAllow_access returns ResourceInput.Allow_access, and is useful for accessing the field via an interface.
-func (v *ResourceInput) GetAllow_access() []string { return v.Allow_access }
 
 type ResourceType string
 
@@ -610,11 +629,9 @@ const (
 
 // Resources includes the requested fields of the GraphQL type Resource.
 type Resources struct {
-	Code         string                 `json:"code"`
-	Type         ResourceType           `json:"type"`
-	Data         map[string]interface{} `json:"data"`
-	References   []string               `json:"references"`
-	Allow_access []string               `json:"allow_access"`
+	Code string                 `json:"code"`
+	Type ResourceType           `json:"type"`
+	Data map[string]interface{} `json:"data"`
 }
 
 // GetCode returns Resources.Code, and is useful for accessing the field via an interface.
@@ -625,12 +642,6 @@ func (v *Resources) GetType() ResourceType { return v.Type }
 
 // GetData returns Resources.Data, and is useful for accessing the field via an interface.
 func (v *Resources) GetData() map[string]interface{} { return v.Data }
-
-// GetReferences returns Resources.References, and is useful for accessing the field via an interface.
-func (v *Resources) GetReferences() []string { return v.References }
-
-// GetAllow_access returns Resources.Allow_access, and is useful for accessing the field via an interface.
-func (v *Resources) GetAllow_access() []string { return v.Allow_access }
 
 // RevisionItem includes the requested fields of the GraphQL type ConfigRevision.
 type RevisionItem struct {
@@ -690,12 +701,13 @@ type UpdateApiKeyResponse struct {
 func (v *UpdateApiKeyResponse) GetUpdateApiKey() *IdWithToken { return v.UpdateApiKey }
 
 type UpdateConfigInput struct {
-	Organisation_id uuid.UUID        `json:"organisation_id"`
-	Aggregate_id    uuid.UUID        `json:"aggregate_id"`
-	Name            string           `json:"name"`
-	Resources       []*ResourceInput `json:"resources,omitempty"`
-	Version_number  string           `json:"version_number"`
-	Revision_id     uuid.UUID        `json:"revision_id"`
+	Organisation_id uuid.UUID          `json:"organisation_id"`
+	Aggregate_id    uuid.UUID          `json:"aggregate_id"`
+	Name            string             `json:"name"`
+	Resources       []*ResourceInput   `json:"resources,omitempty"`
+	Access          *ConfigAccessInput `json:"access,omitempty"`
+	Version_number  string             `json:"version_number"`
+	Revision_id     uuid.UUID          `json:"revision_id"`
 }
 
 // GetOrganisation_id returns UpdateConfigInput.Organisation_id, and is useful for accessing the field via an interface.
@@ -709,6 +721,9 @@ func (v *UpdateConfigInput) GetName() string { return v.Name }
 
 // GetResources returns UpdateConfigInput.Resources, and is useful for accessing the field via an interface.
 func (v *UpdateConfigInput) GetResources() []*ResourceInput { return v.Resources }
+
+// GetAccess returns UpdateConfigInput.Access, and is useful for accessing the field via an interface.
+func (v *UpdateConfigInput) GetAccess() *ConfigAccessInput { return v.Access }
 
 // GetVersion_number returns UpdateConfigInput.Version_number, and is useful for accessing the field via an interface.
 func (v *UpdateConfigInput) GetVersion_number() string { return v.Version_number }
@@ -1128,8 +1143,10 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 			code
 			type
 			data
-			references
-			allow_access
+		}
+		access {
+			inbound
+			outbound
 		}
 		version_number
 		state

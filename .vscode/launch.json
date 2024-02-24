@@ -14,7 +14,7 @@
         "this",
         "update",
         "--next",
-        "--deploy=dev",
+        "--deploy=prod",
         "--file=../../landing/noops.yaml",
         "--var-file=MyVars.env"
       ],

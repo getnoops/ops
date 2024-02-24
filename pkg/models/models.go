@@ -17,9 +17,10 @@ type NoOpsCode struct {
 }
 
 type NoOpsConfig struct {
-	Name      string                   `json:"name"`
-	Code      string                   `json:"code"`
-	Resources []*queries.ResourceInput `json:"resources"`
+	Name      string                     `json:"name"`
+	Code      string                     `json:"code"`
+	Resources []*queries.ResourceInput   `json:"resources"`
+	Access    *queries.ConfigAccessInput `json:"access"`
 }
 
 func (rev *NoOpsConfig) Validate() error {
