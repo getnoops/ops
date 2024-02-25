@@ -13,7 +13,7 @@ import (
 type Queries interface {
 	GetMemberOrganisations(ctx context.Context, page int, pageSize int) (*GetMemberOrganisationsMemberOrganisationsPagedOrganisationsOutput, error)
 	GetCurrentOrganisation(ctx context.Context) (*Organisation, error)
-	GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error)
+	GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, states []StackState, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error)
 
 	GetConfigs(ctx context.Context, organisationId uuid.UUID, class ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error)
 	GetConfig(ctx context.Context, organisationId uuid.UUID, code string) (*Config, error)
@@ -29,7 +29,7 @@ type Queries interface {
 	UpdateApiKey(ctx context.Context, id uuid.UUID) (*IdWithToken, error)
 	DeleteApiKey(ctx context.Context, id uuid.UUID) (*uuid.UUID, error)
 
-	NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (*uuid.UUID, error)
+	NewDeployment(ctx context.Context, organisationId uuid.UUID, deploymentId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (*uuid.UUID, error)
 	GetDeploymentRevision(ctx context.Context, organisationId uuid.UUID, deploymentRevisionId uuid.UUID) (*DeploymentRevision, error)
 }
 
@@ -65,8 +65,8 @@ func (q *queries) GetCurrentOrganisation(ctx context.Context) (*Organisation, er
 	return nil, config.ErrNoOrganisation
 }
 
-func (q *queries) GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error) {
-	resp, err := GetEnvironments(ctx, q.client, organisationId, codes, page, pageSize)
+func (q *queries) GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, states []StackState, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error) {
+	resp, err := GetEnvironments(ctx, q.client, organisationId, codes, states, page, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -164,9 +164,8 @@ func (q *queries) DeleteApiKey(ctx context.Context, id uuid.UUID) (*uuid.UUID, e
 	return &resp.DeleteApiKey, nil
 }
 
-func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (*uuid.UUID, error) {
-	id := uuid.New()
-	resp, err := NewDeployment(ctx, q.client, organisationId, id, environmentId, configId, configRevisionId, revisionId)
+func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, deploymentId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (*uuid.UUID, error) {
+	resp, err := NewDeployment(ctx, q.client, organisationId, deploymentId, environmentId, configId, configRevisionId, revisionId)
 	if err != nil {
 		return nil, err
 	}

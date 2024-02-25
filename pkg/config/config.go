@@ -180,10 +180,12 @@ func (c *NoOps[C, T]) GetOrganisationCode() string {
 
 func (c *NoOps[C, T]) WriteStderr(out string) {
 	c.writerStderr.Write([]byte(out))
+	c.writerStderr.Write([]byte("\n"))
 }
 
 func (c *NoOps[C, T]) WriteStdout(out string) {
 	c.writerStdout.Write([]byte(out))
+	c.writerStdout.Write([]byte("\n"))
 }
 
 func (c *NoOps[C, T]) WriteList(data []T) {

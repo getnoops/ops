@@ -89,15 +89,33 @@ query GetConfig($organisationId: UUID!, $code: String!) {
       created_at
       updated_at
     }
+    # @genqlient(typename: "Deployment")
+    deployments {
+      id
+      state
+      # @genqlient(typename: "Environment")
+      environment {
+        id
+        type
+        state
+        code
+        name
+        created_at
+        updated_at
+      }
+      created_at
+      updated_at
+    }
     created_at
     updated_at
   }
 }
 
-query GetEnvironments($organisationId: UUID!, $codes: [String!], $page: Int, $pageSize: Int) {
+query GetEnvironments($organisationId: UUID!, $codes: [String!], $states: [StackState!], $page: Int, $pageSize: Int) {
   environments(input: {
     organisation_id: $organisationId,
     codes: $codes,
+    states: $states,
     page: $page,
     page_size: $pageSize
   }) {
@@ -176,6 +194,16 @@ query GetDeploymentRevision($organisationId: UUID!, $aggregateId: UUID!) {
     deployment {
       id
       state
+      # @genqlient(typename: "Environment")
+      environment {
+        id
+        type
+        state
+        code
+        name
+        created_at
+        updated_at
+      }
       created_at
       updated_at
     }

@@ -49,7 +49,8 @@ func GetEnvironment(ctx context.Context, q queries.Queries, organisation *querie
 	}
 
 	codes := []string{code}
-	paged, err := q.GetEnvironments(ctx, organisation.Id, codes, 1, 1)
+	states := []queries.StackState{queries.StackStateCreated}
+	paged, err := q.GetEnvironments(ctx, organisation.Id, codes, states, 1, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +58,15 @@ func GetEnvironment(ctx context.Context, q queries.Queries, organisation *querie
 		return nil, fmt.Errorf("environment not found")
 	}
 	return paged.Items[0], nil
+}
+
+func GetDeploymentId(ctx context.Context, config *queries.Config, environment *queries.Environment) uuid.UUID {
+	for _, deployment := range config.Deployments {
+		if deployment.Environment.Id == environment.Id {
+			return deployment.Id
+		}
+	}
+	return uuid.New()
 }
 
 func GetVersion(versionNumber string, next bool) (string, error) {
@@ -85,12 +95,12 @@ func Watch(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config],
 
 	asString := string(revision.State)
 	if strings.HasSuffix(asString, "ing") {
-		cfg.WriteStdout(fmt.Sprintf("Deployment still %s, waiting 30s\n", asString))
+		cfg.WriteStdout(fmt.Sprintf("Deployment still %s, waiting 30s", asString))
 		time.Sleep(30 * time.Second)
 		return Watch(ctx, cfg, q, organisation, deploymentRevisionId, count+1)
 	}
 
-	cfg.WriteStdout(fmt.Sprintf("Deployment %s\n", asString))
+	cfg.WriteStdout(fmt.Sprintf("Deployment %s", asString))
 
 	if revision.State == queries.StackStateFailed {
 		return fmt.Errorf("deployment failed")
@@ -104,12 +114,13 @@ func Deploy(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config]
 	}
 
 	deploymentRevisionId := uuid.New()
-	_, err := q.NewDeployment(ctx, organisation.Id, environment.Id, config.Id, configRevisionId, deploymentRevisionId)
+	deploymentId := GetDeploymentId(ctx, config, environment)
+	_, err := q.NewDeployment(ctx, organisation.Id, deploymentId, environment.Id, config.Id, configRevisionId, deploymentRevisionId)
 	if err != nil {
 		return err
 	}
 
-	cfg.WriteStdout(fmt.Sprintf("Deploying %s to %s\n", config.Code, environment.Code))
+	cfg.WriteStdout(fmt.Sprintf("Deploying %s to %s", config.Code, environment.Code))
 
 	if watch {
 		return Watch(ctx, cfg, q, organisation, deploymentRevisionId, 1)
@@ -188,7 +199,7 @@ func Upgrade(ctx context.Context) error {
 		return err
 	}
 
-	cfg.WriteStdout(fmt.Sprintf("Updated config %s %s\n", config.Code, versionNumber))
+	cfg.WriteStdout(fmt.Sprintf("Updated config %s %s", config.Code, versionNumber))
 
 	return Deploy(ctx, cfg, q, organisation, environment, config, revId, cfg.Command.Watch)
 }

@@ -90,6 +90,7 @@ type Config struct {
 	State                 ConfigState                `json:"state"`
 	Revisions             []*RevisionItem            `json:"revisions"`
 	ContainerRepositories []*ContainerRepositoryItem `json:"containerRepositories"`
+	Deployments           []*Deployment              `json:"deployments"`
 	Created_at            time.Time                  `json:"created_at"`
 	Updated_at            time.Time                  `json:"updated_at"`
 }
@@ -125,6 +126,9 @@ func (v *Config) GetRevisions() []*RevisionItem { return v.Revisions }
 func (v *Config) GetContainerRepositories() []*ContainerRepositoryItem {
 	return v.ContainerRepositories
 }
+
+// GetDeployments returns Config.Deployments, and is useful for accessing the field via an interface.
+func (v *Config) GetDeployments() []*Deployment { return v.Deployments }
 
 // GetCreated_at returns Config.Created_at, and is useful for accessing the field via an interface.
 func (v *Config) GetCreated_at() time.Time { return v.Created_at }
@@ -327,10 +331,11 @@ func (v *DeleteContainerRepositoryResponse) GetDeleteContainerRepository() uuid.
 
 // Deployment includes the requested fields of the GraphQL type Deployment.
 type Deployment struct {
-	Id         uuid.UUID  `json:"id"`
-	State      StackState `json:"state"`
-	Created_at time.Time  `json:"created_at"`
-	Updated_at time.Time  `json:"updated_at"`
+	Id          uuid.UUID    `json:"id"`
+	State       StackState   `json:"state"`
+	Environment *Environment `json:"environment"`
+	Created_at  time.Time    `json:"created_at"`
+	Updated_at  time.Time    `json:"updated_at"`
 }
 
 // GetId returns Deployment.Id, and is useful for accessing the field via an interface.
@@ -338,6 +343,9 @@ func (v *Deployment) GetId() uuid.UUID { return v.Id }
 
 // GetState returns Deployment.State, and is useful for accessing the field via an interface.
 func (v *Deployment) GetState() StackState { return v.State }
+
+// GetEnvironment returns Deployment.Environment, and is useful for accessing the field via an interface.
+func (v *Deployment) GetEnvironment() *Environment { return v.Environment }
 
 // GetCreated_at returns Deployment.Created_at, and is useful for accessing the field via an interface.
 func (v *Deployment) GetCreated_at() time.Time { return v.Created_at }
@@ -927,10 +935,11 @@ func (v *__GetDeploymentRevisionInput) GetAggregateId() uuid.UUID { return v.Agg
 
 // __GetEnvironmentsInput is used internally by genqlient
 type __GetEnvironmentsInput struct {
-	OrganisationId uuid.UUID `json:"organisationId"`
-	Codes          []string  `json:"codes"`
-	Page           int       `json:"page"`
-	PageSize       int       `json:"pageSize"`
+	OrganisationId uuid.UUID    `json:"organisationId"`
+	Codes          []string     `json:"codes"`
+	States         []StackState `json:"states"`
+	Page           int          `json:"page"`
+	PageSize       int          `json:"pageSize"`
 }
 
 // GetOrganisationId returns __GetEnvironmentsInput.OrganisationId, and is useful for accessing the field via an interface.
@@ -938,6 +947,9 @@ func (v *__GetEnvironmentsInput) GetOrganisationId() uuid.UUID { return v.Organi
 
 // GetCodes returns __GetEnvironmentsInput.Codes, and is useful for accessing the field via an interface.
 func (v *__GetEnvironmentsInput) GetCodes() []string { return v.Codes }
+
+// GetStates returns __GetEnvironmentsInput.States, and is useful for accessing the field via an interface.
+func (v *__GetEnvironmentsInput) GetStates() []StackState { return v.States }
 
 // GetPage returns __GetEnvironmentsInput.Page, and is useful for accessing the field via an interface.
 func (v *__GetEnvironmentsInput) GetPage() int { return v.Page }
@@ -1244,6 +1256,21 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 			created_at
 			updated_at
 		}
+		deployments {
+			id
+			state
+			environment {
+				id
+				type
+				state
+				code
+				name
+				created_at
+				updated_at
+			}
+			created_at
+			updated_at
+		}
 		created_at
 		updated_at
 	}
@@ -1389,6 +1416,15 @@ query GetDeploymentRevision ($organisationId: UUID!, $aggregateId: UUID!) {
 		deployment {
 			id
 			state
+			environment {
+				id
+				type
+				state
+				code
+				name
+				created_at
+				updated_at
+			}
 			created_at
 			updated_at
 		}
@@ -1446,8 +1482,8 @@ func GetDeploymentRevision(
 
 // The query or mutation executed by GetEnvironments.
 const GetEnvironments_Operation = `
-query GetEnvironments ($organisationId: UUID!, $codes: [String!], $page: Int, $pageSize: Int) {
-	environments(input: {organisation_id:$organisationId,codes:$codes,page:$page,page_size:$pageSize}) {
+query GetEnvironments ($organisationId: UUID!, $codes: [String!], $states: [StackState!], $page: Int, $pageSize: Int) {
+	environments(input: {organisation_id:$organisationId,codes:$codes,states:$states,page:$page,page_size:$pageSize}) {
 		items {
 			id
 			type
@@ -1470,6 +1506,7 @@ func GetEnvironments(
 	client_ graphql.Client,
 	organisationId uuid.UUID,
 	codes []string,
+	states []StackState,
 	page int,
 	pageSize int,
 ) (*GetEnvironmentsResponse, error) {
@@ -1479,6 +1516,7 @@ func GetEnvironments(
 		Variables: &__GetEnvironmentsInput{
 			OrganisationId: organisationId,
 			Codes:          codes,
+			States:         states,
 			Page:           page,
 			PageSize:       pageSize,
 		},

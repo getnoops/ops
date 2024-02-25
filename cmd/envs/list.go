@@ -51,7 +51,7 @@ func List(ctx context.Context) error {
 		return err
 	}
 
-	out, err := q.GetEnvironments(ctx, organisation.Id, nil, cfg.Command.Page, cfg.Command.PageSize)
+	out, err := q.GetEnvironments(ctx, organisation.Id, nil, nil, cfg.Command.Page, cfg.Command.PageSize)
 	if err != nil {
 		cfg.WriteStderr("failed to get environments")
 		return err

@@ -34,6 +34,42 @@ func ApplyCommand() *cobra.Command {
 	return cmd
 }
 
+func GetEnvironment(ctx context.Context, q queries.Queries, organisation *queries.Organisation, code string) (*queries.Environment, error) {
+	if len(code) == 0 {
+		return nil, nil
+	}
+
+	codes := []string{code}
+	states := []queries.StackState{queries.StackStateCreated}
+	paged, err := q.GetEnvironments(ctx, organisation.Id, codes, states, 1, 1)
+	if err != nil {
+		return nil, err
+	}
+	if len(paged.Items) == 0 {
+		return nil, fmt.Errorf("environment not found")
+	}
+	return paged.Items[0], nil
+}
+
+func GetConfigRevision(revisions []*queries.RevisionItem, versionNumber string) (*queries.RevisionItem, error) {
+	for _, revision := range revisions {
+		if revision.Version_number == versionNumber {
+			return revision, nil
+		}
+	}
+
+	return nil, fmt.Errorf("revision not found")
+}
+
+func GetDeploymentId(ctx context.Context, config *queries.Config, environment *queries.Environment) uuid.UUID {
+	for _, deployment := range config.Deployments {
+		if deployment.Environment.Id == environment.Id {
+			return deployment.Id
+		}
+	}
+	return uuid.New()
+}
+
 func Apply(ctx context.Context, env string, code string, versionNumber string) error {
 	cfg, err := config.New[ApplyConfig, *uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
@@ -54,16 +90,22 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 		return err
 	}
 
+	config, err := q.GetConfig(ctx, organisation.Id, code)
+	if err != nil {
+		cfg.WriteStderr("failed to get configs")
+		return nil
+	}
+
 	// get the correct environment.
-	environment, err := GetEnvironment(ctx, q, organisation.Id, env)
+	environment, err := GetEnvironment(ctx, q, organisation, env)
 	if err != nil {
 		cfg.WriteStderr("environment not found for config")
 		return nil
 	}
 
-	config, err := q.GetConfig(ctx, organisation.Id, code)
+	deploymentId := GetDeploymentId(ctx, config, environment)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
+		cfg.WriteStderr("failed to get deployment")
 		return nil
 	}
 
@@ -75,7 +117,7 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 	}
 
 	deploymentRevisionId := uuid.New()
-	out, err := q.NewDeployment(ctx, organisation.Id, config.Id, environment.Id, revision.Id, deploymentRevisionId)
+	out, err := q.NewDeployment(ctx, organisation.Id, deploymentId, config.Id, environment.Id, revision.Id, deploymentRevisionId)
 	if err != nil {
 		cfg.WriteStderr("failed to deploy")
 		return nil
@@ -83,29 +125,4 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 
 	cfg.WriteObject(out)
 	return nil
-}
-
-func GetEnvironment(ctx context.Context, q queries.Queries, organisationId uuid.UUID, code string) (*queries.Environment, error) {
-	paged, err := q.GetEnvironments(ctx, organisationId, []string{code}, 1, 999)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, env := range paged.Items {
-		if env.Code == code {
-			return env, nil
-		}
-	}
-
-	return nil, fmt.Errorf("environment not found")
-}
-
-func GetConfigRevision(revisions []*queries.RevisionItem, versionNumber string) (*queries.RevisionItem, error) {
-	for _, revision := range revisions {
-		if revision.Version_number == versionNumber {
-			return revision, nil
-		}
-	}
-
-	return nil, fmt.Errorf("revision not found")
 }
