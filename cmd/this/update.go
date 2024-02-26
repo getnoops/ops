@@ -81,12 +81,7 @@ func GetVersion(versionNumber string, next bool) (string, error) {
 	return v.String(), nil
 }
 
-func Watch(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config], q queries.Queries, organisation *queries.Organisation, deploymentRevisionId uuid.UUID, count int) error {
-	if count > 10 {
-		cfg.WriteStderr("deployment state unknown")
-		return fmt.Errorf("deployment state unknown")
-	}
-
+func Watch(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config], q queries.Queries, organisation *queries.Organisation, deploymentRevisionId uuid.UUID) error {
 	revision, err := q.GetDeploymentRevision(ctx, organisation.Id, deploymentRevisionId)
 	if err != nil {
 		cfg.WriteStderr("failed to get deployment")
@@ -97,7 +92,7 @@ func Watch(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config],
 	if strings.HasSuffix(asString, "ing") {
 		cfg.WriteStdout(fmt.Sprintf("Deployment still %s, waiting 30s", asString))
 		time.Sleep(30 * time.Second)
-		return Watch(ctx, cfg, q, organisation, deploymentRevisionId, count+1)
+		return Watch(ctx, cfg, q, organisation, deploymentRevisionId)
 	}
 
 	cfg.WriteStdout(fmt.Sprintf("Deployment %s", asString))
@@ -123,7 +118,7 @@ func Deploy(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config]
 	cfg.WriteStdout(fmt.Sprintf("Deploying %s to %s", config.Code, environment.Code))
 
 	if watch {
-		return Watch(ctx, cfg, q, organisation, deploymentRevisionId, 1)
+		return Watch(ctx, cfg, q, organisation, deploymentRevisionId)
 	}
 	return nil
 }
