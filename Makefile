@@ -6,3 +6,7 @@ graphql:
 
 generate:
 	go generate ./...
+
+build:
+	go build -o ops main.go
+	mv ops ~/go/bin/
