@@ -60,28 +60,32 @@ func GetEnvironment(ctx context.Context, q queries.Queries, organisation *querie
 	return paged.Items[0], nil
 }
 
-func GetDeploymentId(ctx context.Context, config *queries.Config, environment *queries.Environment) uuid.UUID {
+func GetDeployment(ctx context.Context, config *queries.Config, environment *queries.Environment) *queries.Deployment {
 	for _, deployment := range config.Deployments {
 		if deployment.Environment.Id == environment.Id {
-			return deployment.Id
+			return deployment
 		}
 	}
-	return uuid.New()
+	return nil
 }
 
 func GetVersion(versionNumber string, next bool) (string, error) {
+	if versionNumber == "" {
+		return "0.0.1", nil
+	}
+
 	v, err := semver.NewVersion(versionNumber)
 	if err != nil {
 		return "", err
 	}
 
 	if next {
-		return v.IncMinor().String(), nil
+		return v.IncPatch().String(), nil
 	}
 	return v.String(), nil
 }
 
-func Watch(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config], q queries.Queries, organisation *queries.Organisation, deploymentRevisionId uuid.UUID) error {
+func WatchDeploymentRevision(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config], q queries.Queries, organisation *queries.Organisation, deploymentRevisionId uuid.UUID) error {
 	revision, err := q.GetDeploymentRevision(ctx, organisation.Id, deploymentRevisionId)
 	if err != nil {
 		cfg.WriteStderr("failed to get deployment")
@@ -92,7 +96,7 @@ func Watch(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config],
 	if strings.HasSuffix(asString, "ing") {
 		cfg.WriteStdout(fmt.Sprintf("Deployment still %s, waiting 30s", asString))
 		time.Sleep(30 * time.Second)
-		return Watch(ctx, cfg, q, organisation, deploymentRevisionId)
+		return WatchDeploymentRevision(ctx, cfg, q, organisation, deploymentRevisionId)
 	}
 
 	cfg.WriteStdout(fmt.Sprintf("Deployment %s", asString))
@@ -109,7 +113,11 @@ func Deploy(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config]
 	}
 
 	deploymentRevisionId := uuid.New()
-	deploymentId := GetDeploymentId(ctx, config, environment)
+	deploymentId := uuid.New()
+	if deployment := GetDeployment(ctx, config, environment); deployment != nil {
+		deploymentId = deployment.Id
+	}
+
 	_, err := q.NewDeployment(ctx, organisation.Id, deploymentId, environment.Id, config.Id, configRevisionId, deploymentRevisionId)
 	if err != nil {
 		return err
@@ -118,7 +126,7 @@ func Deploy(ctx context.Context, cfg *config.NoOps[UpdateConfig, *models.Config]
 	cfg.WriteStdout(fmt.Sprintf("Deploying %s to %s", config.Code, environment.Code))
 
 	if watch {
-		return Watch(ctx, cfg, q, organisation, deploymentRevisionId)
+		return WatchDeploymentRevision(ctx, cfg, q, organisation, deploymentRevisionId)
 	}
 	return nil
 }

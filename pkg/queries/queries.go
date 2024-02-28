@@ -15,8 +15,9 @@ type Queries interface {
 	GetCurrentOrganisation(ctx context.Context) (*Organisation, error)
 	GetEnvironments(ctx context.Context, organisationId uuid.UUID, codes []string, states []StackState, page int, pageSize int) (*GetEnvironmentsEnvironmentsPagedEnvironmentsOutput, error)
 
-	GetConfigs(ctx context.Context, organisationId uuid.UUID, class ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error)
+	GetConfigs(ctx context.Context, organisationId uuid.UUID, classes []ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error)
 	GetConfig(ctx context.Context, organisationId uuid.UUID, code string) (*Config, error)
+	CreateConfig(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, name string, code string, class ConfigClass) (*uuid.UUID, error)
 	UpdateConfig(ctx context.Context, input *UpdateConfigInput) (*uuid.UUID, error)
 
 	GetContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*ContainerRepository, error)
@@ -30,7 +31,9 @@ type Queries interface {
 	DeleteApiKey(ctx context.Context, id uuid.UUID) (*uuid.UUID, error)
 
 	NewDeployment(ctx context.Context, organisationId uuid.UUID, deploymentId uuid.UUID, environmentId uuid.UUID, configId uuid.UUID, configRevisionId uuid.UUID, revisionId uuid.UUID) (*uuid.UUID, error)
+	DeleteDeployment(ctx context.Context, organisationId uuid.UUID, deploymentId uuid.UUID) (*uuid.UUID, error)
 	GetDeploymentRevision(ctx context.Context, organisationId uuid.UUID, deploymentRevisionId uuid.UUID) (*DeploymentRevision, error)
+	GetDeployment(ctx context.Context, organisationId uuid.UUID, deploymentId uuid.UUID) (*Deployment, error)
 }
 
 type queries struct {
@@ -73,9 +76,7 @@ func (q *queries) GetEnvironments(ctx context.Context, organisationId uuid.UUID,
 	return resp.Environments, nil
 }
 
-func (q *queries) GetConfigs(ctx context.Context, organisationId uuid.UUID, class ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error) {
-	classes := []ConfigClass{class}
-
+func (q *queries) GetConfigs(ctx context.Context, organisationId uuid.UUID, classes []ConfigClass, page int, pageSize int) (*GetConfigsConfigsPagedConfigsOutput, error) {
 	resp, err := GetConfigs(ctx, q.client, organisationId, classes, page, pageSize)
 	if err != nil {
 		return nil, err
@@ -89,6 +90,15 @@ func (q *queries) GetConfig(ctx context.Context, organisationId uuid.UUID, code 
 		return nil, err
 	}
 	return resp.Config, nil
+}
+
+func (q *queries) CreateConfig(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, name string, code string, class ConfigClass) (*uuid.UUID, error) {
+	resp, err := CreateConfig(ctx, q.client, organisationId, id, code, class, name)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.CreateConfig, nil
+
 }
 
 func (q *queries) UpdateConfig(ctx context.Context, input *UpdateConfigInput) (*uuid.UUID, error) {
@@ -172,12 +182,28 @@ func (q *queries) NewDeployment(ctx context.Context, organisationId uuid.UUID, d
 	return &resp.NewDeployment, nil
 }
 
+func (q *queries) DeleteDeployment(ctx context.Context, organisationId uuid.UUID, deploymentId uuid.UUID) (*uuid.UUID, error) {
+	resp, err := DeleteDeployment(ctx, q.client, organisationId, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.DeleteDeployment, nil
+}
+
 func (q *queries) GetDeploymentRevision(ctx context.Context, organisationId uuid.UUID, deploymentRevisionId uuid.UUID) (*DeploymentRevision, error) {
 	resp, err := GetDeploymentRevision(ctx, q.client, organisationId, deploymentRevisionId)
 	if err != nil {
 		return nil, err
 	}
 	return resp.DeploymentRevision, nil
+}
+
+func (q *queries) GetDeployment(ctx context.Context, organisationId uuid.UUID, deploymentId uuid.UUID) (*Deployment, error) {
+	resp, err := GetDeployment(ctx, q.client, organisationId, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Deployment, nil
 }
 
 func New[C any, T any](ctx context.Context, cfg *config.NoOps[C, T]) (Queries, error) {

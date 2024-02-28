@@ -236,7 +236,7 @@ func (c *NoOps[C, T]) WriteObject(data T) {
 	case "env":
 		envList, _ := EnvMarshal("", data)
 		for _, e := range envList {
-			c.WriteStdout(fmt.Sprintf("%s=%s\n", e.Key, e.Value))
+			c.WriteStdout(fmt.Sprintf("%s=%s", e.Key, e.Value))
 		}
 	case "yaml":
 		out, _ := yaml.Marshal(data)

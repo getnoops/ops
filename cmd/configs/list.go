@@ -15,14 +15,14 @@ type ListConfig struct {
 	PageSize int `mapstructure:"page-size" default:"10"`
 }
 
-func ListCommand(class queries.ConfigClass) *cobra.Command {
+func ListCommand(classes []queries.ConfigClass) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "list",
 		Short:  "list projects accessible by the active account",
 		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return List(ctx, class)
+			return List(ctx, classes)
 		},
 	}
 
@@ -31,7 +31,7 @@ func ListCommand(class queries.ConfigClass) *cobra.Command {
 	return cmd
 }
 
-func List(ctx context.Context, class queries.ConfigClass) error {
+func List(ctx context.Context, classes []queries.ConfigClass) error {
 	cfg, err := config.New[ListConfig, *queries.ConfigItem](ctx, viper.GetViper())
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func List(ctx context.Context, class queries.ConfigClass) error {
 		return err
 	}
 
-	configs, err := q.GetConfigs(ctx, organisation.Id, class, cfg.Command.Page, cfg.Command.PageSize)
+	configs, err := q.GetConfigs(ctx, organisation.Id, classes, cfg.Command.Page, cfg.Command.PageSize)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
 		return nil

@@ -34,6 +34,10 @@ func EnvMarshal(name string, obj interface{}) ([]EnvSet, error) {
 			f := t.Field(i)
 			vf := v.Field(i)
 
+			if f.Type.Kind() == reflect.Ptr && vf.IsNil() {
+				continue
+			}
+
 			p := name
 			if p != "" {
 				p += "_"

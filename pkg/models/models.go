@@ -9,7 +9,9 @@ import (
 
 	"github.com/a8m/envsubst/parse"
 	"github.com/getnoops/ops/pkg/queries"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
+
+	"github.com/suzuki-shunsuke/go-convmap/convmap"
 )
 
 type NoOpsCode struct {
@@ -19,6 +21,7 @@ type NoOpsCode struct {
 type NoOpsConfig struct {
 	Name      string                     `json:"name"`
 	Code      string                     `json:"code"`
+	Class     queries.ConfigClass        `json:"class"`
 	Resources []*queries.ResourceInput   `json:"resources"`
 	Access    *queries.ConfigAccessInput `json:"access"`
 }
@@ -113,6 +116,12 @@ func LoadFile[T any](file string, options ...LoadOption) (*T, error) {
 		if err := yaml.Unmarshal(raw, &out); err != nil {
 			return nil, err
 		}
+		a, err := convmap.Convert(&out, nil)
+		if err != nil {
+			return nil, err
+		}
+		return a.(*T), nil
+
 	default:
 		return nil, errors.New("unsupported file type")
 	}

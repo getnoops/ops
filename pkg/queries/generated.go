@@ -91,6 +91,7 @@ type Config struct {
 	Revisions             []*RevisionItem            `json:"revisions"`
 	ContainerRepositories []*ContainerRepositoryItem `json:"containerRepositories"`
 	Deployments           []*Deployment              `json:"deployments"`
+	Registry              *Registry                  `json:"registry"`
 	Created_at            time.Time                  `json:"created_at"`
 	Updated_at            time.Time                  `json:"updated_at"`
 }
@@ -129,6 +130,9 @@ func (v *Config) GetContainerRepositories() []*ContainerRepositoryItem {
 
 // GetDeployments returns Config.Deployments, and is useful for accessing the field via an interface.
 func (v *Config) GetDeployments() []*Deployment { return v.Deployments }
+
+// GetRegistry returns Config.Registry, and is useful for accessing the field via an interface.
+func (v *Config) GetRegistry() *Registry { return v.Registry }
 
 // GetCreated_at returns Config.Created_at, and is useful for accessing the field via an interface.
 func (v *Config) GetCreated_at() time.Time { return v.Created_at }
@@ -301,6 +305,14 @@ type CreateApiKeyResponse struct {
 // GetCreateApiKey returns CreateApiKeyResponse.CreateApiKey, and is useful for accessing the field via an interface.
 func (v *CreateApiKeyResponse) GetCreateApiKey() *IdWithToken { return v.CreateApiKey }
 
+// CreateConfigResponse is returned by CreateConfig on success.
+type CreateConfigResponse struct {
+	CreateConfig uuid.UUID `json:"createConfig"`
+}
+
+// GetCreateConfig returns CreateConfigResponse.CreateConfig, and is useful for accessing the field via an interface.
+func (v *CreateConfigResponse) GetCreateConfig() uuid.UUID { return v.CreateConfig }
+
 // CreateContainerRepositoryResponse is returned by CreateContainerRepository on success.
 type CreateContainerRepositoryResponse struct {
 	CreateContainerRepository uuid.UUID `json:"createContainerRepository"`
@@ -328,6 +340,14 @@ type DeleteContainerRepositoryResponse struct {
 func (v *DeleteContainerRepositoryResponse) GetDeleteContainerRepository() uuid.UUID {
 	return v.DeleteContainerRepository
 }
+
+// DeleteDeploymentResponse is returned by DeleteDeployment on success.
+type DeleteDeploymentResponse struct {
+	DeleteDeployment uuid.UUID `json:"deleteDeployment"`
+}
+
+// GetDeleteDeployment returns DeleteDeploymentResponse.DeleteDeployment, and is useful for accessing the field via an interface.
+func (v *DeleteDeploymentResponse) GetDeleteDeployment() uuid.UUID { return v.DeleteDeployment }
 
 // Deployment includes the requested fields of the GraphQL type Deployment.
 type Deployment struct {
@@ -507,6 +527,14 @@ func (v *GetContainerRepositoryResponse) GetContainerRepository() *ContainerRepo
 	return v.ContainerRepository
 }
 
+// GetDeploymentResponse is returned by GetDeployment on success.
+type GetDeploymentResponse struct {
+	Deployment *Deployment `json:"deployment"`
+}
+
+// GetDeployment returns GetDeploymentResponse.Deployment, and is useful for accessing the field via an interface.
+func (v *GetDeploymentResponse) GetDeployment() *Deployment { return v.Deployment }
+
 // GetDeploymentRevisionResponse is returned by GetDeploymentRevision on success.
 type GetDeploymentRevisionResponse struct {
 	DeploymentRevision *DeploymentRevision `json:"deploymentRevision"`
@@ -671,6 +699,18 @@ const (
 	OrganisationStateDeleted OrganisationState = "deleted"
 )
 
+// Registry includes the requested fields of the GraphQL type ContainerRegistry.
+type Registry struct {
+	Username     string `json:"username"`
+	Registry_url string `json:"registry_url"`
+}
+
+// GetUsername returns Registry.Username, and is useful for accessing the field via an interface.
+func (v *Registry) GetUsername() string { return v.Username }
+
+// GetRegistry_url returns Registry.Registry_url, and is useful for accessing the field via an interface.
+func (v *Registry) GetRegistry_url() string { return v.Registry_url }
+
 type ResourceInput struct {
 	Code string                 `json:"code"`
 	Type ResourceType           `json:"type"`
@@ -821,6 +861,30 @@ func (v *__CreateApiKeyInput) GetAggregateId() uuid.UUID { return v.AggregateId 
 // GetOrganisationId returns __CreateApiKeyInput.OrganisationId, and is useful for accessing the field via an interface.
 func (v *__CreateApiKeyInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
 
+// __CreateConfigInput is used internally by genqlient
+type __CreateConfigInput struct {
+	OrganisationId uuid.UUID   `json:"organisationId"`
+	AggregateId    uuid.UUID   `json:"aggregateId"`
+	Code           string      `json:"code"`
+	Class          ConfigClass `json:"class"`
+	Name           string      `json:"name"`
+}
+
+// GetOrganisationId returns __CreateConfigInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__CreateConfigInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __CreateConfigInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__CreateConfigInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// GetCode returns __CreateConfigInput.Code, and is useful for accessing the field via an interface.
+func (v *__CreateConfigInput) GetCode() string { return v.Code }
+
+// GetClass returns __CreateConfigInput.Class, and is useful for accessing the field via an interface.
+func (v *__CreateConfigInput) GetClass() ConfigClass { return v.Class }
+
+// GetName returns __CreateConfigInput.Name, and is useful for accessing the field via an interface.
+func (v *__CreateConfigInput) GetName() string { return v.Name }
+
 // __CreateContainerRepositoryInput is used internally by genqlient
 type __CreateContainerRepositoryInput struct {
 	OrganisationId uuid.UUID `json:"organisationId"`
@@ -860,6 +924,18 @@ func (v *__DeleteContainerRepositoryInput) GetOrganisationId() uuid.UUID { retur
 
 // GetId returns __DeleteContainerRepositoryInput.Id, and is useful for accessing the field via an interface.
 func (v *__DeleteContainerRepositoryInput) GetId() uuid.UUID { return v.Id }
+
+// __DeleteDeploymentInput is used internally by genqlient
+type __DeleteDeploymentInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	Id             uuid.UUID `json:"id"`
+}
+
+// GetOrganisationId returns __DeleteDeploymentInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__DeleteDeploymentInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetId returns __DeleteDeploymentInput.Id, and is useful for accessing the field via an interface.
+func (v *__DeleteDeploymentInput) GetId() uuid.UUID { return v.Id }
 
 // __GetApiKeysInput is used internally by genqlient
 type __GetApiKeysInput struct {
@@ -920,6 +996,18 @@ func (v *__GetContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v
 
 // GetAggregateId returns __GetContainerRepositoryInput.AggregateId, and is useful for accessing the field via an interface.
 func (v *__GetContainerRepositoryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// __GetDeploymentInput is used internally by genqlient
+type __GetDeploymentInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+}
+
+// GetOrganisationId returns __GetDeploymentInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__GetDeploymentInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __GetDeploymentInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__GetDeploymentInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
 // __GetDeploymentRevisionInput is used internally by genqlient
 type __GetDeploymentRevisionInput struct {
@@ -1059,6 +1147,47 @@ func CreateApiKey(
 	return &data_, err_
 }
 
+// The query or mutation executed by CreateConfig.
+const CreateConfig_Operation = `
+mutation CreateConfig ($organisationId: UUID!, $aggregateId: UUID!, $code: String!, $class: ConfigClass!, $name: String!) {
+	createConfig(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,code:$code,class:$class,name:$name})
+}
+`
+
+func CreateConfig(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+	code string,
+	class ConfigClass,
+	name string,
+) (*CreateConfigResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "CreateConfig",
+		Query:  CreateConfig_Operation,
+		Variables: &__CreateConfigInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+			Code:           code,
+			Class:          class,
+			Name:           name,
+		},
+	}
+	var err_ error
+
+	var data_ CreateConfigResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
 // The query or mutation executed by CreateContainerRepository.
 const CreateContainerRepository_Operation = `
 mutation CreateContainerRepository ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $code: String!) {
@@ -1155,6 +1284,41 @@ func DeleteContainerRepository(
 	var err_ error
 
 	var data_ DeleteContainerRepositoryResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
+// The query or mutation executed by DeleteDeployment.
+const DeleteDeployment_Operation = `
+mutation DeleteDeployment ($organisationId: UUID!, $id: UUID!) {
+	deleteDeployment(input: {organisation_id:$organisationId,id:$id})
+}
+`
+
+func DeleteDeployment(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	id uuid.UUID,
+) (*DeleteDeploymentResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "DeleteDeployment",
+		Query:  DeleteDeployment_Operation,
+		Variables: &__DeleteDeploymentInput{
+			OrganisationId: organisationId,
+			Id:             id,
+		},
+	}
+	var err_ error
+
+	var data_ DeleteDeploymentResponse
 	resp_ := &graphql.Response{Data: &data_}
 
 	err_ = client_.MakeRequest(
@@ -1270,6 +1434,10 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 			}
 			created_at
 			updated_at
+		}
+		registry {
+			username
+			registry_url
 		}
 		created_at
 		updated_at
@@ -1396,6 +1564,55 @@ func GetContainerRepository(
 	var err_ error
 
 	var data_ GetContainerRepositoryResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
+// The query or mutation executed by GetDeployment.
+const GetDeployment_Operation = `
+query GetDeployment ($organisationId: UUID!, $aggregateId: UUID!) {
+	deployment(input: {organisation_id:$organisationId,id:$aggregateId}) {
+		id
+		state
+		environment {
+			id
+			type
+			state
+			code
+			name
+			created_at
+			updated_at
+		}
+		created_at
+		updated_at
+	}
+}
+`
+
+func GetDeployment(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+) (*GetDeploymentResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "GetDeployment",
+		Query:  GetDeployment_Operation,
+		Variables: &__GetDeploymentInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+		},
+	}
+	var err_ error
+
+	var data_ GetDeploymentResponse
 	resp_ := &graphql.Response{Data: &data_}
 
 	err_ = client_.MakeRequest(

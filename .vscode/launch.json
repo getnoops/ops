@@ -12,16 +12,12 @@
       "program": "${workspaceFolder}",
       "args": [
         "this",
-        "update",
-        "--next",
-        "--watch",
-        "--deploy=prod",
-        "--file=../../landing/noops.yaml",
-        "--var-file=MyVars.env"
+        "create",
+        "-f=../infra/sns.yaml"
       ],
       "env": {
-        "NOOPS_API_GRAPHQL": "http://localhost:8200/api/graphql",
-        "Image_Tag": "1.0.0"
+        "NOOPS_AUTH_ISSUER": "http://localhost:8080",
+        "NOOPS_API_GRAPHQL": "http://localhost:8200/api/graphql"
       }
     }
   ]

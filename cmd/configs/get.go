@@ -13,7 +13,7 @@ import (
 type GetConfig struct {
 }
 
-func GetCommand(class queries.ConfigClass) *cobra.Command {
+func GetCommand(classes []queries.ConfigClass) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "get [code]",
 		Short:  "Get a config",
@@ -23,14 +23,14 @@ func GetCommand(class queries.ConfigClass) *cobra.Command {
 			code := args[0]
 
 			ctx := cmd.Context()
-			return Get(ctx, class, code)
+			return Get(ctx, classes, code)
 		},
 		ValidArgs: []string{"code"},
 	}
 	return cmd
 }
 
-func Get(ctx context.Context, class queries.ConfigClass, code string) error {
+func Get(ctx context.Context, classes []queries.ConfigClass, code string) error {
 	cfg, err := config.New[ListConfig, *queries.Config](ctx, viper.GetViper())
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func Get(ctx context.Context, class queries.ConfigClass, code string) error {
 		return nil
 	}
 
-	if config == nil || config.Class != class {
+	if config == nil {
 		cfg.WriteStderr("config not found")
 		return nil
 	}

@@ -10,8 +10,14 @@ type Config struct {
 	Name         string                      `json:"name"`
 	Class        string                      `json:"class"`
 	State        string                      `json:"state"`
+	Registry     *Registry                   `json:"registry"`
 	Repositories map[string]ConfigRepository `json:"repositories"`
 	Resources    map[string]Resource         `json:"resources"`
+}
+
+type Registry struct {
+	Username    string `json:"username"`
+	RegistryUrl string `json:"registry_url"`
 }
 
 type ConfigRepository struct {
@@ -41,6 +47,14 @@ func ToConfig(cfg *queries.Config) *Config {
 		}
 	}
 
+	var registry *Registry
+	if cfg.Registry != nil {
+		registry = &Registry{
+			Username:    cfg.Registry.Username,
+			RegistryUrl: cfg.Registry.Registry_url,
+		}
+	}
+
 	return &Config{
 		Code:         cfg.Code,
 		Version:      cfg.Version_number,
@@ -48,6 +62,7 @@ func ToConfig(cfg *queries.Config) *Config {
 		Class:        string(cfg.Class),
 		State:        string(cfg.State),
 		Repositories: repos,
+		Registry:     registry,
 		Resources:    resources,
 	}
 }

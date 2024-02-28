@@ -10,7 +10,7 @@ import (
 type Config struct {
 }
 
-func New(name string, class queries.ConfigClass) *cobra.Command {
+func New(name string, classes ...queries.ConfigClass) *cobra.Command {
 	code := strings.ToLower(name)
 	short := name + " commands"
 
@@ -19,7 +19,7 @@ func New(name string, class queries.ConfigClass) *cobra.Command {
 		Short: short,
 	}
 
-	cmd.AddCommand(ListCommand(class))
-	cmd.AddCommand(GetCommand(class))
+	cmd.AddCommand(ListCommand(classes))
+	cmd.AddCommand(GetCommand(classes))
 	return cmd
 }

@@ -71,19 +71,20 @@ type Config {
   state: ConfigState!
   created_at: Time
   updated_at: Time
+  registry: ContainerRegistry
   deployments: [Deployment!]!
   revisions: [ConfigRevision!]!
   containerRepositories: [ContainerRepository!]!
 }
 
 type ConfigAccess {
-  inbound: [String!]!
-  outbound: [String!]!
+  inbound: [String!]
+  outbound: [String!]
 }
 
 input ConfigAccessInput {
-  inbound: [String!]!
-  outbound: [String!]!
+  inbound: [String!]
+  outbound: [String!]
 }
 
 enum ConfigClass {
@@ -95,7 +96,7 @@ enum ConfigClass {
 
 type ConfigRevision {
   id: UUID!
-  access: ConfigAccess!
+  access: ConfigAccess
   resources: [Resource!]!
   version_number: String!
   state: ConfigState!
@@ -107,6 +108,7 @@ input ConfigsInput {
   organisation_id: UUID!
   classes: [ConfigClass!]
   codes: [String!]
+  states: [ConfigState!]
   folder_id: UUID
   no_folder: Boolean
   page: Int
@@ -138,6 +140,11 @@ enum ContainerInsightsMetricName {
   StorageWriteBytes
   TaskCount
   TaskSetCount
+}
+
+type ContainerRegistry {
+  username: String!
+  registry_url: String!
 }
 
 input ContainerRepositoriesInput {
@@ -459,6 +466,7 @@ enum MemberRole {
 input MembersInput {
   user_id: UUID
   organisation_id: UUID!
+  states: [MemberState!]
   page: Int
   page_size: Int
 }
@@ -802,6 +810,7 @@ type Query {
   configs(input: ConfigsInput!): PagedConfigsOutput!
   folders(input: FoldersInput!): [Folder!]!
   deployments(input: DeploymentsInput!): Deployments!
+  deployment(input: IdWithOrgInput!): Deployment
   deploymentRevision(input: IdWithOrgInput!): DeploymentRevision
   awsAccount(input: IdWithOrgInput!): AWSAccount
   awsAccounts(input: PagedInputWithOrg!): PagedAWSAccountsOutput!

@@ -67,7 +67,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 		envs.New(),
 		configs.New("Compute", queries.ConfigClassCompute),
 		configs.New("Storage", queries.ConfigClassStorage),
-		configs.New("Integration", queries.ConfigClassQueue),
+		configs.New("Integration", queries.ConfigClassNotification, queries.ConfigClassQueue),
 		containerrepository.New(),
 		keys.New(),
 		deploy.New(),
