@@ -17,6 +17,26 @@ type TableColumn struct {
 }
 
 func GetTableColumns(t reflect.Type) []TableColumn {
+	inner := t
+	for inner.Kind() == reflect.Ptr {
+		inner = inner.Elem()
+	}
+
+	if inner.Kind() != reflect.Struct {
+		return []TableColumn{
+			{
+				Name: "Value",
+				Resolver: func(item interface{}) string {
+					v := reflect.ValueOf(item)
+					if v.Kind() == reflect.Ptr {
+						v = v.Elem()
+					}
+					return spew.Sprint(v.Interface())
+				},
+			},
+		}
+	}
+
 	var columns []TableColumn
 	for i := 0; i < t.NumField(); i++ {
 		name := t.Field(i).Name

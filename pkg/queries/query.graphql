@@ -89,6 +89,30 @@ query GetConfig($organisationId: UUID!, $code: String!) {
       created_at
       updated_at
     }
+    # @genqlient(typename: "SecretItem")
+    secrets {
+      id
+      code
+      # @genqlient(typename: "Environment")
+      environment {
+        id
+        type
+        state
+        code
+        name
+        created_at
+        updated_at
+      }
+      stack {
+        outputs {
+          output_key
+          output_value
+        }
+      }
+      state
+      created_at
+      updated_at
+    }
     # @genqlient(typename: "Deployment")
     deployments {
       id
@@ -138,29 +162,6 @@ query GetEnvironments($organisationId: UUID!, $codes: [String!], $states: [Stack
     page
     total_items
     total_pages
-  }
-}
-
-query GetContainerRepository($organisationId: UUID!, $aggregateId: UUID!) {
-  # @genqlient(typename: "ContainerRepository")
-  containerRepository(input: {
-    organisation_id: $organisationId,
-    id: $aggregateId,
-  }) {
-    id
-    code
-    state
-    stack {
-      id
-      state
-      # @genqlient(typename: "StackOutputItem")
-      outputs {
-        output_key
-        output_value
-      }
-    }
-    created_at
-    updated_at
   }
 }
 
@@ -299,6 +300,24 @@ mutation CreateContainerRepository($organisationId: UUID!, $aggregateId: UUID!, 
 
 mutation DeleteContainerRepository($organisationId: UUID!, $id: UUID!) {
   deleteContainerRepository(input: {
+    organisation_id: $organisationId,
+    id: $id,
+  })
+}
+
+mutation CreateSecret($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $environmentId: UUID!, $code: String!, $value: String!) {
+  createSecret(input: {
+    organisation_id: $organisationId,
+    aggregate_id: $aggregateId,
+    config_id: $configId,
+    environment_id: $environmentId,
+    code: $code,
+    secret_string: $value,
+  })
+}
+
+mutation DeleteSecret($organisationId: UUID!, $id: UUID!) {
+  deleteSecret(input: {
     organisation_id: $organisationId,
     id: $id,
   })

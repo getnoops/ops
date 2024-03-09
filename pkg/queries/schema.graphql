@@ -31,6 +31,7 @@ input ApiKeysInput {
   organisation_id: UUID!
   page: Int
   page_size: Int
+  states: [ApiKeyState!]
 }
 
 enum ApiKeyState {
@@ -75,6 +76,7 @@ type Config {
   deployments: [Deployment!]!
   revisions: [ConfigRevision!]!
   containerRepositories: [ContainerRepository!]!
+  secrets: [Secret!]!
 }
 
 type ConfigAccess {
@@ -183,6 +185,7 @@ input CreateCheckoutSessionInput {
   interval: PlanInterval!
   tier: PlanTier!
   units: PlanUnitsInput!
+  stripe_customer_id: String
 }
 
 input CreateConfigInput {
@@ -248,10 +251,20 @@ input CreateOrganisationInput {
   settings: OrganisationSettingsInput
 }
 
+input CreateSecretInput {
+  organisation_id: UUID!
+  aggregate_id: UUID!
+  config_id: UUID!
+  environment_id: UUID!
+  code: String!
+  secret_string: String!
+}
+
 scalar Date
 
 type Deployment {
   id: UUID!
+  revision_id: UUID!
   state: StackState!
   environment: Environment!
   stack: Stack
@@ -275,7 +288,7 @@ type DeploymentItem {
   config_revision_id: UUID!
   environment: Environment!
   exists: Boolean!
-  latest: Boolean!
+  active: Boolean!
   previous: Boolean!
   state: StackState
   updated_at: Time
@@ -343,13 +356,6 @@ type Edge {
   stack: Stack
   created_at: Time!
   updated_at: Time
-}
-
-input EdgesInput {
-  organisation_id: UUID!
-  states: [StackState!]
-  page: Int
-  page_size: Int
 }
 
 type Environment {
@@ -582,6 +588,8 @@ type Mutation {
   createContainerRepository(input: CreateContainerRepositoryInput!): UUID!
   deleteContainerRepository(input: IdWithOrgInput!): UUID!
   loginContainerRepository(input: IdInput!): AuthContainerRepository!
+  createSecret(input: CreateSecretInput!): UUID!
+  deleteSecret(input: IdWithOrgInput!): UUID!
   createApiKey(input: CreateApiKeyInput!): IdWithToken!
   updateApiKey(input: UpdateApiKeyInput!): IdWithToken!
   deleteApiKey(input: IdInput!): UUID!
@@ -719,6 +727,13 @@ input PagedInputWithOrg {
   page_size: Int
 }
 
+input PagedInputWithOrgWithStates {
+  organisation_id: UUID!
+  page: Int
+  page_size: Int
+  states: [StackState!]
+}
+
 type PagedMembersOutput {
   items: [Member!]!
   page_size: Int!
@@ -737,6 +752,14 @@ type PagedNotificationsOutput {
 
 type PagedOrganisationsOutput {
   items: [Organisation!]!
+  page_size: Int!
+  page: Int!
+  total_items: Int!
+  total_pages: Int!
+}
+
+type PagedSecretsOutput {
+  items: [Secret!]!
   page_size: Int!
   page: Int!
   total_items: Int!
@@ -802,6 +825,16 @@ input PlanUnitsInput {
   databases: Int!
 }
 
+input PreviewProrationInput {
+  plan_id: UUID!
+  interval: PlanInterval
+  units: PlanUnitsInput
+}
+
+type PreviewProrationOutput {
+  amount: Int!
+}
+
 type Query {
   organisations(input: PagedInput!): PagedOrganisationsOutput!
   memberOrganisations(input: OrganisationsInput!): PagedOrganisationsOutput!
@@ -813,17 +846,20 @@ type Query {
   deployment(input: IdWithOrgInput!): Deployment
   deploymentRevision(input: IdWithOrgInput!): DeploymentRevision
   awsAccount(input: IdWithOrgInput!): AWSAccount
-  awsAccounts(input: PagedInputWithOrg!): PagedAWSAccountsOutput!
+  awsAccounts(input: PagedInputWithOrgWithStates!): PagedAWSAccountsOutput!
   environment(input: CodeWithOrgInput!): Environment
   environments(input: EnvironmentsInput!): PagedEnvironmentsOutput!
   domain(input: IdWithOrgInput!): Domain
   domains(input: DomainsInput!): PagedDomainsOutput!
   edge(input: IdWithOrgInput!): Edge
-  edges(input: EdgesInput!): PagedEdgesOutput!
+  edges(input: PagedInputWithOrgWithStates!): PagedEdgesOutput!
   planCalculate(input: PlanCalculateInput!): PlanCalculateOutput!
   plan(input: OrgIdInput!): Plan
+  previewProration(input: PreviewProrationInput!): PreviewProrationOutput!
   containerRepository(input: IdWithOrgInput!): ContainerRepository
   containerRepositories(input: ContainerRepositoriesInput!): PagedContainerRepositoriesOutput!
+  secret(input: IdWithOrgInput!): Secret
+  secrets(input: SecretsInput!): PagedSecretsOutput!
   apiKey(input: IdWithOrgInput!): ApiKey
   apiKeys(input: ApiKeysInput!): PagedApiKeysOutput!
   unreadNotifications(input: PagedInputWithOrg): PagedNotificationsOutput!
@@ -896,6 +932,25 @@ enum ResourceType {
   bucket
   queue
   notification
+}
+
+type Secret {
+  id: UUID!
+  state: StackState!
+  stack: Stack
+  config_id: UUID!
+  environment: Environment!
+  code: String!
+  created_at: Time!
+  updated_at: Time
+}
+
+input SecretsInput {
+  organisation_id: UUID!
+  states: [StackState!]
+  config_id: UUID
+  page: Int
+  page_size: Int
 }
 
 enum SNSMetricName {

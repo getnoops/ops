@@ -15,6 +15,7 @@ import (
 	"github.com/getnoops/ops/cmd/keys"
 	"github.com/getnoops/ops/cmd/login"
 	"github.com/getnoops/ops/cmd/orgs"
+	"github.com/getnoops/ops/cmd/secrets"
 	"github.com/getnoops/ops/cmd/settings"
 	"github.com/getnoops/ops/cmd/this"
 	"github.com/getnoops/ops/cmd/upgrade"
@@ -69,6 +70,7 @@ func New(out io.Writer, in io.Reader, args []string) *cobra.Command {
 		configs.New("Storage", queries.ConfigClassStorage),
 		configs.New("Integration", queries.ConfigClassNotification, queries.ConfigClassQueue),
 		containerrepository.New(),
+		secrets.New(),
 		keys.New(),
 		deploy.New(),
 		this.New(),

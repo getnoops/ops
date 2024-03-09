@@ -90,6 +90,7 @@ type Config struct {
 	State                 ConfigState                `json:"state"`
 	Revisions             []*RevisionItem            `json:"revisions"`
 	ContainerRepositories []*ContainerRepositoryItem `json:"containerRepositories"`
+	Secrets               []*SecretItem              `json:"secrets"`
 	Deployments           []*Deployment              `json:"deployments"`
 	Registry              *Registry                  `json:"registry"`
 	Created_at            time.Time                  `json:"created_at"`
@@ -127,6 +128,9 @@ func (v *Config) GetRevisions() []*RevisionItem { return v.Revisions }
 func (v *Config) GetContainerRepositories() []*ContainerRepositoryItem {
 	return v.ContainerRepositories
 }
+
+// GetSecrets returns Config.Secrets, and is useful for accessing the field via an interface.
+func (v *Config) GetSecrets() []*SecretItem { return v.Secrets }
 
 // GetDeployments returns Config.Deployments, and is useful for accessing the field via an interface.
 func (v *Config) GetDeployments() []*Deployment { return v.Deployments }
@@ -201,34 +205,6 @@ const (
 	ConfigStateDeleted ConfigState = "deleted"
 )
 
-// ContainerRepository includes the requested fields of the GraphQL type ContainerRepository.
-type ContainerRepository struct {
-	Id         uuid.UUID                 `json:"id"`
-	Code       string                    `json:"code"`
-	State      StackState                `json:"state"`
-	Stack      *ContainerRepositoryStack `json:"stack"`
-	Created_at time.Time                 `json:"created_at"`
-	Updated_at time.Time                 `json:"updated_at"`
-}
-
-// GetId returns ContainerRepository.Id, and is useful for accessing the field via an interface.
-func (v *ContainerRepository) GetId() uuid.UUID { return v.Id }
-
-// GetCode returns ContainerRepository.Code, and is useful for accessing the field via an interface.
-func (v *ContainerRepository) GetCode() string { return v.Code }
-
-// GetState returns ContainerRepository.State, and is useful for accessing the field via an interface.
-func (v *ContainerRepository) GetState() StackState { return v.State }
-
-// GetStack returns ContainerRepository.Stack, and is useful for accessing the field via an interface.
-func (v *ContainerRepository) GetStack() *ContainerRepositoryStack { return v.Stack }
-
-// GetCreated_at returns ContainerRepository.Created_at, and is useful for accessing the field via an interface.
-func (v *ContainerRepository) GetCreated_at() time.Time { return v.Created_at }
-
-// GetUpdated_at returns ContainerRepository.Updated_at, and is useful for accessing the field via an interface.
-func (v *ContainerRepository) GetUpdated_at() time.Time { return v.Updated_at }
-
 // ContainerRepositoryItem includes the requested fields of the GraphQL type ContainerRepository.
 type ContainerRepositoryItem struct {
 	Id         uuid.UUID                     `json:"id"`
@@ -281,22 +257,6 @@ func (v *ContainerRepositoryItemStackOutputsStackOutput) GetOutput_value() strin
 	return v.Output_value
 }
 
-// ContainerRepositoryStack includes the requested fields of the GraphQL type Stack.
-type ContainerRepositoryStack struct {
-	Id      uuid.UUID          `json:"id"`
-	State   StackState         `json:"state"`
-	Outputs []*StackOutputItem `json:"outputs"`
-}
-
-// GetId returns ContainerRepositoryStack.Id, and is useful for accessing the field via an interface.
-func (v *ContainerRepositoryStack) GetId() uuid.UUID { return v.Id }
-
-// GetState returns ContainerRepositoryStack.State, and is useful for accessing the field via an interface.
-func (v *ContainerRepositoryStack) GetState() StackState { return v.State }
-
-// GetOutputs returns ContainerRepositoryStack.Outputs, and is useful for accessing the field via an interface.
-func (v *ContainerRepositoryStack) GetOutputs() []*StackOutputItem { return v.Outputs }
-
 // CreateApiKeyResponse is returned by CreateApiKey on success.
 type CreateApiKeyResponse struct {
 	CreateApiKey *IdWithToken `json:"createApiKey"`
@@ -323,6 +283,14 @@ func (v *CreateContainerRepositoryResponse) GetCreateContainerRepository() uuid.
 	return v.CreateContainerRepository
 }
 
+// CreateSecretResponse is returned by CreateSecret on success.
+type CreateSecretResponse struct {
+	CreateSecret uuid.UUID `json:"createSecret"`
+}
+
+// GetCreateSecret returns CreateSecretResponse.CreateSecret, and is useful for accessing the field via an interface.
+func (v *CreateSecretResponse) GetCreateSecret() uuid.UUID { return v.CreateSecret }
+
 // DeleteApiKeyResponse is returned by DeleteApiKey on success.
 type DeleteApiKeyResponse struct {
 	DeleteApiKey uuid.UUID `json:"deleteApiKey"`
@@ -348,6 +316,14 @@ type DeleteDeploymentResponse struct {
 
 // GetDeleteDeployment returns DeleteDeploymentResponse.DeleteDeployment, and is useful for accessing the field via an interface.
 func (v *DeleteDeploymentResponse) GetDeleteDeployment() uuid.UUID { return v.DeleteDeployment }
+
+// DeleteSecretResponse is returned by DeleteSecret on success.
+type DeleteSecretResponse struct {
+	DeleteSecret uuid.UUID `json:"deleteSecret"`
+}
+
+// GetDeleteSecret returns DeleteSecretResponse.DeleteSecret, and is useful for accessing the field via an interface.
+func (v *DeleteSecretResponse) GetDeleteSecret() uuid.UUID { return v.DeleteSecret }
 
 // Deployment includes the requested fields of the GraphQL type Deployment.
 type Deployment struct {
@@ -516,16 +492,6 @@ type GetConfigsResponse struct {
 
 // GetConfigs returns GetConfigsResponse.Configs, and is useful for accessing the field via an interface.
 func (v *GetConfigsResponse) GetConfigs() *GetConfigsConfigsPagedConfigsOutput { return v.Configs }
-
-// GetContainerRepositoryResponse is returned by GetContainerRepository on success.
-type GetContainerRepositoryResponse struct {
-	ContainerRepository *ContainerRepository `json:"containerRepository"`
-}
-
-// GetContainerRepository returns GetContainerRepositoryResponse.ContainerRepository, and is useful for accessing the field via an interface.
-func (v *GetContainerRepositoryResponse) GetContainerRepository() *ContainerRepository {
-	return v.ContainerRepository
-}
 
 // GetDeploymentResponse is returned by GetDeployment on success.
 type GetDeploymentResponse struct {
@@ -777,17 +743,57 @@ func (v *RevisionItem) GetCreated_at() time.Time { return v.Created_at }
 // GetUpdated_at returns RevisionItem.Updated_at, and is useful for accessing the field via an interface.
 func (v *RevisionItem) GetUpdated_at() time.Time { return v.Updated_at }
 
-// StackOutputItem includes the requested fields of the GraphQL type StackOutput.
-type StackOutputItem struct {
+// SecretItem includes the requested fields of the GraphQL type Secret.
+type SecretItem struct {
+	Id          uuid.UUID        `json:"id"`
+	Code        string           `json:"code"`
+	Environment *Environment     `json:"environment"`
+	Stack       *SecretItemStack `json:"stack"`
+	State       StackState       `json:"state"`
+	Created_at  time.Time        `json:"created_at"`
+	Updated_at  time.Time        `json:"updated_at"`
+}
+
+// GetId returns SecretItem.Id, and is useful for accessing the field via an interface.
+func (v *SecretItem) GetId() uuid.UUID { return v.Id }
+
+// GetCode returns SecretItem.Code, and is useful for accessing the field via an interface.
+func (v *SecretItem) GetCode() string { return v.Code }
+
+// GetEnvironment returns SecretItem.Environment, and is useful for accessing the field via an interface.
+func (v *SecretItem) GetEnvironment() *Environment { return v.Environment }
+
+// GetStack returns SecretItem.Stack, and is useful for accessing the field via an interface.
+func (v *SecretItem) GetStack() *SecretItemStack { return v.Stack }
+
+// GetState returns SecretItem.State, and is useful for accessing the field via an interface.
+func (v *SecretItem) GetState() StackState { return v.State }
+
+// GetCreated_at returns SecretItem.Created_at, and is useful for accessing the field via an interface.
+func (v *SecretItem) GetCreated_at() time.Time { return v.Created_at }
+
+// GetUpdated_at returns SecretItem.Updated_at, and is useful for accessing the field via an interface.
+func (v *SecretItem) GetUpdated_at() time.Time { return v.Updated_at }
+
+// SecretItemStack includes the requested fields of the GraphQL type Stack.
+type SecretItemStack struct {
+	Outputs []*SecretItemStackOutputsStackOutput `json:"outputs"`
+}
+
+// GetOutputs returns SecretItemStack.Outputs, and is useful for accessing the field via an interface.
+func (v *SecretItemStack) GetOutputs() []*SecretItemStackOutputsStackOutput { return v.Outputs }
+
+// SecretItemStackOutputsStackOutput includes the requested fields of the GraphQL type StackOutput.
+type SecretItemStackOutputsStackOutput struct {
 	Output_key   string `json:"output_key"`
 	Output_value string `json:"output_value"`
 }
 
-// GetOutput_key returns StackOutputItem.Output_key, and is useful for accessing the field via an interface.
-func (v *StackOutputItem) GetOutput_key() string { return v.Output_key }
+// GetOutput_key returns SecretItemStackOutputsStackOutput.Output_key, and is useful for accessing the field via an interface.
+func (v *SecretItemStackOutputsStackOutput) GetOutput_key() string { return v.Output_key }
 
-// GetOutput_value returns StackOutputItem.Output_value, and is useful for accessing the field via an interface.
-func (v *StackOutputItem) GetOutput_value() string { return v.Output_value }
+// GetOutput_value returns SecretItemStackOutputsStackOutput.Output_value, and is useful for accessing the field via an interface.
+func (v *SecretItemStackOutputsStackOutput) GetOutput_value() string { return v.Output_value }
 
 type StackState string
 
@@ -905,6 +911,34 @@ func (v *__CreateContainerRepositoryInput) GetConfigId() uuid.UUID { return v.Co
 // GetCode returns __CreateContainerRepositoryInput.Code, and is useful for accessing the field via an interface.
 func (v *__CreateContainerRepositoryInput) GetCode() string { return v.Code }
 
+// __CreateSecretInput is used internally by genqlient
+type __CreateSecretInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+	ConfigId       uuid.UUID `json:"configId"`
+	EnvironmentId  uuid.UUID `json:"environmentId"`
+	Code           string    `json:"code"`
+	Value          string    `json:"value"`
+}
+
+// GetOrganisationId returns __CreateSecretInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__CreateSecretInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __CreateSecretInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__CreateSecretInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// GetConfigId returns __CreateSecretInput.ConfigId, and is useful for accessing the field via an interface.
+func (v *__CreateSecretInput) GetConfigId() uuid.UUID { return v.ConfigId }
+
+// GetEnvironmentId returns __CreateSecretInput.EnvironmentId, and is useful for accessing the field via an interface.
+func (v *__CreateSecretInput) GetEnvironmentId() uuid.UUID { return v.EnvironmentId }
+
+// GetCode returns __CreateSecretInput.Code, and is useful for accessing the field via an interface.
+func (v *__CreateSecretInput) GetCode() string { return v.Code }
+
+// GetValue returns __CreateSecretInput.Value, and is useful for accessing the field via an interface.
+func (v *__CreateSecretInput) GetValue() string { return v.Value }
+
 // __DeleteApiKeyInput is used internally by genqlient
 type __DeleteApiKeyInput struct {
 	AggregateId uuid.UUID `json:"aggregateId"`
@@ -936,6 +970,18 @@ func (v *__DeleteDeploymentInput) GetOrganisationId() uuid.UUID { return v.Organ
 
 // GetId returns __DeleteDeploymentInput.Id, and is useful for accessing the field via an interface.
 func (v *__DeleteDeploymentInput) GetId() uuid.UUID { return v.Id }
+
+// __DeleteSecretInput is used internally by genqlient
+type __DeleteSecretInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	Id             uuid.UUID `json:"id"`
+}
+
+// GetOrganisationId returns __DeleteSecretInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__DeleteSecretInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetId returns __DeleteSecretInput.Id, and is useful for accessing the field via an interface.
+func (v *__DeleteSecretInput) GetId() uuid.UUID { return v.Id }
 
 // __GetApiKeysInput is used internally by genqlient
 type __GetApiKeysInput struct {
@@ -984,18 +1030,6 @@ func (v *__GetConfigsInput) GetPage() int { return v.Page }
 
 // GetPageSize returns __GetConfigsInput.PageSize, and is useful for accessing the field via an interface.
 func (v *__GetConfigsInput) GetPageSize() int { return v.PageSize }
-
-// __GetContainerRepositoryInput is used internally by genqlient
-type __GetContainerRepositoryInput struct {
-	OrganisationId uuid.UUID `json:"organisationId"`
-	AggregateId    uuid.UUID `json:"aggregateId"`
-}
-
-// GetOrganisationId returns __GetContainerRepositoryInput.OrganisationId, and is useful for accessing the field via an interface.
-func (v *__GetContainerRepositoryInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
-
-// GetAggregateId returns __GetContainerRepositoryInput.AggregateId, and is useful for accessing the field via an interface.
-func (v *__GetContainerRepositoryInput) GetAggregateId() uuid.UUID { return v.AggregateId }
 
 // __GetDeploymentInput is used internally by genqlient
 type __GetDeploymentInput struct {
@@ -1227,6 +1261,49 @@ func CreateContainerRepository(
 	return &data_, err_
 }
 
+// The query or mutation executed by CreateSecret.
+const CreateSecret_Operation = `
+mutation CreateSecret ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $environmentId: UUID!, $code: String!, $value: String!) {
+	createSecret(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,config_id:$configId,environment_id:$environmentId,code:$code,secret_string:$value})
+}
+`
+
+func CreateSecret(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+	configId uuid.UUID,
+	environmentId uuid.UUID,
+	code string,
+	value string,
+) (*CreateSecretResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "CreateSecret",
+		Query:  CreateSecret_Operation,
+		Variables: &__CreateSecretInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+			ConfigId:       configId,
+			EnvironmentId:  environmentId,
+			Code:           code,
+			Value:          value,
+		},
+	}
+	var err_ error
+
+	var data_ CreateSecretResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
 // The query or mutation executed by DeleteApiKey.
 const DeleteApiKey_Operation = `
 mutation DeleteApiKey ($aggregateId: UUID!) {
@@ -1330,6 +1407,41 @@ func DeleteDeployment(
 	return &data_, err_
 }
 
+// The query or mutation executed by DeleteSecret.
+const DeleteSecret_Operation = `
+mutation DeleteSecret ($organisationId: UUID!, $id: UUID!) {
+	deleteSecret(input: {organisation_id:$organisationId,id:$id})
+}
+`
+
+func DeleteSecret(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	id uuid.UUID,
+) (*DeleteSecretResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "DeleteSecret",
+		Query:  DeleteSecret_Operation,
+		Variables: &__DeleteSecretInput{
+			OrganisationId: organisationId,
+			Id:             id,
+		},
+	}
+	var err_ error
+
+	var data_ DeleteSecretResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
 // The query or mutation executed by GetApiKeys.
 const GetApiKeys_Operation = `
 query GetApiKeys ($organisationId: UUID!, $page: Int, $pageSize: Int) {
@@ -1410,6 +1522,28 @@ query GetConfig ($organisationId: UUID!, $code: String!) {
 		containerRepositories {
 			id
 			code
+			stack {
+				outputs {
+					output_key
+					output_value
+				}
+			}
+			state
+			created_at
+			updated_at
+		}
+		secrets {
+			id
+			code
+			environment {
+				id
+				type
+				state
+				code
+				name
+				created_at
+				updated_at
+			}
 			stack {
 				outputs {
 					output_key
@@ -1515,55 +1649,6 @@ func GetConfigs(
 	var err_ error
 
 	var data_ GetConfigsResponse
-	resp_ := &graphql.Response{Data: &data_}
-
-	err_ = client_.MakeRequest(
-		ctx_,
-		req_,
-		resp_,
-	)
-
-	return &data_, err_
-}
-
-// The query or mutation executed by GetContainerRepository.
-const GetContainerRepository_Operation = `
-query GetContainerRepository ($organisationId: UUID!, $aggregateId: UUID!) {
-	containerRepository(input: {organisation_id:$organisationId,id:$aggregateId}) {
-		id
-		code
-		state
-		stack {
-			id
-			state
-			outputs {
-				output_key
-				output_value
-			}
-		}
-		created_at
-		updated_at
-	}
-}
-`
-
-func GetContainerRepository(
-	ctx_ context.Context,
-	client_ graphql.Client,
-	organisationId uuid.UUID,
-	aggregateId uuid.UUID,
-) (*GetContainerRepositoryResponse, error) {
-	req_ := &graphql.Request{
-		OpName: "GetContainerRepository",
-		Query:  GetContainerRepository_Operation,
-		Variables: &__GetContainerRepositoryInput{
-			OrganisationId: organisationId,
-			AggregateId:    aggregateId,
-		},
-	}
-	var err_ error
-
-	var data_ GetContainerRepositoryResponse
 	resp_ := &graphql.Response{Data: &data_}
 
 	err_ = client_.MakeRequest(

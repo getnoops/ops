@@ -20,10 +20,12 @@ type Queries interface {
 	CreateConfig(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, name string, code string, class ConfigClass) (*uuid.UUID, error)
 	UpdateConfig(ctx context.Context, input *UpdateConfigInput) (*uuid.UUID, error)
 
-	GetContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*ContainerRepository, error)
 	CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, code string) (*uuid.UUID, error)
 	DeleteContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error)
 	LoginContainerRepository(ctx context.Context, organisationId uuid.UUID) (*AuthContainerRepository, error)
+
+	CreateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error)
+	DeleteSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error)
 
 	GetApiKeys(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetApiKeysApiKeysPagedApiKeysOutput, error)
 	CreateApiKey(ctx context.Context, organisationId uuid.UUID) (*IdWithToken, error)
@@ -109,14 +111,6 @@ func (q *queries) UpdateConfig(ctx context.Context, input *UpdateConfigInput) (*
 	return &resp.UpdateConfig, nil
 }
 
-func (q *queries) GetContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*ContainerRepository, error) {
-	resp, err := GetContainerRepository(ctx, q.client, organisationId, id)
-	if err != nil {
-		return nil, err
-	}
-	return resp.ContainerRepository, nil
-}
-
 func (q *queries) CreateContainerRepository(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, code string) (*uuid.UUID, error) {
 	resp, err := CreateContainerRepository(ctx, q.client, organisationId, id, configId, code)
 	if err != nil {
@@ -139,6 +133,22 @@ func (q *queries) LoginContainerRepository(ctx context.Context, organisationId u
 		return nil, err
 	}
 	return resp.LoginContainerRepository, nil
+}
+
+func (q *queries) CreateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error) {
+	resp, err := CreateSecret(ctx, q.client, organisationId, id, configId, environmentId, code, value)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.CreateSecret, nil
+}
+
+func (q *queries) DeleteSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error) {
+	resp, err := DeleteSecret(ctx, q.client, organisationId, id)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.DeleteSecret, nil
 }
 
 func (q *queries) GetApiKeys(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetApiKeysApiKeysPagedApiKeysOutput, error) {

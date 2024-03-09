@@ -1,6 +1,10 @@
 package config
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/google/uuid"
+)
 
 type MyItem struct {
 	Name string
@@ -92,5 +96,21 @@ func Test_It(t *testing.T) {
 	}
 	if list[9].Value != "two" {
 		t.Fatal("expected two, got", list[9].Value)
+	}
+}
+
+func Test_UUID(t *testing.T) {
+	id := uuid.New()
+
+	list, err := EnvMarshal("", &id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if list[0].Key != "" {
+		t.Fatal("expected empty, got", list[0].Key)
+	}
+	if list[0].Value != id.String() {
+		t.Fatalf("expected %s, got %s", id.String(), list[0].Value)
 	}
 }

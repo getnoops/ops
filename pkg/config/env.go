@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/google/uuid"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
 
 var (
-	titler = cases.Title(language.Und)
+	titler   = cases.Title(language.Und)
+	uuidType = reflect.TypeOf(uuid.UUID{})
 )
 
 // EnvSet represents a set of environment variables.
@@ -23,6 +25,15 @@ type EnvSet struct {
 func EnvMarshal(name string, obj interface{}) ([]EnvSet, error) {
 	t := reflect.TypeOf(obj)
 	v := reflect.ValueOf(obj)
+
+	// handle special types
+	if t == uuidType {
+		str := fmt.Sprintf("%v", v.Interface())
+		return []EnvSet{{
+			Key:   name,
+			Value: str,
+		}}, nil
+	}
 
 	switch t.Kind() {
 	case reflect.Ptr:

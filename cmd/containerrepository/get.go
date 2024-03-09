@@ -71,14 +71,8 @@ func Get(ctx context.Context, computeCode string, code string) error {
 		return nil
 	}
 
-	// we want the stack outputs.
-	out, err := q.GetContainerRepository(ctx, organisation.Id, repository.Id)
-	if err != nil {
-		cfg.WriteStderr("failed to get container repository")
-		return nil
-	}
 	outputs := map[string]string{}
-	for _, output := range out.Stack.Outputs {
+	for _, output := range repository.Stack.Outputs {
 		outputs[output.Output_key] = output.Output_value
 	}
 

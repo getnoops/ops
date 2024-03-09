@@ -11,9 +11,18 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "this",
+        "secrets",
         "create",
-        "-f=../infra/sns.yaml"
+        "bond",
+        "prod",
+        "signkey",
+        "mysignkey"
+        // "this",
+        // "update",
+        // "--next",
+        // "--watch",
+        // "--deploy=prod",
+        // "-f=../infra/bond.yaml"
       ],
       "env": {
         "NOOPS_AUTH_ISSUER": "http://localhost:8080",
