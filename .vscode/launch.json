@@ -10,20 +10,7 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
-      "args": [
-        "secrets",
-        "create",
-        "bond",
-        "prod",
-        "signkey",
-        "mysignkey"
-        // "this",
-        // "update",
-        // "--next",
-        // "--watch",
-        // "--deploy=prod",
-        // "-f=../infra/bond.yaml"
-      ],
+      "args": ["deploy", "apply", "dev", "bond", "1.0.0"],
       "env": {
         "NOOPS_AUTH_ISSUER": "http://localhost:8080",
         "NOOPS_API_GRAPHQL": "http://localhost:8200/api/graphql"

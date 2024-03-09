@@ -68,6 +68,16 @@ func Create(ctx context.Context) error {
 		return nil
 	}
 
+	q.UpdateConfig(ctx, &queries.UpdateConfigInput{
+		Aggregate_id:    id,
+		Organisation_id: organisation.Id,
+		Name:            rev.Name,
+		Resources:       rev.Resources,
+		Access:          rev.Access,
+		Version_number:  "1.0.0",
+		Revision_id:     uuid.New(),
+	})
+
 	cfg.WriteStdout(fmt.Sprintf("Created config %s(%s)", rev.Name, rev.Code))
 
 	return nil

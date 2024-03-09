@@ -104,10 +104,6 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 	}
 
 	deploymentId := GetDeploymentId(ctx, config, environment)
-	if err != nil {
-		cfg.WriteStderr("failed to get deployment")
-		return nil
-	}
 
 	// find the right revision.
 	revision, err := GetConfigRevision(config.Revisions, versionNumber)
