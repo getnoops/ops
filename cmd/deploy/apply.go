@@ -113,7 +113,7 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 	}
 
 	deploymentRevisionId := uuid.New()
-	out, err := q.NewDeployment(ctx, organisation.Id, deploymentId, config.Id, environment.Id, revision.Id, deploymentRevisionId)
+	out, err := q.NewDeployment(ctx, organisation.Id, deploymentId, environment.Id, config.Id, revision.Id, deploymentRevisionId)
 	if err != nil {
 		cfg.WriteStderr("failed to deploy")
 		return nil
