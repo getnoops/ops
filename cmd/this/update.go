@@ -170,9 +170,10 @@ func Upgrade(ctx context.Context) error {
 	resourceInput := []*queries.ResourceInput{}
 	for _, resource := range rev.Resources {
 		resourceInput = append(resourceInput, &queries.ResourceInput{
-			Code: resource.Code,
-			Type: resource.Type,
-			Data: resource.Data,
+			Code:      resource.Code,
+			Type:      resource.Type,
+			Data:      resource.Data,
+			Overrides: resource.Overrides,
 		})
 	}
 
