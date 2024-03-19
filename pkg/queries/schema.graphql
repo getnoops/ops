@@ -421,9 +421,10 @@ type IdWithToken {
 }
 
 input InviteMemberInput {
-  aggregate_id: UUID!
-  email: String!
   organisation_id: UUID!
+  aggregate_id: UUID!
+  name: String!
+  email: String!
 }
 
 scalar JSON
@@ -457,7 +458,6 @@ type Member {
   organisation_id: UUID!
   role: MemberRole!
   state: MemberState!
-  user_id: UUID!
   user: User!
   created_at: Time!
   updated_at: Time
@@ -478,7 +478,7 @@ input MembersInput {
 }
 
 enum MemberState {
-  new
+  pending
   created
   deleted
 }
@@ -562,6 +562,7 @@ type Mutation {
   deleteMember(input: IdInput!): UUID!
   updateMember(input: UpdateMemberInput!): UUID!
   inviteMember(input: InviteMemberInput!): UUID!
+  resendMemberInvite(input: ResendMemberInviteInput!): UUID!
   updatePlan(input: UpdatePlanInput!): UUID!
   cancelPlan(input: PlanIdInput!): UUID!
   reactivatePlan(input: PlanIdInput!): UUID!
@@ -595,6 +596,7 @@ type Mutation {
   deleteApiKey(input: IdInput!): UUID!
   newDeployment(input: NewDeploymentInput!): UUID!
   deleteDeployment(input: IdWithOrgInput!): UUID!
+  cancelDeployment(input: IdWithOrgInput!): UUID!
   readNotifications(input: ReadNotificationsInput!): [UUID!]!
 }
 
@@ -614,6 +616,7 @@ type Notification {
   message: String!
   timestamp: Time!
   read: Boolean!
+  metadata: JSON
 }
 
 input OrderEnvironmentInput {
@@ -913,16 +916,41 @@ input ReadNotificationsInput {
   notification_ids: [UUID!]!
 }
 
+input ResendMemberInviteInput {
+  organisation_id: UUID!
+  email: String!
+}
+
 type Resource {
   code: String!
   type: ResourceType!
   data: JSON
+  overrides: ResourceOverrides
 }
 
 input ResourceInput {
   code: String!
   type: ResourceType!
   data: JSON
+  overrides: ResourceOverridesInput
+}
+
+type ResourceOverrides {
+  environments: [ResourceOverridesEnvironment!]
+}
+
+type ResourceOverridesEnvironment {
+  environment: String!
+  data: JSON
+}
+
+input ResourceOverridesEnvironmentInput {
+  environment: String!
+  data: JSON
+}
+
+input ResourceOverridesInput {
+  environments: [ResourceOverridesEnvironmentInput!]
 }
 
 enum ResourceType {
@@ -1030,6 +1058,7 @@ enum StackState {
   failed
   deleting
   deleted
+  cancelling
 }
 
 type Subscription {

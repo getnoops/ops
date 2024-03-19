@@ -678,9 +678,10 @@ func (v *Registry) GetUsername() string { return v.Username }
 func (v *Registry) GetRegistry_url() string { return v.Registry_url }
 
 type ResourceInput struct {
-	Code string                 `json:"code"`
-	Type ResourceType           `json:"type"`
-	Data map[string]interface{} `json:"data"`
+	Code      string                  `json:"code"`
+	Type      ResourceType            `json:"type"`
+	Data      map[string]interface{}  `json:"data"`
+	Overrides *ResourceOverridesInput `json:"overrides,omitempty"`
 }
 
 // GetCode returns ResourceInput.Code, and is useful for accessing the field via an interface.
@@ -691,6 +692,29 @@ func (v *ResourceInput) GetType() ResourceType { return v.Type }
 
 // GetData returns ResourceInput.Data, and is useful for accessing the field via an interface.
 func (v *ResourceInput) GetData() map[string]interface{} { return v.Data }
+
+// GetOverrides returns ResourceInput.Overrides, and is useful for accessing the field via an interface.
+func (v *ResourceInput) GetOverrides() *ResourceOverridesInput { return v.Overrides }
+
+type ResourceOverridesEnvironmentInput struct {
+	Environment string                 `json:"environment"`
+	Data        map[string]interface{} `json:"data"`
+}
+
+// GetEnvironment returns ResourceOverridesEnvironmentInput.Environment, and is useful for accessing the field via an interface.
+func (v *ResourceOverridesEnvironmentInput) GetEnvironment() string { return v.Environment }
+
+// GetData returns ResourceOverridesEnvironmentInput.Data, and is useful for accessing the field via an interface.
+func (v *ResourceOverridesEnvironmentInput) GetData() map[string]interface{} { return v.Data }
+
+type ResourceOverridesInput struct {
+	Environments []*ResourceOverridesEnvironmentInput `json:"environments,omitempty"`
+}
+
+// GetEnvironments returns ResourceOverridesInput.Environments, and is useful for accessing the field via an interface.
+func (v *ResourceOverridesInput) GetEnvironments() []*ResourceOverridesEnvironmentInput {
+	return v.Environments
+}
 
 type ResourceType string
 
@@ -798,14 +822,15 @@ func (v *SecretItemStackOutputsStackOutput) GetOutput_value() string { return v.
 type StackState string
 
 const (
-	StackStateNew      StackState = "new"
-	StackStateCreating StackState = "creating"
-	StackStateCreated  StackState = "created"
-	StackStateUpdating StackState = "updating"
-	StackStateUpdated  StackState = "updated"
-	StackStateFailed   StackState = "failed"
-	StackStateDeleting StackState = "deleting"
-	StackStateDeleted  StackState = "deleted"
+	StackStateNew        StackState = "new"
+	StackStateCreating   StackState = "creating"
+	StackStateCreated    StackState = "created"
+	StackStateUpdating   StackState = "updating"
+	StackStateUpdated    StackState = "updated"
+	StackStateFailed     StackState = "failed"
+	StackStateDeleting   StackState = "deleting"
+	StackStateDeleted    StackState = "deleted"
+	StackStateCancelling StackState = "cancelling"
 )
 
 // UpdateApiKeyResponse is returned by UpdateApiKey on success.
