@@ -59,7 +59,7 @@ func Update(ctx context.Context, id uuid.UUID) error {
 	out, err := q.UpdateApiKey(ctx, id)
 	if err != nil {
 		cfg.WriteStderr("failed to update api key")
-		return nil
+		return err
 	}
 
 	result := KeyResult{

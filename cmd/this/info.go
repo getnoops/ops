@@ -59,7 +59,7 @@ func Info(ctx context.Context) error {
 	config, err := q.GetConfig(ctx, organisation.Id, rev.Code)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	out := models.ToConfig(config)

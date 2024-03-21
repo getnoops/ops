@@ -65,7 +65,7 @@ func Create(ctx context.Context) error {
 	id := uuid.New()
 	if _, err := q.CreateConfig(ctx, organisation.Id, id, rev.Name, rev.Code, rev.Class); err != nil {
 		cfg.WriteStderr("failed to create config")
-		return nil
+		return err
 	}
 
 	q.UpdateConfig(ctx, &queries.UpdateConfigInput{

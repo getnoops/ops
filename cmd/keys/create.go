@@ -55,7 +55,7 @@ func Create(ctx context.Context) error {
 	out, err := q.CreateApiKey(ctx, organisation.Id)
 	if err != nil {
 		cfg.WriteStderr("failed to create api key")
-		return nil
+		return err
 	}
 
 	result := KeyResult{

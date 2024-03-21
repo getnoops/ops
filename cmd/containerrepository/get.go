@@ -61,14 +61,12 @@ func Get(ctx context.Context, computeCode string, code string) error {
 
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	repository, err := GetRepository(config.ContainerRepositories, code)
 	if err != nil {
-		cfg.WriteStderr("failed to get container repository")
-		return nil
+		return err
 	}
 
 	outputs := map[string]string{}
@@ -80,7 +78,7 @@ func Get(ctx context.Context, computeCode string, code string) error {
 		Username: "AWS",
 	}
 	if err := xmap.Decode(outputs, &result); err != nil {
-		cfg.WriteStderr("failed to decode stack outputs")
+		cfg.WriteStderr(fmt.Sprintf("failed to decode stack outputs: {outputs: %v} {err: %v}", outputs, err))
 		return nil
 	}
 

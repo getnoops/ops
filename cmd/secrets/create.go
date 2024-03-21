@@ -75,20 +75,20 @@ func Create(ctx context.Context, computeCode string, environmentCode string, cod
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	environment, err := GetEnvironment(ctx, q, organisation, environmentCode)
 	if err != nil {
 		cfg.WriteStderr("failed to get environment")
-		return nil
+		return err
 	}
 
 	id := uuid.New()
 	out, err := q.CreateSecret(ctx, organisation.Id, id, config.Id, environment.Id, code, value)
 	if err != nil {
 		cfg.WriteStderr("failed to create secret")
-		return nil
+		return err
 	}
 
 	cfg.WriteObject(out)

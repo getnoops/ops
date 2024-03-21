@@ -49,8 +49,7 @@ func Login(ctx context.Context) error {
 
 	out, err := q.LoginContainerRepository(ctx, organisation.Id)
 	if err != nil {
-		cfg.WriteStderr("failed to authenticate container repository")
-		return nil
+		return err
 	}
 
 	cfg.WriteStdout(out.Password)

@@ -54,14 +54,14 @@ func Create(ctx context.Context, computeCode string, code string) error {
 
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
+		cfg.WriteStderr(err.Error())
 		return nil
 	}
 
 	id := uuid.New()
 	out, err := q.CreateContainerRepository(ctx, organisation.Id, id, config.Id, code)
 	if err != nil {
-		cfg.WriteStderr("failed to create container repository")
+		cfg.WriteStderr(err.Error())
 		return nil
 	}
 

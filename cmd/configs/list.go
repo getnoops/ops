@@ -53,8 +53,7 @@ func List(ctx context.Context, classes []queries.ConfigClass) error {
 
 	configs, err := q.GetConfigs(ctx, organisation.Id, classes, cfg.Command.Page, cfg.Command.PageSize)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	cfg.WriteList(configs.Items)

@@ -65,13 +65,13 @@ func Get(ctx context.Context, computeCode string, environmentCode string, code s
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	secret, err := GetSecret(config.Secrets, environmentCode, code)
 	if err != nil {
 		cfg.WriteStderr("failed to get secret")
-		return nil
+		return err
 	}
 
 	outputs := map[string]string{}

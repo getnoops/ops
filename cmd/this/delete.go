@@ -106,7 +106,7 @@ func Delete(ctx context.Context, environmentCode string) error {
 	deployment := GetDeployment(ctx, config, environment)
 	if deployment == nil {
 		cfg.WriteStderr("no deployment for environment")
-		return nil
+		return err
 	}
 
 	if _, err := q.DeleteDeployment(ctx, organisation.Id, deployment.Id); err != nil {

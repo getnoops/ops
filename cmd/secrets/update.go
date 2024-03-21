@@ -57,25 +57,25 @@ func Update(ctx context.Context, computeCode string, environmentCode string, cod
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	environment, err := GetEnvironment(ctx, q, organisation, environmentCode)
 	if err != nil {
 		cfg.WriteStderr("failed to get environment")
-		return nil
+		return err
 	}
 
 	secret, err := GetSecret(config.Secrets, environmentCode, code)
 	if err != nil {
 		cfg.WriteStderr("secret not found")
-		return nil
+		return err
 	}
 
 	out, err := q.CreateSecret(ctx, organisation.Id, secret.Id, config.Id, environment.Id, code, value)
 	if err != nil {
 		cfg.WriteStderr("failed to create container repository")
-		return nil
+		return err
 	}
 
 	cfg.WriteObject(out)

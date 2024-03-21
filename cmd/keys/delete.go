@@ -59,7 +59,7 @@ func Delete(ctx context.Context, id uuid.UUID) error {
 	out, err := q.DeleteApiKey(ctx, id)
 	if err != nil {
 		cfg.WriteStderr("failed to delete api key")
-		return nil
+		return err
 	}
 
 	cfg.WriteObject(out)

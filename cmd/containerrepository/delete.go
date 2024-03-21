@@ -54,20 +54,17 @@ func Delete(ctx context.Context, computeCode string, code string) error {
 
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	containerRepository, err := GetRepository(config.ContainerRepositories, code)
 	if err != nil {
-		cfg.WriteStderr("container repository not found")
-		return nil
+		return err
 	}
 
 	out, err := q.DeleteContainerRepository(ctx, organisation.Id, containerRepository.Id)
 	if err != nil {
-		cfg.WriteStderr("failed to delete container repository")
-		return nil
+		return err
 	}
 
 	//		t.Row(out.String(), config.Code, config.Name, code)

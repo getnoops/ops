@@ -54,20 +54,17 @@ func Update(ctx context.Context, computeCode string, code string) error {
 
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	containerRepository, err := GetRepository(config.ContainerRepositories, code)
 	if err != nil {
-		cfg.WriteStderr("container repository not found")
-		return nil
+		return err
 	}
 
 	out, err := q.CreateContainerRepository(ctx, organisation.Id, containerRepository.Id, config.Id, code)
 	if err != nil {
-		cfg.WriteStderr("failed to create container repository")
-		return nil
+		return err
 	}
 
 	cfg.WriteObject(out)

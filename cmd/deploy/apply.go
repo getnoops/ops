@@ -92,15 +92,14 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 
 	config, err := q.GetConfig(ctx, organisation.Id, code)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	// get the correct environment.
 	environment, err := GetEnvironment(ctx, q, organisation, env)
 	if err != nil {
 		cfg.WriteStderr("environment not found for config")
-		return nil
+		return err
 	}
 
 	deploymentId := GetDeploymentId(ctx, config, environment)
@@ -109,14 +108,14 @@ func Apply(ctx context.Context, env string, code string, versionNumber string) e
 	revision, err := GetConfigRevision(config.Revisions, versionNumber)
 	if err != nil {
 		cfg.WriteStderr(fmt.Sprintf("revision not found with version number %s", versionNumber))
-		return nil
+		return err
 	}
 
 	deploymentRevisionId := uuid.New()
 	out, err := q.NewDeployment(ctx, organisation.Id, deploymentId, environment.Id, config.Id, revision.Id, deploymentRevisionId)
 	if err != nil {
 		cfg.WriteStderr("failed to deploy")
-		return nil
+		return err
 	}
 
 	cfg.WriteObject(out)

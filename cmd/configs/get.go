@@ -2,6 +2,7 @@ package configs
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/getnoops/ops/pkg/config"
 	"github.com/getnoops/ops/pkg/queries"
@@ -52,12 +53,11 @@ func Get(ctx context.Context, classes []queries.ConfigClass, code string) error 
 
 	config, err := q.GetConfig(ctx, organisation.Id, code)
 	if err != nil {
-		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	if config == nil {
-		cfg.WriteStderr("config not found")
+		cfg.WriteStderr(fmt.Sprintf("config '%v' was not found", code))
 		return nil
 	}
 

@@ -56,19 +56,19 @@ func Delete(ctx context.Context, computeCode string, environmentCode string, cod
 	config, err := q.GetConfig(ctx, organisation.Id, computeCode)
 	if err != nil {
 		cfg.WriteStderr("failed to get configs")
-		return nil
+		return err
 	}
 
 	secret, err := GetSecret(config.Secrets, environmentCode, code)
 	if err != nil {
 		cfg.WriteStderr("secret not found")
-		return nil
+		return err
 	}
 
 	out, err := q.DeleteSecret(ctx, organisation.Id, secret.Id)
 	if err != nil {
 		cfg.WriteStderr("failed to delete container repository")
-		return nil
+		return err
 	}
 
 	cfg.WriteObject(out)

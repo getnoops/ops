@@ -51,7 +51,6 @@ func List(ctx context.Context, configCode string) error {
 
 	out, err := q.GetConfig(ctx, organisation.Id, configCode)
 	if err != nil {
-		cfg.WriteStderr("failed to get config")
 		return err
 	}
 
