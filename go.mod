@@ -7,7 +7,7 @@ require (
 	github.com/Khan/genqlient v0.6.1-0.20240216224014-7740a6a0cf04
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/a8m/envsubst v1.4.2
-	github.com/charmbracelet/lipgloss v0.9.1
+	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/contextcloud/goutils v0.1.48
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/google/go-github/v53 v53.2.0
