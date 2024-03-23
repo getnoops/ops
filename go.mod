@@ -4,7 +4,7 @@ go 1.21.4
 
 require (
 	github.com/99designs/keyring v1.2.2
-	github.com/Khan/genqlient v0.6.1-0.20240216224014-7740a6a0cf04
+	github.com/Khan/genqlient v0.7.0
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/a8m/envsubst v1.4.2
 	github.com/charmbracelet/lipgloss v0.10.0
