@@ -17,7 +17,7 @@ type UpdateConfig struct {
 func UpdateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "update [compute] [env] [code] [value]",
-		Short:  "Will update a container repository for a given compute",
+		Short:  "Will update a secret for a given compute",
 		Args:   cobra.ExactArgs(4),
 		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -29,7 +29,7 @@ func UpdateCommand() *cobra.Command {
 			ctx := cmd.Context()
 			return Update(ctx, configCode, environmentCode, code, value)
 		},
-		ValidArgs: []string{"compute", "env", "code"},
+		ValidArgs: []string{"compute", "env", "code", "value"},
 	}
 	return cmd
 }
@@ -72,7 +72,7 @@ func Update(ctx context.Context, computeCode string, environmentCode string, cod
 		return err
 	}
 
-	out, err := q.CreateSecret(ctx, organisation.Id, secret.Id, config.Id, environment.Id, code, value)
+	out, err := q.UpdateSecret(ctx, organisation.Id, secret.Id, config.Id, environment.Id, code, value)
 	if err != nil {
 		cfg.WriteStderr("failed to create container repository")
 		return err

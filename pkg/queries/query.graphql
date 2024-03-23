@@ -316,6 +316,17 @@ mutation CreateSecret($organisationId: UUID!, $aggregateId: UUID!, $configId: UU
   })
 }
 
+mutation UpdateSecret($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $environmentId: UUID!, $code: String!, $value: String!) {
+  updateSecret(input: {
+    organisation_id: $organisationId,
+    aggregate_id: $aggregateId,
+    config_id: $configId,
+    environment_id: $environmentId,
+    code: $code,
+    secret_string: $value,
+  })
+}
+
 mutation DeleteSecret($organisationId: UUID!, $id: UUID!) {
   deleteSecret(input: {
     organisation_id: $organisationId,

@@ -10,7 +10,7 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
-      "args": ["this", "update", "--next", "--watch", "--deploy=prod", "-f=../auth-galaxy/noops.yaml"],
+      "args": ["this", "update", "--next", "--watch", "--deploy=prod", "-f=../api/noops.yaml"],
       "env": {
         "NOOPS_AUTH_ISSUER": "http://localhost:8080",
         "NOOPS_API_GRAPHQL": "http://localhost:8200/api/graphql"

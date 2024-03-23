@@ -5,11 +5,11 @@ Log:
   Level: info
 
 Api:
-  GraphQL: https://portal.getnoops.com/api/graphql
+  GraphQL: https://api.getnoops.com/graphql
   Token: 
 
 Auth: 
-  Issuer: https://account.getnoops.com/
+  Issuer: https://account.getnoops.com
   ClientId: ops
   Scopes: 
     - openid

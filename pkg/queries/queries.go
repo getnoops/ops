@@ -26,6 +26,7 @@ type Queries interface {
 	LoginContainerRepository(ctx context.Context, organisationId uuid.UUID) (*AuthContainerRepository, error)
 
 	CreateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error)
+	UpdateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error)
 	DeleteSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error)
 
 	GetApiKeys(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetApiKeysApiKeysPagedApiKeysOutput, error)
@@ -152,6 +153,14 @@ func (q *queries) CreateSecret(ctx context.Context, organisationId uuid.UUID, id
 
 	}
 	return &resp.CreateSecret, nil
+}
+
+func (q *queries) UpdateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error) {
+	resp, err := UpdateSecret(ctx, q.client, organisationId, id, configId, environmentId, code, value)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.UpdateSecret, nil
 }
 
 func (q *queries) DeleteSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error) {

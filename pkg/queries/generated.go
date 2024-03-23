@@ -880,6 +880,14 @@ type UpdateConfigResponse struct {
 // GetUpdateConfig returns UpdateConfigResponse.UpdateConfig, and is useful for accessing the field via an interface.
 func (v *UpdateConfigResponse) GetUpdateConfig() uuid.UUID { return v.UpdateConfig }
 
+// UpdateSecretResponse is returned by UpdateSecret on success.
+type UpdateSecretResponse struct {
+	UpdateSecret uuid.UUID `json:"updateSecret"`
+}
+
+// GetUpdateSecret returns UpdateSecretResponse.UpdateSecret, and is useful for accessing the field via an interface.
+func (v *UpdateSecretResponse) GetUpdateSecret() uuid.UUID { return v.UpdateSecret }
+
 // __CreateApiKeyInput is used internally by genqlient
 type __CreateApiKeyInput struct {
 	AggregateId    uuid.UUID `json:"aggregateId"`
@@ -1167,6 +1175,34 @@ type __UpdateConfigInput struct {
 
 // GetInput returns __UpdateConfigInput.Input, and is useful for accessing the field via an interface.
 func (v *__UpdateConfigInput) GetInput() *UpdateConfigInput { return v.Input }
+
+// __UpdateSecretInput is used internally by genqlient
+type __UpdateSecretInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	AggregateId    uuid.UUID `json:"aggregateId"`
+	ConfigId       uuid.UUID `json:"configId"`
+	EnvironmentId  uuid.UUID `json:"environmentId"`
+	Code           string    `json:"code"`
+	Value          string    `json:"value"`
+}
+
+// GetOrganisationId returns __UpdateSecretInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__UpdateSecretInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetAggregateId returns __UpdateSecretInput.AggregateId, and is useful for accessing the field via an interface.
+func (v *__UpdateSecretInput) GetAggregateId() uuid.UUID { return v.AggregateId }
+
+// GetConfigId returns __UpdateSecretInput.ConfigId, and is useful for accessing the field via an interface.
+func (v *__UpdateSecretInput) GetConfigId() uuid.UUID { return v.ConfigId }
+
+// GetEnvironmentId returns __UpdateSecretInput.EnvironmentId, and is useful for accessing the field via an interface.
+func (v *__UpdateSecretInput) GetEnvironmentId() uuid.UUID { return v.EnvironmentId }
+
+// GetCode returns __UpdateSecretInput.Code, and is useful for accessing the field via an interface.
+func (v *__UpdateSecretInput) GetCode() string { return v.Code }
+
+// GetValue returns __UpdateSecretInput.Value, and is useful for accessing the field via an interface.
+func (v *__UpdateSecretInput) GetValue() string { return v.Value }
 
 // The query or mutation executed by CreateApiKey.
 const CreateApiKey_Operation = `
@@ -2049,6 +2085,49 @@ func UpdateConfig(
 	var err_ error
 
 	var data_ UpdateConfigResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
+// The query or mutation executed by UpdateSecret.
+const UpdateSecret_Operation = `
+mutation UpdateSecret ($organisationId: UUID!, $aggregateId: UUID!, $configId: UUID!, $environmentId: UUID!, $code: String!, $value: String!) {
+	updateSecret(input: {organisation_id:$organisationId,aggregate_id:$aggregateId,config_id:$configId,environment_id:$environmentId,code:$code,secret_string:$value})
+}
+`
+
+func UpdateSecret(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	aggregateId uuid.UUID,
+	configId uuid.UUID,
+	environmentId uuid.UUID,
+	code string,
+	value string,
+) (*UpdateSecretResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateSecret",
+		Query:  UpdateSecret_Operation,
+		Variables: &__UpdateSecretInput{
+			OrganisationId: organisationId,
+			AggregateId:    aggregateId,
+			ConfigId:       configId,
+			EnvironmentId:  environmentId,
+			Code:           code,
+			Value:          value,
+		},
+	}
+	var err_ error
+
+	var data_ UpdateSecretResponse
 	resp_ := &graphql.Response{Data: &data_}
 
 	err_ = client_.MakeRequest(

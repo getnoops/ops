@@ -590,6 +590,7 @@ type Mutation {
   deleteContainerRepository(input: IdWithOrgInput!): UUID!
   loginContainerRepository(input: IdInput!): AuthContainerRepository!
   createSecret(input: CreateSecretInput!): UUID!
+  updateSecret(input: CreateSecretInput!): UUID!
   deleteSecret(input: IdWithOrgInput!): UUID!
   createApiKey(input: CreateApiKeyInput!): IdWithToken!
   updateApiKey(input: UpdateApiKeyInput!): IdWithToken!
