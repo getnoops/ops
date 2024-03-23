@@ -8,7 +8,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/a8m/envsubst v1.4.2
 	github.com/charmbracelet/lipgloss v0.10.0
-	github.com/contextcloud/goutils v0.1.48
+	github.com/contextcloud/goutils v0.1.49
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.6.0
