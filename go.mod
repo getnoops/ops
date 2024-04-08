@@ -17,7 +17,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
 	github.com/suzuki-shunsuke/go-convmap v0.2.0
-	github.com/ulikunitz/xz v0.5.11
+	github.com/ulikunitz/xz v0.5.12
 	github.com/zitadel/oidc/v2 v2.12.0
 	golang.org/x/oauth2 v0.18.0
 	golang.org/x/text v0.14.0
