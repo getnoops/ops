@@ -327,6 +327,13 @@ mutation UpdateSecret($organisationId: UUID!, $aggregateId: UUID!, $configId: UU
   })
 }
 
+mutation RestoreSecret($organisationId: UUID!, $id: UUID!) {
+  restoreSecret(input: {
+    organisation_id: $organisationId,
+    id: $id,
+  })
+}
+
 mutation DeleteSecret($organisationId: UUID!, $id: UUID!) {
   deleteSecret(input: {
     organisation_id: $organisationId,

@@ -11,13 +11,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-type DeleteConfig struct {
+type RestoreConfig struct {
 }
 
-func DeleteCommand() *cobra.Command {
+func RestoreCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "delete [compute] [env] [code]",
-		Short:  "Will delete a secret for a given compute and environment",
+		Use:    "restore [compute] [env] [code]",
+		Short:  "Will restore a secret for a given compute and environment. Must be in a pending deletion state.",
 		Args:   cobra.ExactArgs(3),
 		PreRun: util.BindPreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -26,14 +26,14 @@ func DeleteCommand() *cobra.Command {
 			code := args[2]
 
 			ctx := cmd.Context()
-			return Delete(ctx, configCode, envCode, code)
+			return Restore(ctx, configCode, envCode, code)
 		},
 		ValidArgs: []string{"compute", "code"},
 	}
 	return cmd
 }
 
-func Delete(ctx context.Context, computeCode string, environmentCode string, code string) error {
+func Restore(ctx context.Context, computeCode string, environmentCode string, code string) error {
 	cfg, err := config.New[DeleteConfig, *uuid.UUID](ctx, viper.GetViper())
 	if err != nil {
 		return err

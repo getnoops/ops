@@ -27,6 +27,7 @@ type Queries interface {
 
 	CreateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error)
 	UpdateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error)
+	RestoreSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error)
 	DeleteSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error)
 
 	GetApiKeys(ctx context.Context, organisationId uuid.UUID, page int, pageSize int) (*GetApiKeysApiKeysPagedApiKeysOutput, error)
@@ -158,9 +159,18 @@ func (q *queries) CreateSecret(ctx context.Context, organisationId uuid.UUID, id
 func (q *queries) UpdateSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID, configId uuid.UUID, environmentId uuid.UUID, code string, value string) (*uuid.UUID, error) {
 	resp, err := UpdateSecret(ctx, q.client, organisationId, id, configId, environmentId, code, value)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("UpdateSecret unexpected response: %v", err)
 	}
 	return &resp.UpdateSecret, nil
+}
+
+func (q *queries) RestoreSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error) {
+	resp, err := RestoreSecret(ctx, q.client, organisationId, id)
+	if err != nil {
+		return nil, fmt.Errorf("RestoreSecret unexpected response: %v", err)
+
+	}
+	return &resp.RestoreSecret, nil
 }
 
 func (q *queries) DeleteSecret(ctx context.Context, organisationId uuid.UUID, id uuid.UUID) (*uuid.UUID, error) {

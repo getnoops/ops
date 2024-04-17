@@ -92,7 +92,6 @@ input ConfigAccessInput {
 enum ConfigClass {
   compute
   storage
-  queue
   notification
 }
 
@@ -557,6 +556,7 @@ type Mutation {
   createOrganisation(input: CreateOrganisationInput!): UUID!
   updateOrganisation(input: UpdateOrganisationInput!): UUID!
   deleteOrganisation(input: IdInput!): UUID!
+  leaveOrganisation(input: IdInput!): UUID!
   updateUser(input: UpdateUserInput!): UUID!
   createMember(input: CreateMemberInput!): UUID!
   deleteMember(input: IdInput!): UUID!
@@ -591,6 +591,7 @@ type Mutation {
   loginContainerRepository(input: IdInput!): AuthContainerRepository!
   createSecret(input: CreateSecretInput!): UUID!
   updateSecret(input: CreateSecretInput!): UUID!
+  restoreSecret(input: IdWithOrgInput!): UUID!
   deleteSecret(input: IdWithOrgInput!): UUID!
   createApiKey(input: CreateApiKeyInput!): IdWithToken!
   updateApiKey(input: UpdateApiKeyInput!): IdWithToken!
@@ -820,13 +821,13 @@ enum PlanTier {
 }
 
 type PlanUnits {
-  microservices: Int!
-  databases: Int!
+  compute: Int!
+  storage: Int!
 }
 
 input PlanUnitsInput {
-  microservices: Int!
-  databases: Int!
+  compute: Int!
+  storage: Int!
 }
 
 input PreviewProrationInput {
@@ -972,6 +973,7 @@ type Secret {
   code: String!
   created_at: Time!
   updated_at: Time
+  deletion_date: Time
 }
 
 input SecretsInput {

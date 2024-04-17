@@ -160,7 +160,6 @@ type ConfigClass string
 const (
 	ConfigClassCompute      ConfigClass = "compute"
 	ConfigClassStorage      ConfigClass = "storage"
-	ConfigClassQueue        ConfigClass = "queue"
 	ConfigClassNotification ConfigClass = "notification"
 )
 
@@ -743,6 +742,14 @@ func (v *Resources) GetType() ResourceType { return v.Type }
 // GetData returns Resources.Data, and is useful for accessing the field via an interface.
 func (v *Resources) GetData() map[string]interface{} { return v.Data }
 
+// RestoreSecretResponse is returned by RestoreSecret on success.
+type RestoreSecretResponse struct {
+	RestoreSecret uuid.UUID `json:"restoreSecret"`
+}
+
+// GetRestoreSecret returns RestoreSecretResponse.RestoreSecret, and is useful for accessing the field via an interface.
+func (v *RestoreSecretResponse) GetRestoreSecret() uuid.UUID { return v.RestoreSecret }
+
 // RevisionItem includes the requested fields of the GraphQL type ConfigRevision.
 type RevisionItem struct {
 	Id             uuid.UUID   `json:"id"`
@@ -1159,6 +1166,18 @@ func (v *__NewDeploymentInput) GetConfigRevisionId() uuid.UUID { return v.Config
 
 // GetRevisionId returns __NewDeploymentInput.RevisionId, and is useful for accessing the field via an interface.
 func (v *__NewDeploymentInput) GetRevisionId() uuid.UUID { return v.RevisionId }
+
+// __RestoreSecretInput is used internally by genqlient
+type __RestoreSecretInput struct {
+	OrganisationId uuid.UUID `json:"organisationId"`
+	Id             uuid.UUID `json:"id"`
+}
+
+// GetOrganisationId returns __RestoreSecretInput.OrganisationId, and is useful for accessing the field via an interface.
+func (v *__RestoreSecretInput) GetOrganisationId() uuid.UUID { return v.OrganisationId }
+
+// GetId returns __RestoreSecretInput.Id, and is useful for accessing the field via an interface.
+func (v *__RestoreSecretInput) GetId() uuid.UUID { return v.Id }
 
 // __UpdateApiKeyInput is used internally by genqlient
 type __UpdateApiKeyInput struct {
@@ -2016,6 +2035,41 @@ func NewDeployment(
 	var err_ error
 
 	var data_ NewDeploymentResponse
+	resp_ := &graphql.Response{Data: &data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return &data_, err_
+}
+
+// The query or mutation executed by RestoreSecret.
+const RestoreSecret_Operation = `
+mutation RestoreSecret ($organisationId: UUID!, $id: UUID!) {
+	restoreSecret(input: {organisation_id:$organisationId,id:$id})
+}
+`
+
+func RestoreSecret(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organisationId uuid.UUID,
+	id uuid.UUID,
+) (*RestoreSecretResponse, error) {
+	req_ := &graphql.Request{
+		OpName: "RestoreSecret",
+		Query:  RestoreSecret_Operation,
+		Variables: &__RestoreSecretInput{
+			OrganisationId: organisationId,
+			Id:             id,
+		},
+	}
+	var err_ error
+
+	var data_ RestoreSecretResponse
 	resp_ := &graphql.Response{Data: &data_}
 
 	err_ = client_.MakeRequest(
