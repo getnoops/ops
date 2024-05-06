@@ -20,7 +20,7 @@ require (
 	github.com/ulikunitz/xz v0.5.11
 	github.com/zitadel/oidc/v2 v2.12.0
 	golang.org/x/oauth2 v0.18.0
-	golang.org/x/text v0.14.0
+	golang.org/x/text v0.15.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
